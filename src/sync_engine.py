@@ -824,14 +824,27 @@ def fold_pipeline_patch_already_applied() -> bool:
 
 
 def patch_command(name: str, dry_run: bool = False) -> list[str]:
+    """How to apply one of our patches — with a fallback when the package's own
+    `patch.exe` is not there.
+
+    `toolchain/bin/patch.exe` ships with the portable package but NOT with a CI
+    checkout (`toolchain/` is gitignored), and a GitHub runner does have git.
+    Our patches are plain unified diffs with `a/`/`b/` prefixes, so `git apply
+    -p1` means the same thing here, and `--check` is `patch --dry-run`.
+    """
     patch = PATCHES / name
     if not patch.exists():
         raise RuntimeError(f"missing patch: {patch}")
-    cmd = [str(TOOL_BIN / "patch.exe"), "-p1", "--forward", "--batch"]
+    local = TOOL_BIN / "patch.exe"
+    if local.exists():
+        cmd = [str(local), "-p1", "--forward", "--batch"]
+        if dry_run:
+            cmd.append("--dry-run")
+        return cmd + ["-i", str(patch)]
+    cmd = ["git", "apply", "-p1", "--whitespace=nowarn"]
     if dry_run:
-        cmd.append("--dry-run")
-    cmd += ["-i", str(patch)]
-    return cmd
+        cmd.append("--check")
+    return cmd + [str(patch)]
 
 
 def run_patch(name: str, dry_run: bool = False) -> None:
