@@ -75,8 +75,9 @@ run-portable.bat        便携包启动脚本（包内路径）
 ci/patches/             本分支对上游的 5 个补丁（唯一真源）
 ci/core-host-template/  客户端自建引擎用的 core-host 模板
 ci/tools/               逐位闸门与语料（run_corpus / verify_batch / verify_pipeline / pgo_train / corpus.json / riven3.json）
-ci/fetch_sources.py     按清单拉上游源码并应用补丁
-ci/build_engine.py      MSVC+PGO 构建 + 三道逐位闸门
+ci/fetch_sources.py     按清单拉上游源码并应用补丁（tarball 一次拉完 4,220 个文件 + `.synced-commit` 跳过）
+ci/build_engine.py      MSVC+PGO 构建（PGO 三轮；`--gates` 决定在这里跑哪段闸门）
+ci/gate_engine.py       独立闸门 job：对已下载的 exe 跑 board+锚点，或一条紫卡（--riven-only）
 ci/pack_portable.py     打便携包（引擎 + src + 便携 Python + 依赖 + 文档 + 启动脚本）
 ci/requirements.txt     依赖清单（textual 等）
 .github/workflows/      build-engine.yml（补丁变→最新引擎）、release.yml（两条线发 Release）
@@ -86,7 +87,7 @@ ci/requirements.txt     依赖清单（textual 等）
 
 ## 两个 CI 工作流
 
-1. **`build-engine.yml`** —— 定时（每 6 小时）+ 手动 + `ci/patches/**` 变动时：拉**最新**上游源码 → 应用 `ci/patches/*.patch` → MSVC+PGO 构建 → 三道逐位闸门 → 上传 `wfsim-core.exe` 与 `engine-identity.json`（engine id / sha256 / 闸门结果）。
+1. **`build-engine.yml`** —— 定时（每 6 小时）+ 手动 + `ci/patches/**` 变动时，**3 个 job**：`build`（拉**最新**上游源码 → 应用 `ci/patches/*.patch` → MSVC+PGO 构建 → 上传 `wfsim-core.exe` / `engine-identity.json`）、`gate-board`（100 board + 5 锚点）、`gate-riven`（3 条紫卡各一个 job，**并行**）。四路闸门彼此独立，所以墙钟是 `max(board+锚点, 最慢那条紫卡)` 而不是它们的和；任一路失败 ⇒ 工作流失败 ⇒ 不发版。
 2. **`release.yml`**（工作流名 `release`）—— 上一个工作流成功后（或手动）**发布两条独立的 Release 线**：
 
    | 标签 | 内容 | 给谁 |

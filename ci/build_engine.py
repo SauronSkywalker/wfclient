@@ -93,23 +93,6 @@ def cargo_build(work: pathlib.Path, out: pathlib.Path, cpu: str, crt_static: boo
     return exe
 
 
-def gate(tools: pathlib.Path, exe: pathlib.Path, label: str, extra: list[str], port: int) -> None:
-    log = tools.parent.parent / "dist" / f"gate-{label}.log"
-    log.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [sys.executable, str(tools / "run_corpus.py"), str(exe), "--port", str(port)] + extra
-    print(f"+ {label} gate: {' '.join(cmd)}", flush=True)
-    p = subprocess.run(cmd, cwd=tools, capture_output=True, text=True)
-    text = (p.stdout or "") + (p.stderr or "")
-    log.write_text(text, encoding="utf-8")
-    tail = "\n".join(text.strip().splitlines()[-4:])
-    print(tail, flush=True)
-    # The CI copy of the runner prints ASCII, the dev copy prints Chinese;
-    # accept either so the same script works in both places.
-    clean = ("0 mismatches" in text) or ("0 条不一致" in text)
-    if p.returncode != 0 or "PASS" not in text or not clean:
-        raise SystemExit(f"{label} gate FAILED (see {log})")
-
-
 def sha256_of(path: pathlib.Path) -> str:
     import hashlib
     h = hashlib.sha256()
@@ -155,6 +138,10 @@ def main() -> int:
     ap.add_argument("--riven", type=int, default=1, help="training riven jobs for PGO")
     ap.add_argument("--rivens-gate", type=int, default=0,
                     help="0 = skip the (slow ~7 min) 20-riven gate, 3 = quick sample, 20 = full")
+    ap.add_argument("--gates", choices=("all", "board", "riven", "none"), default="all",
+                    help="which bit-identity gates to run here.  CI runs them in their own "
+                         "jobs (ci/gate_engine.py on the uploaded exe) so four runners work in "
+                         "parallel and a failure is isolated; 'all' keeps the local one-shot run")
     ap.add_argument("--skip-gates", action="store_true")
     ap.add_argument("--reuse-profdata", action="store_true",
                     help="start from a cached training profile if one is present "
@@ -254,17 +241,22 @@ def main() -> int:
         train()
         exe = delivery_build()
 
-    # 5) bit-identity gates before anything is published
-    if not a.skip_gates:
-        gate(tools, exe, "board-100", [], 9501)
-        gate(tools, exe, "wasm-anchors-105", ["--anchors"], 9502)
-        if a.rivens_gate:
+    # 5) bit-identity gates before anything is published.  In CI the gates run in
+    #    their own jobs against the uploaded exe (ci/gate_engine.py), so board,
+    #    anchors and the three rivens use four runners at once; this path stays for
+    #    the local one-shot run and for --gates board/riven debugging.
+    if a.skip_gates:
+        a.gates = "none"
+    if a.gates != "none":
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+        import gate_engine
+        if a.gates in ("all", "board"):
+            gate_engine.run_gate(exe, "board", port=9501, log_dir=out)
+        if a.gates in ("all", "riven"):
             # >= 20 runs the full frozen corpus; a smaller number runs the 3-riven quick sample
             corp = root / "ci" / "tools" / ("riven_corpus.json" if a.rivens_gate >= 20
                                             else "riven3.json")
-            gate(tools, exe, f"riven-{a.rivens_gate}",
-                 ["--corpus", str(root / "ci" / "tools" / "empty.json"), "--riven",
-                  "--riven-corpus", str(corp)], 9503)
+            gate_engine.run_gate(exe, "riven", riven_corpus=str(corp), port=9503, log_dir=out)
 
     # 6) publish
     final = out / "wfsim-core.exe"

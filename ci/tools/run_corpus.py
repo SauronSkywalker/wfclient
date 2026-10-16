@@ -124,6 +124,9 @@ def main():
                     help="也回放 riven_corpus.json（20 条约 4–5 分钟；--riven-corpus 可换子集）")
     ap.add_argument("--riven-corpus", default=os.path.join(BASE, "riven_corpus.json"),
                     help="紫卡语料路径（默认 ci/tools/riven_corpus.json；快筛用 riven3.json）")
+    ap.add_argument("--riven-only", default="",
+                    help="只回放这一条紫卡（id 或 1 起的序号）。CI 把 3 条紫卡拆成 3 个并发 "
+                         "job 时，每个 job 用它各取一条；选不中直接失败，绝不静默跳过")
     ap.add_argument("--port", type=int, default=9398)
     a = ap.parse_args()
 
@@ -137,6 +140,26 @@ def main():
                   % (len(riven), sum(x["note"].get("build_s", 60) for x in riven) / 60.0))
         else:
             print("no %s, skipping riven" % rp)
+    if a.riven_only:
+        # A split CI job must never pass by running nothing: an unmatched selector
+        # is a hard failure, not a skip.
+        if not riven:
+            print("--riven-only %r needs --riven and an existing corpus" % a.riven_only)
+            return 2
+        want = a.riven_only
+        if want.isdigit():
+            i = int(want) - 1
+            sel = [riven[i]] if 0 <= i < len(riven) else []
+        else:
+            sel = [x for x in riven if x.get("id") == want]
+        if not sel:
+            print("--riven-only %r matched nothing in %s (ids: %s)"
+                  % (want, a.riven_corpus,
+                     ", ".join(str(x.get("id")) for x in riven)))
+            return 2
+        print("riven slice: %s (%s)"
+              % (sel[0].get("id"), sel[0].get("note", {}).get("build_s")))
+        riven = sel
     if a.anchors:
         from verify_pipeline import REF, RECS
         for w, (score, work, ruler, mode) in REF.items():

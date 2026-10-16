@@ -7,8 +7,10 @@
 
 | 工作流 | 触发 | 做什么 |
 |---|---|---|
-| `build-engine.yml` | 定时（每 6 小时）/ 手动 / `ci/patches/**` 变动 | 拉最新上游源码 → 打补丁 → MSVC+PGO 构建 → 三道闸门 → 上传 `wfsim-core.exe` + `engine-identity.json` + 闸门日志 |
-| `release.yml`（工作流名 `release`） | 上一个工作流成功后 / 手动 | 发**两条独立 Release**：`engine-<id>`（只放引擎 exe + 身份 json）与 `portable-<id>`（完整便携包 zip，标 latest）；便携包那条打包前跑 5 个 WASM 锚点冒烟 |
+| `build-engine.yml` | 定时（每 6 小时）/ 手动 / `ci/patches/**` 变动 | **3 个 job**：`build`（拉最新上游源码 → 打补丁 → MSVC+PGO 构建 → 上传 exe+身份 json）、`gate-board`（100 board + 5 锚点）、`gate-riven`（矩阵 3 条紫卡各一个 job，并行） |
+| `release.yml`（工作流名 `release`） | 上一个工作流**全部 job 成功后** / 手动 | 发**两条独立 Release**：`engine-<id>`（只放引擎 exe + 身份 json）与 `portable-<id>`（完整便携包 zip，标 latest）；便携包那条打包前跑 5 个 WASM 锚点冒烟 |
+
+`release.yml` 靠 `workflow_run: completed + conclusion == success` 触发 ⇒ 任一闸门 job 失败就**不会发版**（这就是"闸门串在发布前面"的实现方式，而不是靠脚本里的顺序）。
 
 CI 用 `--target-cpu x86-64-v3`（通用 AVX2 基线）；本地自建建议 `native`。
 
@@ -39,15 +41,26 @@ python ci/pack_portable.py --build-dir dist/staging --keep-build   # → dist/wf
 | `--target-cpu` | `x86-64-v3` | 本地可传 `native` |
 | `--crt-static` | 关 | 静态链接 CRT（目标机不需要 `vcruntime140*.dll`） |
 | `--board` / `--riven` | `40` / `1` | PGO 训练量 |
-| `--rivens-gate` | `0` | `0` 跳过；`3` 用 3 条快筛；`20` 跑满 20 条（约 7 分钟） |
+| `--rivens-gate` | `0` | `all` 口径下：`0` 跳过；`3` 用 3 条快筛；`20` 跑满 20 条（约 7 分钟） |
+| `--gates` | `all` | `all` 本机一把跑完（board + 锚点 + 紫卡）；`board` / `riven` 只跑其中一段；`none` 只构建（CI 的 `build` job 用它，闸门交给独立 job） |
 | `--reuse-profdata` | 关 | 复用 `<out>/pgo/default.profdata`（CI 用缓存恢复它）；缺失或与源码不符时自动回到完整训练 |
-| `--skip-gates` | 关 | 调试用；**发版绝不要加** |
+| `--skip-gates` | 关 | `--gates none` 的别名；调试用；**发版绝不要加** |
+
+`ci/gate_engine.py`（独立闸门 job 用，不需要 rust 工具链、不需要源码树）
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `--exe` | `dist/wfsim-core.exe` | 待验引擎（由 `build` job 的 artifact 下载而来） |
+| `--gate` | 必填 | `board`（100 board + 5 锚点，串行两段）或 `riven` |
+| `--riven-only` | 空 | 只跑一条紫卡（id 或 1 起序号）；**选不中直接失败**，绝不静默跳过 |
+| `--riven-corpus` | `ci/tools/riven_corpus.json` | 并行切片用 `ci/tools/riven3.json` |
+| `--port` / `--log-dir` | `9501` / exe 所在目录 | 每段闸门各写 `gate-<label>.log`（失败时的唯一证据） |
 
 `ci/pack_portable.py`：`--engine` / `--identity` / `--out` / `--build-dir` / `--python-version` / `--stamp` / `--keep-build`。
 
 ## CI 缓存（每次省掉大半轮）
 
-`build-engine.yml` 用 `actions/cache@v4` 恢复三类产物，key 里带补丁/语料的哈希，`restore-keys` 前缀兜底：
+`build-engine.yml` 用 `actions/cache@v6` 恢复三类产物，key 里带补丁/语料的哈希，`restore-keys` 前缀兜底：
 
 | 缓存路径 | 内容 | 说明 |
 |---|---|---|
@@ -57,6 +70,9 @@ python ci/pack_portable.py --build-dir dist/staging --keep-build   # → dist/wf
 
 profile 只有在控制流真的移动时才会失效，而失效也只是 rustc 的警告；发不发版始终由三道闸门决定。
 `--reuse-profdata` 缺档、或最终构建真的拒绝该 profile 时，脚本会自动回到完整训练（`train()`）再编一次。
+
+缓存体积（API 实测，压缩后）：`dist/target` 95.4 MB、`dist/pgo` 6.0 MB、源码树+cargo 索引 7.8 MB ⇒ 每轮新增约 **109 MB**；
+仓库缓存配额 10 GB ⇒ 约 90 轮才轮到 LRU 回收（6 小时一轮 ≈ 三周），且 `restore-keys` 会兜住稍旧的条目。
 
 PGO 的 profile 目录必须是**纯 ASCII 路径**（`-Cprofile-generate=<dir>` 会被编进二进制，运行时用窄字符 `fopen` 静默失败）：
 `--out` 含非 ASCII 时脚本自动改用 `%TEMP%\wfsim-pgo`，CI 的 `D:\a\wfclient\wfclient\dist` 天然满足。
@@ -68,13 +84,20 @@ PGO 的 profile 目录必须是**纯 ASCII 路径**（`-Cprofile-generate=<dir>`
 
 ## 闸门（发布前必须全绿）
 
-| 闸门 | 内容 | 参考耗时 |
-|---|---|---|
-| `board-100` | 100 条 board 语料（`ci/tools/corpus.json`） | ~30 s |
-| `wasm-anchors-105` | 100 条 + 5 个站点 WASM 锚点 | ~36 s |
-| `riven-20` | 20 条紫卡优化器报告（`ci/tools/riven_corpus.json`） | ~7–8 分钟 |
+| 闸门 | 内容 | CI runner 实测 | 跑在哪个 job |
+|---|---|---|---|
+| `board-100` | 100 条 board 语料（`ci/tools/corpus.json`） | 63 s（缓存前 30 s 是本机） / 114 s | `gate-board` |
+| `wasm-anchors-105` | 100 条 + 5 个站点 WASM 锚点 | 63 s / 135 s | `gate-board`（同一 runner 串行） |
+| `riven-3` | 3 条紫卡优化器报告（`ci/tools/riven3.json`，各一条） | 130 s / 295 s | `gate-riven` × 3（**并行，各占一个 runner**） |
+| `riven-20` | 20 条紫卡全量 | ~7–8 分钟 | `--rivens-gate 20`（发版前可手工跑） |
 
-口径：`score`（浮点精确）、`metric`、`work`（整数）、`counts`（字典全等）。任一道 FAIL ⇒ **不产出 `dist/wfsim-core.exe`**。
+口径：`score`（浮点精确）、`metric`、`work`（整数）、`counts`（字典全等）。任一道 FAIL ⇒ 整个 `build-engine` 结论失败 ⇒ `release.yml` 不发版。
+
+### 为什么拆成 4 个 job
+
+闸门彼此独立，串行只是历史包袱：拆开后墙钟从"相加"变成 `max(board+anchors, 最慢那条紫卡)`。
+实测两轮：run `38970844958` 闸门合计 256 s、run `38973837158` 合计 544 s（那轮紫卡 295 s）⇒ 现在约 `max(≈250, ≈300)`，整轮省 1.5–3 分钟。
+成本可忽略：artifact `wfsim-core-and-identity` 只有 3.92 MB（14.9 MB 的 exe 压缩后），多三次下载 = 几秒；并发上限 Free 档也有 20 个 job，public 仓库的 Actions 分钟数免费。
 
 ## 补丁政策
 

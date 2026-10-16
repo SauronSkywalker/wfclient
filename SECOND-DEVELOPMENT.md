@@ -77,11 +77,14 @@ python ci/build_engine.py --crt-static --target-cpu x86-64-v3 --rivens-gate 3
 python ci/pack_portable.py --build-dir dist/staging --keep-build
 ```
 
-`ci/build_engine.py` 三道闸门（任一道 FAIL 即**不产出**）：
+`ci/build_engine.py --gates all` 跑完三道闸门（任一道 FAIL 即**不产出**）：
 
 1. 100 条 board（`ci/tools/corpus.json`）
 2. 100 条 + 5 个站点 WASM 锚点（`--anchors`）
-3. 20 条紫卡优化器报告（`--rivens-gate 20`；`--rivens-gate 3` 用 3 条快筛，`0` 跳过；发版前建议跑满）
+3. 紫卡优化器报告（`--rivens-gate 20` 全量；`3` 用 3 条快筛，`0` 跳过）
+
+CI 里这四路闸门是**四个并行 job**（`ci/gate_engine.py`：`gate-board` 跑前两道、`gate-riven` 矩阵各跑一条紫卡），
+对同一个 `build` job 上传的 exe 验；任一路失败 ⇒ 整个工作流失败 ⇒ `release.yml` 不发版。
 
 口径：`score`（浮点精确）、`metric`、`work`（整数）、`counts`（字典全等）。
 
