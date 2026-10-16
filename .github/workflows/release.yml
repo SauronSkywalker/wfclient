@@ -1,0 +1,142 @@
+name: release
+
+# Workflow 2 of 2 -- 编译成功后自动发布，两条独立的 release 线：
+#
+#   engine-<id>     只放引擎本体（wfsim-core.exe + engine-identity.json）
+#                   给"只想换引擎"的人和客户端更新器用；标签就是 engine id，客户端
+#                   拿到服务器下发的 engine id 后按 `releases/tags/engine-<id>` 直取。
+#   portable-<id>   放带最新引擎的完整便携包 zip（客户端 src + 便携版 Python + 依赖
+#                   + 说明 + 启动脚本），是给普通用户的下载入口，标为 latest。
+#
+# 两条线各自发布，互不覆盖：只想换引擎的人不必再下一整个包，反之亦然。
+on:
+  workflow_run:
+    workflows: ["build-engine"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "build-engine 的 run id（留空则用本工作流自己的 id，通常用于手动重发最近一次成功产物时填）"
+        required: false
+
+permissions:
+  contents: write          # create the releases
+  actions: read            # download the artifact built by workflow 1
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  engine:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: download the engine built by build-engine
+        uses: actions/download-artifact@v4
+        with:
+          name: wfsim-core-and-identity
+          path: dist
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: read the engine identity
+        id: ident
+        shell: python
+        run: |
+          import json, os, pathlib
+          d = json.loads(pathlib.Path("dist/engine-identity.json").read_text(encoding="utf-8"))
+          eng = d.get("engine_online") or d.get("engine") or "unknown"
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"engine={eng}\n")
+              f.write(f"sha={d.get('sha256','')}\n")
+              f.write(f"size={d.get('size',0)}\n")
+              f.write(f"cpu={d.get('target_cpu','')}\n")
+              f.write(f"crt={'static' if d.get('crt_static') else 'dynamic'}\n")
+          print(eng, d.get("sha256"))
+
+      - name: publish the engine release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: engine-${{ steps.ident.outputs.engine }}
+          name: "wfclient engine ${{ steps.ident.outputs.engine }}"
+          make_latest: "false"
+          body: |
+            只含引擎本体，供已有便携包的用户替换 `engine/wfsim-core.exe`（标签即 engine id，可幂等重发）。
+
+            | 字段 | 值 |
+            |---|---|
+            | engine id | `${{ steps.ident.outputs.engine }}` |
+            | sha256 | `${{ steps.ident.outputs.sha }}` |
+            | size | ${{ steps.ident.outputs.size }} bytes |
+            | target-cpu | `${{ steps.ident.outputs.cpu }}`（AVX2 通用版） |
+            | CRT | ${{ steps.ident.outputs.crt }} |
+            | 构建 | MSVC + PGO + mimalloc，三道逐位闸门全过才发布 |
+
+            用法：解压覆盖到便携包 `engine/`（先把旧文件另存为 `wfsim-core.prev.exe`）。完整包见
+            `portable-${{ steps.ident.outputs.engine }}`。
+          files: |
+            dist/wfsim-core.exe
+            dist/engine-identity.json
+          fail_on_unmatched_files: true
+
+  portable:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: download the engine built by build-engine
+        uses: actions/download-artifact@v4
+        with:
+          name: wfsim-core-and-identity
+          path: dist
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: read the engine identity
+        id: ident
+        shell: python
+        run: |
+          import json, os, pathlib
+          d = json.loads(pathlib.Path("dist/engine-identity.json").read_text(encoding="utf-8"))
+          eng = d.get("engine_online") or d.get("engine") or "unknown"
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"engine={eng}\n")
+              f.write(f"sha={d.get('sha256','')}\n")
+          print(eng, d.get("sha256"))
+
+      - name: pack the portable zip
+        run: python ci/pack_portable.py --build-dir dist/staging --keep-build
+
+      - name: smoke test the packed engine (5 WASM anchors)
+        run: python ci/tools/run_corpus.py dist/staging/engine/wfsim-core.exe --anchors --port 9510
+
+      - name: publish the portable release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: portable-${{ steps.ident.outputs.engine }}
+          name: "wfclient portable ${{ steps.ident.outputs.engine }}"
+          make_latest: "true"
+          body: |
+            完整便携包：内置打好补丁的引擎（MSVC + PGO + mimalloc，随包预编译）、客户端 src、
+            便携版 Python 与依赖、使用说明与启动脚本。解压后双击 `run-portable.bat` 即可运行。
+
+            | 字段 | 值 |
+            |---|---|
+            | engine id | `${{ steps.ident.outputs.engine }}` |
+            | 引擎 sha256 | `${{ steps.ident.outputs.sha }}` |
+            | 打包前冒烟 | 5 个站点 WASM 锚点逐位一致 |
+
+            只想替换引擎、不想重下整包的话，见 `engine-${{ steps.ident.outputs.engine }}`。
+            详细说明见包内 `README-便携包.md`，引擎身份见 `engine/engine-identity.json`。
+          files: dist/wfsim-portable-*.zip
+          fail_on_unmatched_files: true

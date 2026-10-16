@@ -573,13 +573,29 @@ def local_blob_sha(path: pathlib.Path) -> str | None:
         return None
 
 
+def work_target(rel: str) -> pathlib.Path:
+    """The file a tree path names, PROVEN to sit inside the worktree.
+
+    The listing comes from a remote server, so a path must be relative and
+    must not climb out.  The components are checked rather than the resolved
+    string: on Windows the same directory is reported either as ``D:\\a\\...``
+    or as ``\\\\?\\D:\\a\\...`` depending on whether it exists and on any
+    reparse point in the chain, so the old ``resolve()`` prefix test rejected
+    an ordinary ``data/abilities/*.yaml`` on a CI runner while accepting it on
+    a developer machine (run 38959289878, 2026-10-16).
+    """
+    rel = (rel or "").replace("\\", "/")
+    parts = [p for p in rel.split("/") if p not in ("", ".")]
+    # Windows silently strips a trailing space or dot from a name, which would
+    # put the file somewhere other than where the listing said: refuse those
+    # rather than write to a path the tree never named.
+    if not parts or any(p == ".." or ":" in p or p.strip() != p for p in parts):
+        raise RuntimeError(f"refusing to fetch outside the worktree: {rel!r}")
+    return WORK.joinpath(*parts)
+
+
 def fetch_one(item: dict) -> tuple[str, bool]:
-    # A path from a remote listing must resolve INSIDE the worktree; anything
-    # else is a listing we do not understand, not a file to write.
-    root = WORK.resolve()
-    target = (WORK / item["path"]).resolve()
-    if not str(target).startswith(str(root) + os.sep):
-        raise RuntimeError(f"refusing to fetch outside the worktree: {item['path']!r}")
+    target = work_target(item["path"])
     if local_blob_sha(target) == item["sha"]:
         return item["path"], False
     data = http_bytes(item["url"])

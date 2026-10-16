@@ -79,7 +79,7 @@ ci/fetch_sources.py     按清单拉上游源码并应用补丁
 ci/build_engine.py      MSVC+PGO 构建 + 三道逐位闸门
 ci/pack_portable.py     打便携包（引擎 + src + 便携 Python + 依赖 + 文档 + 启动脚本）
 ci/requirements.txt     依赖清单（textual 等）
-.github/workflows/      build-engine.yml（补丁变→最新引擎）、release-portable.yml（引擎→zip Release）
+.github/workflows/      build-engine.yml（补丁变→最新引擎）、release.yml（两条线发 Release）
 ```
 
 ---
@@ -87,7 +87,15 @@ ci/requirements.txt     依赖清单（textual 等）
 ## 两个 CI 工作流
 
 1. **`build-engine.yml`** —— 定时（每 6 小时）+ 手动 + `ci/patches/**` 变动时：拉**最新**上游源码 → 应用 `ci/patches/*.patch` → MSVC+PGO 构建 → 三道逐位闸门 → 上传 `wfsim-core.exe` 与 `engine-identity.json`（engine id / sha256 / 闸门结果）。
-2. **`release-portable.yml`** —— 上一个工作流成功后（或手动）：下载引擎产物 → `ci/pack_portable.py` 打出便携包 → 跑 5 个 WASM 锚点冒烟 → 发布 GitHub Release。
+2. **`release.yml`**（工作流名 `release`）—— 上一个工作流成功后（或手动）**发布两条独立的 Release 线**：
+
+   | 标签 | 内容 | 给谁 |
+   |---|---|---|
+   | `engine-<engine id>` | 只有 `wfsim-core.exe` + `engine-identity.json` | 已有包、只想换引擎的人；客户端更新器按 id 直取 |
+   | `portable-<engine id>` | 完整便携包 zip（引擎 + src + 便携 Python + 依赖 + 说明 + 启动脚本） | 普通下载入口，标为 latest |
+
+   标签就是 engine id ⇒ 同一个引擎重发是幂等的（覆盖同名资产），客户端也不需要遍历历史。
+   便携包那条线打包前再跑 5 个站点 WASM 锚点冒烟。
 
 CI 里引擎用 `-C target-cpu=x86-64-v3`（一档 AVX2 基线）而不是 `native`：那边是通用托管机，`native` 只能在构建机上跑。本地自建仍建议 `native`（本机 Zen 4 下比 v3 快 12.5%）。
 

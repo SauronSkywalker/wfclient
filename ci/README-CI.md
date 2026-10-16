@@ -8,7 +8,7 @@
 | 工作流 | 触发 | 做什么 |
 |---|---|---|
 | `build-engine.yml` | 定时（每 6 小时）/ 手动 / `ci/patches/**` 变动 | 拉最新上游源码 → 打补丁 → MSVC+PGO 构建 → 三道闸门 → 上传 `wfsim-core.exe` + `engine-identity.json` + 闸门日志 |
-| `release-portable.yml` | 上一个工作流成功后 / 手动 | 下载引擎 → `pack_portable.py` 打便携包 → 跑 5 个 WASM 锚点冒烟 → 发 GitHub Release |
+| `release.yml`（工作流名 `release`） | 上一个工作流成功后 / 手动 | 发**两条独立 Release**：`engine-<id>`（只放引擎 exe + 身份 json）与 `portable-<id>`（完整便携包 zip，标 latest）；便携包那条打包前跑 5 个 WASM 锚点冒烟 |
 
 CI 用 `--target-cpu x86-64-v3`（通用 AVX2 基线）；本地自建建议 `native`。
 
