@@ -40,9 +40,26 @@ python ci/pack_portable.py --build-dir dist/staging --keep-build   # → dist/wf
 | `--crt-static` | 关 | 静态链接 CRT（目标机不需要 `vcruntime140*.dll`） |
 | `--board` / `--riven` | `40` / `1` | PGO 训练量 |
 | `--rivens-gate` | `0` | `0` 跳过；`3` 用 3 条快筛；`20` 跑满 20 条（约 7 分钟） |
+| `--reuse-profdata` | 关 | 复用 `<out>/pgo/default.profdata`（CI 用缓存恢复它）；缺失或与源码不符时自动回到完整训练 |
 | `--skip-gates` | 关 | 调试用；**发版绝不要加** |
 
 `ci/pack_portable.py`：`--engine` / `--identity` / `--out` / `--build-dir` / `--python-version` / `--stamp` / `--keep-build`。
+
+## CI 缓存（每次省掉大半轮）
+
+`build-engine.yml` 用 `actions/cache@v4` 恢复三类产物，key 里带补丁/语料的哈希，`restore-keys` 前缀兜底：
+
+| 缓存路径 | 内容 | 说明 |
+|---|---|---|
+| `engine-src/work` + `~/.cargo/{registry,git}` | 上游源码树 + crate 索引 | 命中时 `fetch_sources.py` 按 `.synced-commit` 标记**整段跳过**下载 |
+| `dist/target` | MSVC 编译缓存（约 540 MB） | 冷启动编 mimalloc/serde/optimizer/webapi 两遍；命中后只编变了的 crate |
+| `dist/pgo` | 训练好的 `default.profdata`（约 3 MB） | 配 `--reuse-profdata` 命中时**跳过仪器化构建 + 训练**（约 6 分钟） |
+
+profile 只有在控制流真的移动时才会失效，而失效也只是 rustc 的警告；发不发版始终由三道闸门决定。
+`--reuse-profdata` 缺档、或最终构建真的拒绝该 profile 时，脚本会自动回到完整训练（`train()`）再编一次。
+
+PGO 的 profile 目录必须是**纯 ASCII 路径**（`-Cprofile-generate=<dir>` 会被编进二进制，运行时用窄字符 `fopen` 静默失败）：
+`--out` 含非 ASCII 时脚本自动改用 `%TEMP%\wfsim-pgo`，CI 的 `D:\a\wfclient\wfclient\dist` 天然满足。
 
 ## 凭据
 

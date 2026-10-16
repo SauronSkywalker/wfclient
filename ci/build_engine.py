@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
 import json
 import os
 import pathlib
@@ -118,6 +119,30 @@ def sha256_of(path: pathlib.Path) -> str:
     return h.hexdigest()
 
 
+def profile_key(root: pathlib.Path, work: pathlib.Path) -> str:
+    """What a trained profile is strictly valid for.
+
+    rustc treats a profile whose function control flow moved as a warning, so a
+    near miss still pays off; the recorded key is the exact one anyway -- upstream
+    commit, patches hash and the bytes of the training corpus.  A cached profile
+    only ever saves time: the bit-identity gates below are what decide whether an
+    engine gets published.
+    """
+    ident = {}
+    try:
+        ident = json.loads((root / "engine-src" / "ci-identity.json")
+                           .read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    h = hashlib.sha256()
+    for name in ("corpus.json", "riven_corpus.json", "riven3.json"):
+        p = root / "ci" / "tools" / name
+        if p.exists():
+            h.update(p.read_bytes())
+    return "|".join([str(ident.get("commit", "?")), str(ident.get("patches_sha", "?")),
+                     h.hexdigest()[:16]])
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
@@ -131,6 +156,10 @@ def main() -> int:
     ap.add_argument("--rivens-gate", type=int, default=0,
                     help="0 = skip the (slow ~7 min) 20-riven gate, 3 = quick sample, 20 = full")
     ap.add_argument("--skip-gates", action="store_true")
+    ap.add_argument("--reuse-profdata", action="store_true",
+                    help="start from a cached training profile if one is present "
+                         "(the cache restores it); trains from scratch if it is missing "
+                         "or if the delivery build rejects it")
     a = ap.parse_args()
 
     root = pathlib.Path(a.root).resolve()
@@ -144,43 +173,86 @@ def main() -> int:
     t0 = time.time()
     pgo = pgo_dir(out)
     pgo.mkdir(parents=True, exist_ok=True)
-    # A retried run can find the previous run's profile here (the cache restores
-    # it); merging stale counters with fresh ones would train on the wrong mix.
-    for old in pgo.glob("*.profraw"):
-        old.unlink()
-
-    # 1) instrumented build (only this one can write a profile: needs libprofiler_builtins)
-    gen_exe = cargo_build(work, out, a.target_cpu, False, FEATURES_TRAIN,
-                          [f"-Cprofile-generate={pgo}"])
-
-    # Keep the instrumented binary aside under a name the final build cannot
-    # overwrite.  Both passes share one CARGO_TARGET_DIR and one output path, so
-    # training against `gen_exe` directly would silently produce no profile the
-    # moment anything reorders these steps (measured: a profile-use exe at that
-    # path answers normally and writes 0 bytes).
-    trainer = pgo / "trainer.exe"
-    shutil.copy2(gen_exe, trainer)
-    if b"__llvm_profile_write_file" not in trainer.read_bytes():
-        raise SystemExit(f"{trainer} looks like a non-instrumented build")
-
-    # 2) train on the frozen corpus, then stop the engine through POST /api/quit so the
-    #    profiler runtime flushes (the engine is otherwise killed and writes nothing).
-    run([sys.executable, str(tools / "pgo_train.py"), str(trainer),
-         "--board", str(a.board), "--riven", str(a.riven), "--prof", str(pgo),
-         "--port", "9500"], cwd=tools)
-    profraws = sorted(glob.glob(str(pgo / "*.profraw")))
-    if not profraws:
-        raise SystemExit(f"no .profraw produced in {pgo}")
-    print(f"profraw files: {len(profraws)} ({sum(os.path.getsize(p) for p in profraws):,} bytes)")
-
-    # 3) merge
     profdata = pgo / "default.profdata"
-    run([find_profdata(), "merge", "-o", str(profdata)] + profraws)
-    print(f"profdata {profdata} ({profdata.stat().st_size:,} bytes)")
+    keyfile = pgo / "profile-key.json"
+    key = profile_key(root, work)
 
-    # 4) the delivery build itself
-    exe = cargo_build(work, out, a.target_cpu, a.crt_static, FEATURES_FINAL,
-                      [f"-Cprofile-use={profdata}"])
+    def train() -> None:
+        """The expensive half: instrumented build, training run, merge (~6 min)."""
+        # A retried run can find the previous run's profile here (the cache
+        # restores it); merging stale counters with fresh ones would train on
+        # the wrong mix.
+        for old in pgo.glob("*.profraw"):
+            old.unlink()
+        if profdata.exists():
+            profdata.unlink()
+
+        # 1) instrumented build (only this one can write a profile: needs libprofiler_builtins)
+        gen_exe = cargo_build(work, out, a.target_cpu, False, FEATURES_TRAIN,
+                              [f"-Cprofile-generate={pgo}"])
+
+        # Keep the instrumented binary aside under a name the final build cannot
+        # overwrite.  Both passes share one CARGO_TARGET_DIR and one output path,
+        # so training against `gen_exe` directly would silently produce no profile
+        # the moment anything reorders these steps (measured: a profile-use exe at
+        # that path answers normally and writes 0 bytes).
+        #
+        # Do NOT try to detect instrumentation by searching the exe for the symbol
+        # name: the first version of this guard looked for `__llvm_profile_write_file`
+        # and rejected a perfectly good instrumented binary on the runner (run
+        # 38969851265 -- 21,674,496 bytes, and it trains fine).  The honest test is
+        # the profile that either appears or does not, right below.
+        trainer = pgo / "trainer.exe"
+        shutil.copy2(gen_exe, trainer)
+
+        # 2) train on the frozen corpus, then stop the engine through POST /api/quit so
+        #    the profiler runtime flushes (a killed engine writes nothing).
+        run([sys.executable, str(tools / "pgo_train.py"), str(trainer),
+             "--board", str(a.board), "--riven", str(a.riven), "--prof", str(pgo),
+             "--port", "9500"], cwd=tools)
+        profraws = sorted(glob.glob(str(pgo / "*.profraw")))
+        if not profraws:
+            raise SystemExit(f"no .profraw produced in {pgo}")
+        print(f"profraw files: {len(profraws)} "
+              f"({sum(os.path.getsize(p) for p in profraws):,} bytes)")
+
+        # 3) merge
+        run([find_profdata(), "merge", "-o", str(profdata)] + profraws)
+        print(f"profdata {profdata} ({profdata.stat().st_size:,} bytes)")
+        keyfile.write_text(json.dumps(
+            {"key": key, "profdata_bytes": profdata.stat().st_size,
+             "trained_at": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, indent=2) + "\n",
+            encoding="utf-8")
+
+    def delivery_build():
+        return cargo_build(work, out, a.target_cpu, a.crt_static, FEATURES_FINAL,
+                           [f"-Cprofile-use={profdata}"])
+
+    if a.reuse_profdata and profdata.exists():
+        old = {}
+        try:
+            old = json.loads(keyfile.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+        print(f"reusing {profdata} ({profdata.stat().st_size:,} bytes, "
+              f"trained for {str(old.get('key', 'unknown'))[:56]})")
+        if old.get("key") != key:
+            print(f"note: this source key is {key[:56]}; rustc only warns on a "
+                  f"moved control flow, and the gates still check every bit")
+    else:
+        train()
+
+    # 4) the delivery build itself.  A profile that no longer fits the source is
+    #    only a warning for rustc, but if it really fails we train and rebuild
+    #    instead of publishing nothing.
+    try:
+        exe = delivery_build()
+    except subprocess.CalledProcessError:
+        if not profdata.exists():
+            raise
+        print("note: the cached profile did not fit this source; training again")
+        train()
+        exe = delivery_build()
 
     # 5) bit-identity gates before anything is published
     if not a.skip_gates:

@@ -51,6 +51,31 @@ jobs:
           restore-keys: |
             wfsim-ci-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-
 
+      # The compile cache itself: ~542 MB locally (409 MB of it `deps`).  A cold
+      # run compiles the mimalloc C library, serde, the optimizer and webapi
+      # crates twice -- the instrumented pass alone took 3m58s on the runner.
+      - name: cache the msvc target dir
+        uses: actions/cache@v4
+        with:
+          path: dist/target
+          key: wfsim-target-${{ runner.os }}-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-${{ github.run_id }}
+          restore-keys: |
+            wfsim-target-${{ runner.os }}-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-
+            wfsim-target-${{ runner.os }}-
+
+      # The trained PGO profile (~3 MB) is the most valuable intermediate product
+      # we have: reusing it skips the instrumented build *and* the training run.
+      # rustc only warns when a profile's control flow moved, and the gates below
+      # still verify every bit, so a near miss is free speed rather than risk.
+      - name: cache the PGO profile
+        uses: actions/cache@v4
+        with:
+          path: dist/pgo
+          key: wfsim-pgo-${{ hashFiles('ci/patches/**', 'ci/tools/corpus.json', 'ci/tools/riven_corpus.json') }}-${{ github.run_id }}
+          restore-keys: |
+            wfsim-pgo-${{ hashFiles('ci/patches/**', 'ci/tools/corpus.json', 'ci/tools/riven_corpus.json') }}-
+            wfsim-pgo-
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -67,7 +92,7 @@ jobs:
         run: python ci/fetch_sources.py
 
       - name: build MSVC + PGO engine, then gate it bit-for-bit
-        run: python ci/build_engine.py --crt-static --target-cpu x86-64-v3 --rivens-gate 3
+        run: python ci/build_engine.py --crt-static --target-cpu x86-64-v3 --rivens-gate 3 --reuse-profdata
 
       - name: upload engine + identity + gate logs
         uses: actions/upload-artifact@v4
