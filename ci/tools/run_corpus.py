@@ -91,7 +91,7 @@ def run_riven(port, entries, timeout=600.0):
                 break
         dt = time.time() - t0
         if res is None:
-            print("  %-14s FAIL 无结果（%.0fs）" % (it["id"], dt)); bad += 1; continue
+            print("  %-14s FAIL no result (%.0fs)" % (it["id"], dt)); bad += 1; continue
         want = (it["expected"] or {}).get("result") or {}
         diff = []
         for k in ("work", "final_work"):
@@ -133,10 +133,10 @@ def main():
         rp = a.riven_corpus
         if os.path.exists(rp):
             riven = json.load(open(rp, encoding="utf-8"))
-            print("riven 语料 %d 条（约 %.1f 分钟）"
+            print("riven corpus %d rows (about %.1f minutes)"
                   % (len(riven), sum(x["note"].get("build_s", 60) for x in riven) / 60.0))
         else:
-            print("没有 %s，跳过 riven" % rp)
+            print("no %s, skipping riven" % rp)
     if a.anchors:
         from verify_pipeline import REF, RECS
         for w, (score, work, ruler, mode) in REF.items():
@@ -145,7 +145,7 @@ def main():
                             "expected": {"score": score, "work": work,
                                          "metric": None, "counts": None},
                             "note": {"weapon": w, "ruler": ruler, "mode": mode}})
-    print("语料 %d 条，lanes=%d，passes=%d" % (len(entries), a.lanes, a.passes))
+    print("corpus %d rows, lanes=%d, passes=%d" % (len(entries), a.lanes, a.passes))
 
     env = dict(os.environ, WFSIM_PORT=str(a.port))
     errf = open(a.stderr, "w", encoding="utf-8", errors="replace") if a.stderr else None
@@ -184,18 +184,18 @@ def main():
                     print("  %-26s DIFF %s" % (it["id"], "; ".join(diff)))
                 else:
                     print("  %-26s ok %7.0fms" % (it["id"], ms))
-            print("第 %d 轮 board：合计 %.1f 秒，%d 条" % (pno, total / 1000.0, len(entries)))
+            print("pass %d board: total %.1f s, %d rows" % (pno, total / 1000.0, len(entries)))
             if riven:
                 t0 = time.time()
                 bad += run_riven(a.port, riven)
-                print("第 %d 轮 riven：%.1f 秒，%d 条" % (pno, time.time() - t0, len(riven)))
+                print("pass %d riven: %.1f s, %d rows" % (pno, time.time() - t0, len(riven)))
     finally:
         p.terminate()
         try:
             p.wait(timeout=10)
         except Exception:
             p.kill()
-    print("\n%s：%d 条不一致" % ("PASS" if bad == 0 else "FAIL", bad))
+    print("\n%s: %d mismatches" % ("PASS" if bad == 0 else "FAIL", bad))
     return 1 if bad else 0
 
 

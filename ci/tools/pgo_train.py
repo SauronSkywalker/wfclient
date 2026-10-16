@@ -71,7 +71,7 @@ def main() -> int:
         for it in board:
             post(a.port, dict(it["payload"], threads=it.get("lanes", a.lanes)))
         t_board = time.time() - t0
-        print("board 训练 %d 条 %.1f 秒" % (len(board), t_board))
+        print("board training: %d rows in %.1f s" % (len(board), t_board))
 
         t0 = time.time()
         for it in riven:
@@ -89,8 +89,8 @@ def main() -> int:
                                                or st.get("ok") is False):
                     break
             if res is None:
-                print("  riven %-14s 无结果" % it["id"])
-        print("riven 训练 %d 条 %.1f 秒" % (len(riven), time.time() - t0))
+                print("  riven %-14s no result" % it["id"])
+        print("riven training: %d rows in %.1f s" % (len(riven), time.time() - t0))
 
         quit_ = post(a.port, {}, path="/api/quit", timeout=120)
         print("quit ->", str(quit_)[:120])
@@ -105,7 +105,7 @@ def main() -> int:
 
     files = sorted(prof.glob("*.profraw"))
     total = sum(f.stat().st_size for f in files)
-    print("profraw %d 个，共 %d 字节" % (len(files), total))
+    print("profraw files: %d (%d bytes)" % (len(files), total))
     for f in files:
         print("   %-40s %d" % (f.name, f.stat().st_size))
     return 0 if total else 3

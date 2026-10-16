@@ -102,7 +102,10 @@ def gate(tools: pathlib.Path, exe: pathlib.Path, label: str, extra: list[str], p
     log.write_text(text, encoding="utf-8")
     tail = "\n".join(text.strip().splitlines()[-4:])
     print(tail, flush=True)
-    if p.returncode != 0 or "不一致" not in text or "PASS" not in text or "0 条不一致" not in text:
+    # The CI copy of the runner prints ASCII, the dev copy prints Chinese;
+    # accept either so the same script works in both places.
+    clean = ("0 mismatches" in text) or ("0 条不一致" in text)
+    if p.returncode != 0 or "PASS" not in text or not clean:
         raise SystemExit(f"{label} gate FAILED (see {log})")
 
 
@@ -150,9 +153,19 @@ def main() -> int:
     gen_exe = cargo_build(work, out, a.target_cpu, False, FEATURES_TRAIN,
                           [f"-Cprofile-generate={pgo}"])
 
+    # Keep the instrumented binary aside under a name the final build cannot
+    # overwrite.  Both passes share one CARGO_TARGET_DIR and one output path, so
+    # training against `gen_exe` directly would silently produce no profile the
+    # moment anything reorders these steps (measured: a profile-use exe at that
+    # path answers normally and writes 0 bytes).
+    trainer = pgo / "trainer.exe"
+    shutil.copy2(gen_exe, trainer)
+    if b"__llvm_profile_write_file" not in trainer.read_bytes():
+        raise SystemExit(f"{trainer} looks like a non-instrumented build")
+
     # 2) train on the frozen corpus, then stop the engine through POST /api/quit so the
     #    profiler runtime flushes (the engine is otherwise killed and writes nothing).
-    run([sys.executable, str(tools / "pgo_train.py"), str(gen_exe),
+    run([sys.executable, str(tools / "pgo_train.py"), str(trainer),
          "--board", str(a.board), "--riven", str(a.riven), "--prof", str(pgo),
          "--port", "9500"], cwd=tools)
     profraws = sorted(glob.glob(str(pgo / "*.profraw")))

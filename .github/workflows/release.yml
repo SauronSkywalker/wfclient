@@ -27,6 +27,12 @@ concurrency:
   group: release
   cancel-in-progress: false
 
+# cp1252 stdout on a Windows runner + a Chinese print = a killed step; UTF-8 mode
+# makes that impossible (same fix as build-engine.yml).
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
 jobs:
   engine:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}

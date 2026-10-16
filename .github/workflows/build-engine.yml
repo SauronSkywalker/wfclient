@@ -23,6 +23,13 @@ concurrency:
   group: build-engine
   cancel-in-progress: false
 
+# A Windows runner's stdout is cp1252, so any non-ASCII print (these tools are
+# bilingual) raises UnicodeEncodeError and kills the step after the work is done
+# -- measured on run 38968135623.  UTF-8 mode makes that impossible.
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
 jobs:
   engine:
     runs-on: windows-latest
