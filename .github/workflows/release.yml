@@ -7,6 +7,8 @@ name: release
 #                   拿到服务器下发的 engine id 后按 `releases/tags/engine-<id>` 直取。
 #   portable-<id>   放带最新引擎的完整便携包 zip（客户端 src + 便携版 Python + 依赖
 #                   + 说明 + 启动脚本），是给普通用户的下载入口，标为 latest。
+#                   zip 只按 engine id 命名 + 同名覆盖 ⇒ 每个 id 永远只有 1 个包
+#                   （早先用时间戳命名，一天就堆了 4 个 ~22 MB 的包）。
 #
 # 两条线各自发布，互不覆盖：只想换引擎的人不必再下一整个包，反之亦然。
 on:
@@ -87,6 +89,7 @@ jobs:
           files: |
             dist/wfsim-core.exe
             dist/engine-identity.json
+          overwrite_files: true      # re-publishing the same engine id replaces, never accumulates
           fail_on_unmatched_files: true
 
   portable:
@@ -145,4 +148,5 @@ jobs:
             只想替换引擎、不想重下整包的话，见 `engine-${{ steps.ident.outputs.engine }}`。
             详细说明见包内 `README-便携包.md`，引擎身份见 `engine/engine-identity.json`。
           files: dist/wfsim-portable-*.zip
+          overwrite_files: true      # the zip is named by engine id only, so each id keeps exactly one
           fail_on_unmatched_files: true

@@ -128,7 +128,14 @@ def main() -> int:
         json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     # 4) zip
-    zip_path = out / f"wfsim-portable-{engine_id}-{stamp}.zip"
+    #
+    # The name is the engine id and nothing else, on purpose: the release tag is
+    # already `portable-<engine id>`, so a stamp in the file name would make every
+    # scheduled run append yet another ~22 MB asset to the same tag instead of
+    # replacing the one that describes that engine (measured: 4 zips / 90 MB after
+    # one day).  Pass --stamp explicitly when you want to keep several side by side.
+    suffix = f"-{stamp}" if a.stamp else ""
+    zip_path = out / f"wfsim-portable-{engine_id}{suffix}.zip"
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for p in sorted(build.rglob("*")):
             if p.is_file():
