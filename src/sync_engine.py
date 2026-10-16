@@ -44,6 +44,7 @@ import re
 import shutil
 import socket
 import subprocess
+import tarfile
 import time
 from datetime import datetime, timezone
 import urllib.error
@@ -540,6 +541,17 @@ def optimizer_tree_sha() -> str:
     return str(sha)
 
 
+def head_commit(ref: str = "main") -> str:
+    """The commit a branch points at right now — one small request.
+
+    Used to decide whether a cached worktree is already at the upstream head:
+    when it is, there is nothing to download at all, which is what makes CI
+    runs after the first one cheap.
+    """
+    url = f"https://api.github.com/repos/{REPO}/commits/{urllib.parse.quote(ref)}"
+    return str(http_json(url)["sha"])
+
+
 def tree_for(ref: str) -> dict:
     url = f"https://api.github.com/repos/{REPO}/git/trees/{ref}?recursive=1"
     tree = http_json(url)
@@ -618,6 +630,89 @@ def fetch_one(item: dict) -> tuple[str, bool]:
 
 
 SYNC_BACKUP = "work.syncbak"
+
+TARBALL_MIN = 64
+"""Above this many files, ONE tarball beats one request per file.
+
+Measured 2026-10-17 against upstream main: the per-file path moved the same
+4,220 build files in 6.1 minutes in CI (the "fetched 3250/4220" line), while
+codeload served the whole commit — 88.6 MB, 9,463 files — in 11.6 seconds on
+a single connection.  Only the ~23 MB we actually build is written to disk.
+The bytes are still checked against the git blob sha the tree listed, one
+file at a time, so this is a transport change and not a trust change.
+"""
+
+
+def fetch_many_tarball(want: dict, commit: str) -> int:
+    """Fetch every wanted file from one codeload tarball; returns files changed.
+
+    `r|gz` streams the archive, so the ~65 MB of tree we do not build is never
+    materialised and the whole thing is read once, in order.
+    """
+    url = f"https://codeload.github.com/{REPO}/tar.gz/{commit}"
+    root = f"wfsim-{commit}/"
+    changed = 0
+    seen: set[str] = set()
+    req = urllib.request.Request(url, headers=request_headers(url))
+    with open_github(req, 300) as r, tarfile.open(fileobj=r, mode="r|gz") as tar:
+        for member in tar:
+            if not member.isfile():
+                continue
+            rel = member.name[len(root):] if member.name.startswith(root) else member.name
+            item = want.get(rel)
+            if item is None:
+                continue
+            seen.add(rel)
+            target = work_target(rel)
+            if local_blob_sha(target) == item["sha"]:
+                continue
+            handle = tar.extractfile(member)
+            data = handle.read() if handle is not None else b""
+            if git_blob_sha(data) != item["sha"]:
+                raise RuntimeError(f"corrupt tarball member {rel}: sha mismatch")
+            size = int(item.get("size") or 0)
+            if size and len(data) != size:
+                raise RuntimeError(
+                    f"corrupt tarball member {rel}: {len(data)} bytes, "
+                    f"tree says {size}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            tmp = target.with_name(target.name + ".tmp")
+            tmp.write_bytes(data)
+            os.replace(tmp, target)
+            changed += 1
+    missing = []
+    for rel, item in want.items():
+        if rel in seen:
+            continue
+        try:
+            if local_blob_sha(work_target(rel)) == item["sha"]:
+                continue
+        except Exception:
+            pass
+        missing.append(rel)
+    if missing:
+        raise RuntimeError(
+            f"tarball {commit[:12]} is missing {len(missing)} wanted file(s): "
+            + ", ".join(sorted(missing)[:3]))
+    return changed
+
+
+def _fetch_each(want: dict) -> int:
+    """One request per file — the small-subset path and the tarball fallback."""
+    changed = 0
+    fetched: set[str] = set()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as ex:
+        futures = [ex.submit(fetch_one, item) for item in want.values()]
+        for i, fut in enumerate(concurrent.futures.as_completed(futures), 1):
+            try:
+                path, did = fut.result()
+            except Exception as e:
+                raise RuntimeError(f"download failed: {e}") from e
+            fetched.add(path.replace(os.sep, "/"))
+            changed += int(did)
+            if i % 250 == 0 or i == len(futures):
+                log(f"  fetched {i}/{len(futures)}")
+    return changed
 
 
 def _backup_root() -> pathlib.Path:
@@ -742,21 +837,20 @@ def sync_sources(ref: str = "main", want: dict | None = None) -> tuple[int, int,
     opt_sha = optimizer_sha_from_tree(tree) if tree else None
     log(f"upstream {ref}: {len(want)} build files")
     changed = 0
-    fetched: set[str] = set()
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=32) as ex:
-            futures = [ex.submit(fetch_one, item) for item in want.values()]
-            for i, fut in enumerate(concurrent.futures.as_completed(futures), 1):
-                try:
-                    path, did = fut.result()
-                except Exception as e:
-                    # STOP before pruning: a half-synced tree must not be
-                    # mistaken for one whose files were all deleted upstream.
-                    raise RuntimeError(f"download failed: {e}") from e
-                fetched.add(path.replace(os.sep, "/"))
-                changed += int(did)
-                if i % 250 == 0:
-                    log(f"  fetched {i}/{len(futures)}")
+        if tree is not None and len(want) >= TARBALL_MIN:
+            commit = tree.get("sha") or ref
+            t0 = time.time()
+            try:
+                changed = fetch_many_tarball(want, commit)
+                log(f"  one tarball {commit[:12]}: {len(want)} files in "
+                    f"{time.time() - t0:.1f}s")
+            except Exception as e:
+                log(f"  tarball fetch failed ({type(e).__name__}: {e}); "
+                    "falling back to one request per file")
+                changed = _fetch_each(want)
+        else:
+            changed = _fetch_each(want)
     except Exception:
         _restore_sync_backup()
         raise

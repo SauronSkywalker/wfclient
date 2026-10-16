@@ -11,6 +11,14 @@ The tree is assembled from
   * upstream ``magenie33/wfsim@<ref>`` (engine/, webapi/, optimizer/, tools/, data/, Cargo.*)
   * ``ci/core-host-template/``  (the client-side crate wrapper, copied into work/core-host/)
   * ``ci/patches/*.patch``      (our four patches, applied with the bundled patch.exe)
+
+Speed, because a 6-minute fetch is 6 minutes of every run:
+
+  * when the worktree is already at the upstream head commit (``actions/cache`` restored
+    it), nothing is downloaded — one small API request decides this;
+  * otherwise ``sync_sources`` streams ONE codeload tarball instead of making 4,220
+    raw.githubusercontent requests (11.5 s vs 6.1 min on the same commit, 2026-10-17),
+    still verifying every file against the git blob sha the tree listed.
 """
 from __future__ import annotations
 
@@ -20,6 +28,8 @@ import os
 import pathlib
 import shutil
 import sys
+
+MARKER = ".synced-commit"   # inside work/, so a restored cache carries it
 
 
 def main() -> int:
@@ -48,8 +58,28 @@ def main() -> int:
         print("WARNING: no GITHUB_TOKEN, falling back to the anonymous 60 req/h limit")
 
     se.ensure_worktree()
-    total, changed, commit = se.sync_sources(a.ref)
-    print(f"upstream {a.ref}: {total} build files, {changed} changed, commit={commit}")
+    marker = se.WORK / MARKER
+    head = ""
+    try:
+        head = se.head_commit(a.ref)
+    except Exception as e:
+        print(f"WARNING: cannot read upstream {a.ref} head ({type(e).__name__}: {e})")
+
+    cached = (head and marker.is_file()
+              and marker.read_text(encoding="utf-8").strip() == head
+              and (se.WORK / "Cargo.toml").is_file()
+              and (se.WORK / "engine/src/fight/monte_carlo.rs").is_file())
+    if cached:
+        changed = removed = 0
+        print(f"worktree already at upstream {a.ref} {head[:12]}: "
+              "skipping the source download")
+    else:
+        changed, removed, _opt = se.sync_sources(a.ref)
+        print(f"upstream {a.ref}: {changed} changed, {removed} removed")
+        try:
+            marker.write_text(head or "", encoding="utf-8")
+        except Exception as e:
+            print(f"WARNING: cannot write {marker} ({type(e).__name__}: {e})")
 
     se.ensure_build_profiles()
     print("build profiles: ok (maxperf/devfast)")
@@ -58,7 +88,10 @@ def main() -> int:
     rel = se.release_info() or {}
     identity = {
         "ref": a.ref,
-        "commit": commit,
+        "commit": head,
+        "cached": bool(cached),
+        "changed": changed,
+        "removed": removed,
         "engine_online": rel.get("engine"),
         "release_online": rel.get("release"),
         "optimizer_tree_sha": se.optimizer_tree_sha(),

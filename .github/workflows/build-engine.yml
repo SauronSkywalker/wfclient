@@ -29,6 +29,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Repeat runs must not pay 6 minutes of downloads again.  The key carries
+      # the run id on purpose (a cache entry is immutable, so a new key is how
+      # you update it); restore-keys reuses whatever the previous run saved.
+      - name: cache the upstream worktree + cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            engine-src/work
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: wfsim-ci-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-${{ github.run_id }}
+          restore-keys: |
+            wfsim-ci-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
