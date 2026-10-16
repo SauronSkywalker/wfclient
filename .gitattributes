@@ -1,0 +1,8 @@
+# 上游 WFSim 全仓 LF；补丁也用 LF，所以这里统一 LF，只有 Windows 启动脚本保持 CRLF。
+* text=auto eol=lf
+*.bat text eol=crlf
+*.exe binary
+*.dll binary
+*.zip binary
+*.wasm binary
+*.profdata binary
