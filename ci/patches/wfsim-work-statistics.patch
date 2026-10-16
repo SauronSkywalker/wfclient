@@ -1,0 +1,51 @@
+--- a/webapi/src/optimize.rs
++++ b/webapi/src/optimize.rs
+@@ -1871,8 +1871,9 @@
+     };
+     // What the search covered — `None` on a round resume, which does not search.
+     let mut search_stats: Option<wfsim_optimizer::search::SearchStats> = None;
+     let mut quick_report: Option<quick::QuickReport> = None;
++    let mut quick_work: u64 = 0;
+     let (cands, last, cancelled, n_jobs) = if let Some((r_round, r_alive, r_jobs_at_start)) = round_resume {
+         // ---- RESUME: no walk at all. The checkpoint holds identities, so the
+         // candidates are rebuilt with the same plan_forma / resolve_with the
+         // enumerator uses and come out bit-identical. Seeds key off the
+@@ -2019,8 +2020,9 @@
+             // THE LEADER'S PAUSE: the builds its starts wait for go back to the page.
+             if let Some(p) = ctx.lead.then(quick::QuickCtx::lead_pending).flatten() {
+                 return p;
+             }
++            quick_work = ctx.work.load(std::sync::atomic::Ordering::Relaxed);
+             quick_report = Some(report);
+             (sj, stats)
+         } else if !walks_whole(strategy.as_deref()) {
+             wfsim_optimizer::descent::descent(
+@@ -2148,8 +2150,9 @@
+             row
+         })
+         .collect();
+     let (results, final_work) = if measure { measured_by_the_simulator(results, finalists, state) } else { (results, 0) };
++    let total_work = quick_work.saturating_add(final_work);
+ 
+     // WHAT THE SEARCH ACTUALLY COVERED. A run that did not reach the end of
+     // its space has not searched the scope it was given, and it must not read
+     // like one that did. `cancelled` cannot carry this — that means "you
+@@ -2200,9 +2203,18 @@
+         "final_runs": final_runs,
+         "finalists": finalists,
+         // THE FINAL ROUND'S WORK, every contender's simulation summed — a fleet
+         // adds its scorers' `work` to it (08-checkpoint-api.js).
++        // `search_work` is the same accumulated count quickFleet reports from
++        // its scorers; `work` is the official total the app submits.
++        "search_work": quick_work,
++        "work": total_work,
+         "final_work": final_work,
++        // Search statistics beside the work: the browser quickFleet reports
++        // the same two counts with a riven answer.  They are display/log data
++        // and never feed the search or the score.
++        "builds": state.enumerated.load(std::sync::atomic::Ordering::Relaxed),
++        "fights": state.sims_done.load(std::sync::atomic::Ordering::Relaxed),
+         "headshot_pct": headshot_pct,
+         "duration": duration,
+         "results": results,
+         "failed_starts": quick_report.map(|r| r.failures).unwrap_or_default(),

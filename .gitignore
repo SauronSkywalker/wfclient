@@ -1,0 +1,24 @@
+# Build products, caches and binaries are produced by CI, never committed.
+/toolchain/
+/build-cache/
+/dist/
+/logs/
+/python/
+/engine/wfsim-core.exe
+/engine/*.prev.exe
+/engine-src/work/
+/engine-src/work.syncbak/
+/engine-src/patches/
+/engine-src/core-host-template/
+/engine-src/sync.log
+/engine-src/etags.json
+/engine-src/engine-catalog.json
+/engine-src/ci-identity.json
+/engine-src/state.json
+*.zip
+*.7z
+*.exe
+*.dll
+!ci/**/*.json
+__pycache__/
+*.pyc

@@ -1,0 +1,23 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -34,3 +34,21 @@
+ # +14% per shot for the same source split into files, and ±noise with this.
+ [profile.release]
+ codegen-units = 1
++
++[profile.maxperf]
++inherits = "release"
++opt-level = 3
++lto = "fat"
++codegen-units = 1
++incremental = false
++
++
++[profile.devfast]
++# FOR ITERATION ONLY: fastest possible compile, never used for timing.
++inherits = "dev"
++opt-level = 1
++debug = false
++incremental = true
++codegen-units = 256
++

@@ -1,0 +1,64 @@
+# WFSim 算力共享 — wfclient 便携版
+
+> 本包是 [WFSim](https://github.com/magenie33/wfsim) 的第三方分支（wfclient）产物。非官方，与 WFSim 官方、Digital Extremes 无关联。详见包内/仓库的 `NOTICE.md`。
+
+## 怎么用
+
+1. 解压整个文件夹到目标电脑（Win10/11 x64）。**无需安装 Python，无需安装 VC++ 运行库**（引擎是静态 CRT，只依赖系统 DLL）。
+2. 打开 `data\config.json`，填写：
+   - `account.email` / `account.password`：WFSim 网站账号（必填，邮箱为空会拒绝启动）。
+   - `github_pat`：可选。GitHub fine-grained PAT，只给公开仓库读权限即可，用来提高自动检查更新时的 API 限额。
+3. 双击 `run-portable.bat`。
+
+首次启动会自动生成设备 ID（`verifiers`），之后按 `active_verifiers` 启动若干计算槽位。
+
+## 这一包与上游便携版的差别
+
+| | 上游便携版 | 本包 |
+|---|---|---|
+| 引擎 | 便携 GNU 工具链本地自建 | **随包预编译**：MSVC + PGO + mimalloc，静态 CRT |
+| 速度 | 1× | **3.4×**（同一份源码、同一台机器：100 条 board 102.7 s → 29.8 s） |
+| 结果 | 站点接受 | **逐位相同**（100 board + 5 WASM 锚点 + 20 紫卡全 PASS） |
+| 运行时依赖 | 无 | 无（比上游更少：连 `msvcp`/`vcruntime` 都不需要） |
+| 包体积 | 大（含工具链，可自建） | 小（不含工具链，**不能**自建引擎，靠发布包更新） |
+
+引擎身份记录在 `engine\engine-identity.json`：engine id、release、sha256、三道闸门结果。可用它核对"我这个包里的引擎是哪一版"。
+
+## 现场旋钮（`data\config.json`）
+
+| 键 | 本包默认 | 说明 |
+|---|---|---|
+| `board_batch_rows` | `8` | 一次向引擎投 8 行。摊薄每行固定的串行尾巴；设为 `1` 即回到逐行投递 |
+| `idle_recycle_s` | `60` | 空闲 60 秒回收闲置引擎（保底留 `idle_keep`=1 个）。下次有活时**先拉起引擎再算**，所以不吃首次卡顿；设为 `0` 关闭 |
+| `task_logging` | `verbose` | 四档：`off` / `standard` / `verbose` / `full`。**日常建议 `off`**（一个字节都不写）；验收/排查用 `verbose`；`full` 会把每行大 body 也写进日志，代价约 4.5 个百分点算力 |
+
+其余键与上游一致，没把握就不要改。
+
+## 上游更新了怎么办
+
+1. 客户端**会自己发现**（比较 `wire engine` 与站点 `served engine`），并尝试自建引擎——但本包不含工具链，所以自建会失败；
+2. 到本仓库 [Releases](../../releases) 下载最新的 `wfsim-portable-*.zip`，解压覆盖即可（`data\config.json` 可以保留，把里面的 `verifiers` / `claimed` 一并保留就能延续本机身份）。
+
+## 文件夹里有什么
+
+```
+run-portable.bat            启动脚本
+README-便携包.md            本文件
+README.txt                  上游原始说明
+src/                        客户端源码（协议 8 单一通路 + 批量投递 + 空闲回收）
+data/config.json            现场配置（不含账号、不含 PAT、不含设备身份）
+engine/wfsim-core.exe       预编译引擎
+engine/engine-identity.json 引擎身份与闸门结果
+engine-src/state.json       引擎 revision 记录（客户端据此离线启动）
+python/                     便携版 Python 3.11 + 依赖（textual 等）
+logs/                       运行日志（`task_logging` 为 `off` 时不生成）
+```
+
+## 自检
+
+```powershell
+# 引擎 sha256 是否与包内记录一致
+python -c "import hashlib,json,pathlib;p=pathlib.Path('engine/wfsim-core.exe');print(hashlib.sha256(p.read_bytes()).hexdigest());print(json.loads(pathlib.Path('engine-src/state.json').read_text())['sha256'])"
+```
+
+两行一致即包未被改动。

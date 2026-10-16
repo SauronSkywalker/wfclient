@@ -1,0 +1,188 @@
+--- a/engine/src/fight/monte_carlo.rs
++++ b/engine/src/fight/monte_carlo.rs
+@@ -774,10 +774,78 @@
+         .collect()
+ }
+ 
+-/// …AND THE FOLD, THREADED: fight the runs in parallel, then add them in RUN
+-/// ORDER.  Floating-point addition is not associative, so the order the
+-/// marginals are merged in is part of the answer — and it is the one
+-/// `shard_onto` uses.  One lane is `shard_onto` itself.
++/// SHARD METERING, for `WFSIM_PHASE_TRACE` and nothing else.
++///
++/// The row's own trace says how long the fold took; it does not say how big a
++/// window the fold held open.  These counters answer that — how many shards the
++/// lanes produced, how many the merger added, and the most that were ever in
++/// flight — which is the number the pipeline exists to bound.
++mod foldstats {
++    use std::sync::atomic::{AtomicU64, Ordering};
++
++    pub static PRODUCED: AtomicU64 = AtomicU64::new(0);
++    pub static MERGED: AtomicU64 = AtomicU64::new(0);
++    pub static PEAK: AtomicU64 = AtomicU64::new(0);
++
++    pub fn reset() {
++        PRODUCED.store(0, Ordering::Relaxed);
++        MERGED.store(0, Ordering::Relaxed);
++        PEAK.store(0, Ordering::Relaxed);
++    }
++
++    pub fn produced(n: u64) {
++        PRODUCED.fetch_add(n, Ordering::Relaxed);
++    }
++
++    pub fn merged(n: u64) {
++        let done = MERGED.fetch_add(n, Ordering::Relaxed) + n;
++        let live = PRODUCED.load(Ordering::Relaxed).saturating_sub(done);
++        PEAK.fetch_max(live, Ordering::Relaxed);
++    }
++
++    pub fn snapshot() -> (u64, u64, u64) {
++        (PRODUCED.load(Ordering::Relaxed), MERGED.load(Ordering::Relaxed),
++         PEAK.load(Ordering::Relaxed))
++    }
++}
++
++/// Is the phase trace on?  Read ONCE — a row must not pay a getenv for it.
++fn phase_trace() -> bool {
++    static ON: OnceLock<bool> = OnceLock::new();
++    *ON.get_or_init(|| std::env::var_os("WFSIM_PHASE_TRACE").is_some())
++}
++
++/// HOW MANY RUNS ONE POOL JOB HANDS OVER AT A TIME.
++///
++/// A chunk is the unit of both balancing and hand-off.  The rule the merger
++/// obeys is "add run i only after every run before i has been added", so a
++/// chunk that finishes early has to WAIT — which means the size of the wait
++/// queue, not the size of the row, is what bounds the shards in flight.  At
++/// roughly thirty chunks per lane a lane still gets plenty of chances to pick
++/// up the next chunk, so balance stays within a chunk or two.
++fn chunk_for(n: usize, lanes: usize) -> usize {
++    ((n + lanes * 32 - 1) / (lanes * 32)).max(1)
++}
++
++/// …AND THE FOLD, THREADED: fight the runs in parallel and add each one AS IT
++/// ARRIVES, in RUN ORDER.  Floating-point addition is not associative, so the
++/// order the marginals are added in is part of the answer — and it is the one
++/// `shard_onto` uses: run 0, then run 1, … then run `count-1`.  One lane is
++/// `shard_onto` itself.
++///
++/// WHAT CHANGED IS WHEN THE SHARDS EXIST.  This used to fight all `count` runs
++/// into a `Vec<Shard>` and only then add them, so a row kept a thousand shards
++/// (megabytes) alive for the whole fight and the addition could not start
++/// until the last run had finished.  Here a lane builds ONE SHARD PER RUN,
++/// hands over a chunk of them, and goes straight back to fighting; the calling
++/// thread (the merger) adds each chunk the moment every run before it has
++/// arrived.  Peak shards drop from `count` to a couple of chunks per lane, and
++/// the additions overlap the fight instead of following it.
++///
++/// THE ADDITIONS THEMSELVES ARE UNTOUCHED: same values, same order, one run at
++/// a time.  A lane's shard is that run's own contribution, never a
++/// partly-summed one, because summing inside a lane would reassociate the
++/// additions and change the last bits of every answer.
+ pub fn fold_parallel(
+     params: Arc<FightParams>,
+     acc: Shard,
+@@ -787,12 +855,97 @@
+     keep: bool,
+     threads: usize,
+ ) -> Shard {
+-    if threads <= 1 {
+-        return shard_onto(params.as_ref(), acc, from, count, seed, keep, &mut |_| {});
+-    }
++    let n = count as usize;
++    let lanes = threads.max(1).min(n.max(1));
++    if lanes <= 1 {
++        let out = shard_onto(params.as_ref(), acc, from, count, seed, keep, &mut |_| {});
++        if phase_trace() {
++            eprintln!("PHASE fold lanes=1 count={n} serial=1 chunks=0 peak_inflight=0 \
++shard_bytes={}", n * std::mem::size_of::<Shard>());
++        }
++        return out;
++    }
++    let chunk = chunk_for(n, lanes);
++    let chunks = (n + chunk - 1) / chunk;
++    // METERING IS OFF THE HOT PATH: `trace` is read once per row, and with the
++    // flag down the lanes and the merger do not touch the counters at all.
++    let trace = phase_trace();
++    if trace {
++        foldstats::reset();
++    }
++    // HOW FAR A LANE MAY RUN AHEAD OF THE MERGER, in chunks.  Without a limit
++    // a lane that draws fast runs would pile up shards the merger cannot use
++    // yet; with it, the shards in flight stay at a couple of chunks a lane.
++    let ahead = lanes * 2;
++    let assign = Arc::new(AtomicUsize::new(0));
++    let cursor = Arc::new(AtomicUsize::new(0));
++    let (tx, rx) = mpsc::channel::<(usize, Vec<Shard>)>();
++    let pool = pool_for(lanes);
++    for _ in 0..lanes {
++        let params = Arc::clone(&params);
++        let assign = Arc::clone(&assign);
++        let cursor = Arc::clone(&cursor);
++        let tx = tx.clone();
++        pool.submit(Box::new(move || loop {
++            let c = assign.fetch_add(1, Ordering::Relaxed);
++            if c >= chunks {
++                break;
++            }
++            while c > cursor.load(Ordering::Acquire) + ahead {
++                std::thread::yield_now();
++            }
++            let lo = c * chunk;
++            let hi = (lo + chunk).min(n);
++            let mut got = Vec::with_capacity(hi - lo);
++            for i in lo..hi {
++                got.push(shard(params.as_ref(), from + i as u32, 1, seed, keep, &mut |_| {}));
++            }
++            if trace {
++                foldstats::produced((hi - lo) as u64);
++            }
++            if tx.send((c, got)).is_err() {
++                break;
++            }
++        }));
++    }
++    drop(tx);
+     let mut acc = acc;
+-    for s in shards_parallel(Arc::clone(&params), from, count, seed, keep, threads) {
+-        acc.merge(&s);
++    let mut held: Vec<Option<Vec<Shard>>> = (0..chunks).map(|_| None).collect();
++    let mut expect = 0usize;
++    while expect < chunks {
++        match rx.recv() {
++            Ok((c, got)) => {
++                held[c] = Some(got);
++                // ADD EVERYTHING THAT IS NOW IN ORDER — run by run, exactly as
++                // the serial fold would have added it.
++                while expect < chunks {
++                    match held[expect].take() {
++                        Some(batch) => {
++                            for s in &batch {
++                                acc.merge(s);
++                            }
++                            if trace {
++                                foldstats::merged(batch.len() as u64);
++                            }
++                            expect += 1;
++                            cursor.store(expect, Ordering::Release);
++                        }
++                        None => break,
++                    }
++                }
++            }
++            // A lane died owing runs.  An answer built from a row that lost
++            // any of them would be silently wrong, so this fails the same way
++            // the serial path's "every run is fought" does.
++            Err(_) => panic!("every run is fought"),
++        }
++    }
++    if trace {
++        let (produced, merged_n, peak) = foldstats::snapshot();
++        eprintln!(
++            "PHASE fold lanes={lanes} count={n} chunk={chunk} chunks={chunks} \
++produced={produced} merged={merged_n} peak_inflight={peak} shard_bytes={}",
++            n * std::mem::size_of::<Shard>());
+     }
+     acc
+ }

@@ -1,0 +1,242 @@
+--- a/core-host/src/main.rs
++++ b/core-host/src/main.rs
+@@ -128,6 +128,166 @@
+     json!({ "ok": true, "job_id": j.id })
+ }
+ 
++/// THE PAGE'S OWN LOOP, IN THIS PROCESS — `quickFleet`
++/// (08-checkpoint-api.js:144), with function calls where the page uses worker
++/// round trips.  A quick request that names no `quick_fleet` of its own is
++/// driven here: the leader's rounds all run on THIS thread (the fleet's shared
++/// state is thread-local, `optimize/quick.rs` `FLEET`) while the scorers'
++/// slices run in parallel beside it, and the number reported is the page's own
++/// — the sum of the scorers' work plus the last round's `final_work`.
++///
++/// WHY THIS AND NOT THE ONE-SHOT PATH: the fact factory compares `work` as part
++/// of a riven answer's identity, so the number has to be the one every other
++/// volunteer's client produces.  The one-shot quick path counts the same search
++/// its own way and disagrees with the page by a fraction of a percent on some
++/// searches — enough that the answer can never match another client's.
++fn optimize_drive(v: &Value, state: &Arc<FunnelState>,
++                  progress: &dyn Fn(usize, usize)) -> Value {
++    let threads = v.get("threads").and_then(Value::as_u64).unwrap_or(8).clamp(1, 64) as usize;
++    let mut scores: Vec<Value> = Vec::new();
++    let mut worked: u64 = 0;
++    let mut built: u64 = 0;
++    let mut fought: u64 = 0;
++    let mut step = 0usize;
++    loop {
++        let mut body = v.clone();
++        body["quick_fleet"] = json!({ "lead": true, "fresh": step == 0, "scores": scores });
++        let plan = match parse_optimize(&body) {
++            Ok(p) => p,
++            Err(e) => return e,
++        };
++        let out = run_optimize(plan, state, |c: usize, j: usize| progress(c, j), None);
++        if out.get("ok").and_then(Value::as_bool) != Some(true) {
++            return out;
++        }
++        let pending = match out.get("pending").and_then(Value::as_array).cloned() {
++            Some(p) if !p.is_empty() => p,
++            // NO PENDING: the search is over.  `work` is the scorers' total plus
++            // the final round, which is what the page sends.
++            _ => {
++                let mut done = out;
++                done["search_work"] = json!(worked);
++                done["work"] = json!(worked
++                    + done.get("final_work").and_then(Value::as_u64).unwrap_or(0));
++                done["builds"] = json!(built);
++                done["fights"] = json!(fought);
++                return done;
++            }
++        };
++        // TWO SLICES A WORKER, the page's own split: enough that a fast worker
++        // takes a slow one's share, few enough that the fixed cost stays small.
++        let k = threads.min(pending.len()).max(1);
++        let size = pending.len().div_ceil(k * 2).max(1);
++        let slices: Vec<Vec<Value>> = pending.chunks(size).map(|c| c.to_vec()).collect();
++        let next = std::sync::atomic::AtomicUsize::new(0);
++        let got: Mutex<Vec<Option<Value>>> = Mutex::new((0..slices.len()).map(|_| None).collect());
++        let failed: Mutex<Option<Value>> = Mutex::new(None);
++        std::thread::scope(|scope| {
++            for _ in 0..k.min(slices.len()) {
++                scope.spawn(|| loop {
++                    let i = next.fetch_add(1, Ordering::Relaxed);
++                    if i >= slices.len() {
++                        break;
++                    }
++                    let mut body = v.clone();
++                    body["quick_fleet"] = json!({ "score": slices[i] });
++                    let plan = match parse_optimize(&body) {
++                        Ok(p) => p,
++                        Err(e) => {
++                            *failed.lock().unwrap() = Some(e);
++                            break;
++                        }
++                    };
++                    let one = run_optimize(plan, state, |_c: usize, _j: usize| {}, None);
++                    if one.get("ok").and_then(Value::as_bool) != Some(true) {
++                        *failed.lock().unwrap() = Some(one);
++                        break;
++                    }
++                    got.lock().unwrap()[i] = Some(one);
++                });
++            }
++        });
++        if let Some(e) = failed.lock().unwrap().take() {
++            return e;
++        }
++        let mut round: Vec<Value> = Vec::new();
++        for slot in got.lock().unwrap().iter() {
++            match slot {
++                Some(one) => {
++                    worked = worked
++                        .saturating_add(one.get("work").and_then(Value::as_u64).unwrap_or(0));
++                    fought = fought
++                        .saturating_add(one.get("fights").and_then(Value::as_u64).unwrap_or(0));
++                    round.extend(one.get("scores").and_then(Value::as_array).cloned()
++                        .unwrap_or_default());
++                }
++                None => return err_json("a scoring slice never ran"),
++            }
++        }
++        built += round.len() as u64;
++        scores = round;
++        step += 1;
++    }
++}
++
++/// ONE BOARD ROW, ORDERED, FOUGHT, FOLDED AND SCORED HERE — the four calls a
++/// client makes, as one.  The arithmetic is the same `wfsim_webapi` functions
++/// (`/api/board/{order,runs,fold,score}`), so the answer is the one those four
++/// give; one call is what makes a row cost a client one round trip.
++///
++/// THE RUNS ARE FOLDED IN PLACE.  `runs` then `fold({pieces})` would walk the
++/// same thousand shards through `serde_json::Value` twice — once to hand each
++/// one out, once to read it back — and that round trip is SINGLE-THREADED: the
++/// fight's lanes sit idle while one thread serializes and re-parses a row's
++/// worth of shards.  Measured at about a fifth of a row's wall time.  `fold`
++/// with `from`/`count` fights the runs on the same lanes and folds them in run
++/// order (`fight::shards_parallel` + `Shard::merge`), which is exactly what the
++/// two-call path did, so `score`, `work` and `counts` are identical to the bit
++/// — only the JSON in the middle is gone.  `board_runs_json` and
++/// `board_fold_json` are untouched, so the page's own four calls still work.
++fn board_row_once(v: &Value) -> Value {
++    let order = match wfsim_webapi::route("/api/board/order", v) {
++        Some(o) => o,
++        None => return err_json("no board/order route"),
++    };
++    if order.get("ok").and_then(Value::as_bool) != Some(true) {
++        return stepped(order, "order");
++    }
++    let request = order.get("request").cloned().unwrap_or(Value::Null);
++    let runs = request.get("runs").and_then(Value::as_u64).unwrap_or(0);
++    let threads = v.get("threads").and_then(Value::as_u64).unwrap_or(1).clamp(1, 256);
++    let folded = match wfsim_webapi::route("/api/board/fold", &json!({
++        "request": request, "acc": Value::Null,
++        "from": 0, "count": runs, "threads": threads })) {
++        Some(f) => f,
++        None => return err_json("no board/fold route"),
++    };
++    if folded.get("ok").and_then(Value::as_bool) != Some(true) {
++        return stepped(folded, "fold");
++    }
++    match wfsim_webapi::route("/api/board/score", &json!({
++        "request": request, "ruler": v.get("ruler").cloned().unwrap_or(Value::Null),
++        "acc": folded.get("acc").cloned().unwrap_or(Value::Null) })) {
++        Some(s) if s.get("ok").and_then(Value::as_bool) == Some(true) => s,
++        Some(s) => stepped(s, "score"),
++        None => err_json("no board/score route"),
++    }
++}
++
++/// A REFUSAL SAYS WHICH STEP MADE IT.  The order's refusal is the row's own
++/// (`validate_for_board`: a build no fight can run) and the client skips that
++/// row; one from runs/fold/score is this process failing and the client keeps
++/// the row.
++fn stepped(why: Value, step: &str) -> Value {
++    match why {
++        Value::Object(mut m) => {
++            m.insert("step".into(), json!(step));
++            Value::Object(m)
++        }
++        other => json!({ "ok": false, "step": step, "error": other.to_string() }),
++    }
++}
++
+ fn optimize_start(v: &Value) -> Value {
+     static NEXT_JOB_ID: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+     let sync = v.get("sync").and_then(Value::as_bool).unwrap_or(false);
+@@ -141,9 +301,18 @@
+             });
+         }
+     }
+-    let plan = match parse_optimize(v) {
+-        Ok(p) => p,
+-        Err(e) => return e,
++    // A QUICK SEARCH IS DRIVEN HERE, the page's own way (see `optimize_drive`).
++    // The one-shot path stays for a funnel, a resume, and a client that already
++    // speaks the fleet protocol itself.
++    let driven = v.get("quick_fleet").is_none()
++        && v.get("strategy").and_then(Value::as_str) == Some("quick");
++    let plan = if driven {
++        None
++    } else {
++        match parse_optimize(v) {
++            Ok(p) => Some(p),
++            Err(e) => return e,
++        }
+     };
+     let id = NEXT_JOB_ID.fetch_add(1, Ordering::Relaxed);
+     let job = Arc::new(OptJob {
+@@ -166,23 +335,34 @@
+     }
+     if sync {
+         wfsim_optimizer::deprioritize_current_thread();
+-        let result = run_optimize(plan, &job.state, |_c: usize, _j: usize| {}, None);
++        let state = job.state.clone();
++        let result = match plan {
++            Some(plan) => run_optimize(plan, &state, |_c: usize, _j: usize| {}, None),
++            None => optimize_drive(v, &state, &|_c: usize, _j: usize| {}),
++        };
+         *job.result.lock().unwrap() = Some(result.clone());
+         *job.phase.lock().unwrap() = "done";
+         return result;
+     }
+     let worker = job.clone();
++    let request = v.clone();
+     std::thread::spawn(move || {
+         wfsim_optimizer::deprioritize_current_thread();
+-        let result = run_optimize(
+-            plan,
+-            &worker.state,
+-            |cands, jobs| {
++        let result = match plan {
++            Some(plan) => run_optimize(
++                plan,
++                &worker.state,
++                |cands, jobs| {
++                    *worker.counts.lock().unwrap() = Some((cands, jobs));
++                    *worker.phase.lock().unwrap() = "running";
++                },
++                None,
++            ),
++            None => optimize_drive(&request, &worker.state, &|cands: usize, jobs: usize| {
+                 *worker.counts.lock().unwrap() = Some((cands, jobs));
+                 *worker.phase.lock().unwrap() = "running";
+-            },
+-            None,
+-        );
++            }),
++        };
+         let ok = result.get("ok").and_then(Value::as_bool).unwrap_or(false);
+         let cancelled = result
+             .get("cancelled")
+@@ -208,6 +388,7 @@
+     let body = serde_json::from_slice::<Value>(&req.body).unwrap_or(Value::Null);
+     match (req.method.as_str(), path) {
+         ("POST", "/api/optimize") => respond_json(&mut stream, &optimize_start(&body)),
++        ("POST", "/api/board/row") => respond_json(&mut stream, &board_row_once(&body)),
+         ("POST", "/api/optimize/status") => respond_json(&mut stream, &optimize_status(&body)),
+         ("POST", "/api/optimize/cancel") => respond_json(&mut stream, &optimize_cancel(&body)),
+         ("POST", "/api/optimize/threads") => {

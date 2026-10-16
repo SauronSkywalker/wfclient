@@ -1,0 +1,58 @@
+name: build-engine
+
+# Workflow 1 of 2 -- "补丁变了 -> 自动产出最新引擎"
+# It syncs the *latest* upstream sources, applies ci/patches/*.patch, builds the engine the
+# fast way (MSVC + PGO + mimalloc) and only publishes it after the bit-identity gates pass.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 */6 * * *"          # catch upstream moves even when nothing changed here
+  push:
+    paths:
+      - "ci/patches/**"
+      - "ci/fetch_sources.py"
+      - "ci/build_engine.py"
+      - "ci/tools/**"
+      - ".github/workflows/build-engine.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-engine
+  cancel-in-progress: false
+
+jobs:
+  engine:
+    runs-on: windows-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: rust toolchain (matches the client's pinned 1.97.1)
+        run: |
+          rustup toolchain install 1.97.1-x86_64-pc-windows-msvc --profile minimal
+          rustup component add llvm-tools-preview --toolchain 1.97.1-x86_64-pc-windows-msvc
+          rustc --version
+
+      - name: fetch upstream sources + apply our patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python ci/fetch_sources.py
+
+      - name: build MSVC + PGO engine, then gate it bit-for-bit
+        run: python ci/build_engine.py --crt-static --target-cpu x86-64-v3 --rivens-gate 3
+
+      - name: upload engine + identity + gate logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: wfsim-core-and-identity
+          path: |
+            dist/wfsim-core.exe
+            dist/engine-identity.json
+            dist/gate-*.log
+          retention-days: 30

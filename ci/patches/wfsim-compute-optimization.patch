@@ -1,0 +1,362 @@
+--- a/engine/src/fight/monte_carlo.rs
++++ b/engine/src/fight/monte_carlo.rs
+@@ -1,4 +1,7 @@
+ use super::*;
++use std::collections::HashMap;
++use std::sync::atomic::{AtomicUsize, Ordering};
++use std::sync::{mpsc, Arc, Mutex, OnceLock};
+ 
+ /// Aggregate statistics over many engagements.
+ #[derive(Debug, Clone, Copy, Default)]
+@@ -632,6 +635,153 @@
+     a
+ }
+ 
++/// ONE SHARD A RUN, ACROSS THREADS — the same runs the serial fold walks, and
++/// in the same order, so the fold that follows is the serial one to the bit.
++///
++/// A run's dice are a pure function of `(seed, index)` (`shard_onto`), so a run
++/// is independent of every other one; the order they are COMPUTED in never
++/// mattered, only the order they are ADDED. That is the whole licence for this
++/// function: it returns the runs as separate shards, in index order, and the
++/// caller adds them one at a time exactly as the serial fold would have.
++///
++/// WASM HAS NO THREADS (`docs/WASM.md` phase 3 — the page's own fleet is what
++/// it has instead), so the same signature is serial there.
++type PoolJob = Box<dyn FnOnce() + Send + 'static>;
++
++struct WorkerPool {
++    senders: Vec<mpsc::Sender<PoolJob>>,
++    next: AtomicUsize,
++    _workers: Vec<std::thread::JoinHandle<()>>,
++}
++
++impl WorkerPool {
++    fn new(threads: usize) -> Arc<Self> {
++        let threads = threads.max(1);
++        let mut senders = Vec::with_capacity(threads);
++        let mut workers = Vec::with_capacity(threads);
++        for _ in 0..threads {
++            let (tx, rx) = mpsc::channel::<PoolJob>();
++            senders.push(tx);
++            workers.push(std::thread::spawn(move || {
++                while let Ok(job) = rx.recv() {
++                    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(job));
++                }
++            }));
++        }
++        Arc::new(Self { senders, next: AtomicUsize::new(0), _workers: workers })
++    }
++
++    fn submit(&self, job: PoolJob) {
++        let i = self.next.fetch_add(1, Ordering::Relaxed) % self.senders.len();
++        let _ = self.senders[i].send(job);
++    }
++}
++
++fn pool_for(threads: usize) -> Arc<WorkerPool> {
++    static POOLS: OnceLock<Mutex<HashMap<usize, Arc<WorkerPool>>>> = OnceLock::new();
++    let pools = POOLS.get_or_init(|| Mutex::new(HashMap::new()));
++    let mut map = pools.lock().unwrap();
++    let threads = threads.max(1);
++    map.entry(threads)
++        .or_insert_with(|| WorkerPool::new(threads))
++        .clone()
++}
++
++/// ONE SHARD A RUN, ACROSS A PERSISTENT POOL — the same runs the serial fold
++/// walks, and in the same order, so the fold that follows is the serial one to
++/// the bit.  An atomic index gives the next free worker the next run; the
++/// result vector is filled by index, so only WHERE a run was fought changes,
++/// never the order the shards are merged.
++#[cfg(not(target_arch = "wasm32"))]
++pub fn shards_parallel(
++    params: Arc<FightParams>,
++    from: u32,
++    count: u32,
++    seed: u64,
++    keep: bool,
++    threads: usize,
++) -> Vec<Shard> {
++    let n = count as usize;
++    let lanes = threads.max(1).min(n.max(1));
++    if lanes <= 1 {
++        return (0..n)
++            .map(|i| shard(params.as_ref(), from + i as u32, 1, seed, keep, &mut |_| {}))
++            .collect();
++    }
++    let next = Arc::new(AtomicUsize::new(0));
++    let (tx, rx) = mpsc::channel::<Vec<(usize, Shard)>>();
++    let pool = pool_for(lanes);
++    for _ in 0..lanes {
++        let params = Arc::clone(&params);
++        let next = Arc::clone(&next);
++        let tx = tx.clone();
++        pool.submit(Box::new(move || {
++            let mut found = Vec::new();
++            loop {
++                let i = next.fetch_add(1, Ordering::Relaxed);
++                if i >= n {
++                    break;
++                }
++                found.push((i, shard(
++                    params.as_ref(), from + i as u32, 1, seed, keep, &mut |_| {},
++                )));
++            }
++            let _ = tx.send(found);
++        }));
++    }
++    drop(tx);
++    let mut out: Vec<Option<Shard>> = (0..n).map(|_| None).collect();
++    for _ in 0..lanes {
++        match rx.recv() {
++            Ok(batch) => {
++                for (i, s) in batch {
++                    out[i] = Some(s);
++                }
++            }
++            Err(_) => break,
++        }
++    }
++    out.into_iter().map(|x| x.expect("every run is fought")).collect()
++}
++
++/// …AND THE SAME, SERIAL, where there are no threads to have.
++#[cfg(target_arch = "wasm32")]
++pub fn shards_parallel(
++    params: Arc<FightParams>,
++    from: u32,
++    count: u32,
++    seed: u64,
++    keep: bool,
++    _threads: usize,
++) -> Vec<Shard> {
++    (0..count as usize)
++        .map(|i| shard(params.as_ref(), from + i as u32, 1, seed, keep, &mut |_| {}))
++        .collect()
++}
++
++/// …AND THE FOLD, THREADED: fight the runs in parallel, then add them in RUN
++/// ORDER.  Floating-point addition is not associative, so the order the
++/// marginals are merged in is part of the answer — and it is the one
++/// `shard_onto` uses.  One lane is `shard_onto` itself.
++pub fn fold_parallel(
++    params: Arc<FightParams>,
++    acc: Shard,
++    from: u32,
++    count: u32,
++    seed: u64,
++    keep: bool,
++    threads: usize,
++) -> Shard {
++    if threads <= 1 {
++        return shard_onto(params.as_ref(), acc, from, count, seed, keep, &mut |_| {});
++    }
++    let mut acc = acc;
++    for s in shards_parallel(Arc::clone(&params), from, count, seed, keep, threads) {
++        acc.merge(&s);
++    }
++    acc
++}
++
+ impl Shard {
+     /// TURN THE CONTRIBUTIONS INTO THE ANSWER. Everything below divides by the
+     /// run count, which is why none of it can live in the shard.
+--- a/webapi/src/simulate.rs
++++ b/webapi/src/simulate.rs
+@@ -3,6 +3,7 @@
+ //! row makes.
+ 
+ use serde_json::{json, Value};
++use std::sync::Arc;
+ use wfsim_engine::fight::FightParams;
+ use wfsim_engine::build::loadout::{resolve_for, ResolvedPanel};
+ use wfsim_engine::model::{ModDef, WeaponBase};
+@@ -161,6 +162,12 @@
+     simulate_from(v, Work::Merged(Box::new(merged)), &mut |_, _| {})
+ }
+ 
++/// …AND THE MERGE FROM AN ACCUMULATOR ALREADY IN MEMORY, so a caller holding
++/// one does not serialise it only to parse it back.
++pub fn simulate_merged_shard_json(v: &Value, merged: wfsim_engine::fight::Shard) -> Value {
++    simulate_from(v, Work::Merged(Box::new(merged)), &mut |_, _| {})
++}
++
+ /// WHAT THIS CALL IS DOING — the three ways a simulation is run, sharing one
+ /// path so a shard and a whole run cannot build different params.
+ enum Work {
+@@ -469,8 +476,72 @@
+     Ok(Ready { fight: e.fight, panel, params, seat_weapons: e.seat_weapons, forma })
+ }
+ 
++/// A FIGHT PREPARED ONCE AND RUN MANY TIMES — everything a SHARD wants, and
++/// nothing a report does.
++///
++/// THE PER-RUN COST IS THE SETUP, not the run. `ready` parses the fight,
++/// resolves the build, seats the whole roster and applies every term to build
++/// `FightParams`; `fight::shard` then plays one run through it. A board row is
++/// FOLDED ONE RUN A PIECE (`board_rows::fold_runs` — nothing coarser
++/// reproduces the number), so going through `simulate_shard_json` in that loop
++/// paid the whole setup again, and a JSON trip, for every run of the row.
++///
++/// THE ANSWER CANNOT MOVE. The same `params`, the same `seed` and the same
++/// `(from, count)` reach the same `fight::shard`/`fight::shard_onto`, and the
++/// accumulator keeps the run order the fold had.
++pub struct Prepared {
++    params: Arc<wfsim_engine::fight::FightParams>,
++    seed: u64,
++    want_series: bool,
++}
++
++impl Prepared {
++
++    /// ONE SHARD A RUN, ACROSS THREADS, in index order — for a caller that has
++    /// cores of its own and no fleet to spend them on.
++    pub fn shards_threaded(
++        &self,
++        from: u32,
++        count: u32,
++        threads: usize,
++    ) -> Vec<wfsim_engine::fight::Shard> {
++        wfsim_engine::fight::shards_parallel(
++            Arc::clone(&self.params), from, count, self.seed, self.want_series, threads,
++        )
++    }
++
++    /// …AND THOSE RUNS FOLDED IN RUN ORDER — `shard_onto` to the bit.
++    pub fn fold_threaded(
++        &self,
++        acc: wfsim_engine::fight::Shard,
++        from: u32,
++        count: u32,
++        threads: usize,
++    ) -> wfsim_engine::fight::Shard {
++        wfsim_engine::fight::fold_parallel(
++            Arc::clone(&self.params), acc, from, count, self.seed, self.want_series, threads,
++        )
++    }
++}
++
++/// READY A FIGHT FOR ITS RUNS — `ready` without the report, for a caller that
++/// will run many shards of one request.
++pub fn prepare(v: &Value) -> Result<Prepared, Value> {
++    let Ready { fight, params, .. } = ready(v, false)?;
++    Ok(Prepared {
++        params: Arc::new(params),
++        seed: fight.seed,
++        want_series: get_bool(v, "run_series", false),
++    })
++}
++
+ fn simulate_from(v: &Value, work: Work, on_run: &mut impl FnMut(u32, u32)) -> Value {
+-    let Ready { fight, panel: report_panel, params, seat_weapons, forma } = match ready(v, true) {
++    // A SHARD IS NOT A REPORT. Everything above is the fight; `forma` is the
++    // capacity planner's answer and the shard path returns before it reads one,
++    // so asking for it here billed EVERY RUN of every board row for a report
++    // nobody would ever see.
++    let wants_report = !matches!(work, Work::Shard(..));
++    let Ready { fight, panel: report_panel, params, seat_weapons, forma } = match ready(v, wants_report) {
+         Ok(r) => r,
+         Err(e) => return e,
+     };
+--- a/webapi/src/board_rows.rs
++++ b/webapi/src/board_rows.rs
+@@ -12,7 +12,7 @@
+ 
+ use crate::kitgun::board_assembly_of;
+ use crate::request::get_str;
+-use crate::simulate::{riven_request, simulate_merged_json, simulate_request, simulate_shard_json};
++use crate::simulate::{riven_request, simulate_request};
+ 
+ fn ids(rec: &Value, key: &str) -> Vec<String> {
+     rec.get(key)
+@@ -221,20 +221,42 @@
+     from: u32,
+     count: u32,
+ ) -> Result<(), Value> {
+-    for k in from..from.saturating_add(count) {
+-        let piece = simulate_shard_json(req, k, 1, &mut |_, _| {});
+-        match serde_json::from_value::<wfsim_engine::fight::Shard>(piece.clone()) {
+-            Ok(s) => acc.merge(&s),
+-            Err(_) => return Err(piece),
+-        }
+-    }
++    fold_runs_with(req, acc, from, count, 1)
++}
++
++/// THE LANES THE CALLER ASKED FOR, and one if it did not. A library call is
++/// never a surprise on somebody else's machine: the fleet that answers
++/// `/api/board/runs` is the page's, and a client with cores of its own says so.
++fn threads_of(v: &Value) -> usize {
++    v.get("threads")
++        .and_then(Value::as_u64)
++        .map(|n| (n as usize).clamp(1, 256))
++        .unwrap_or(1)
++}
++
++/// …AND THE SAME FOLD ACROSS `threads` LANES. One lane is `fold_runs` exactly
++/// (`fight::fold_parallel` falls back to `shard_onto`), and more than one only
++/// changes WHERE a run is fought — never the order the marginals are added in,
++/// which is the part the number is made of.
++pub fn fold_runs_with(
++    req: &Value,
++    acc: &mut wfsim_engine::fight::Shard,
++    from: u32,
++    count: u32,
++    threads: usize,
++) -> Result<(), Value> {
++    // ONE SETUP FOR THE WHOLE RANGE, and the accumulator carried through it.
++    // This loop used to call `simulate_shard_json` once per run — re-parsing
++    // the fight, re-resolving the build and rebuilding `FightParams` every
++    // time — and moved each shard one function over as JSON.
++    let prepared = crate::simulate::prepare(req)?;
++    *acc = prepared.fold_threaded(std::mem::take(acc), from, count, threads);
+     Ok(())
+ }
+ 
+ /// THE REPORT A FOLDED ACCUMULATOR MAKES — the scorer's `run_budgeted` ending.
+ pub fn measured(req: &Value, acc: &wfsim_engine::fight::Shard) -> Value {
+-    let shard = serde_json::to_value(acc).unwrap_or(Value::Null);
+-    simulate_merged_json(req, std::slice::from_ref(&shard))
++    crate::simulate::simulate_merged_shard_json(req, acc.clone())
+ }
+ 
+ /// THE ROW'S NUMBER IN THE RULER'S OWN UNITS. `score` off the wire is kill
+@@ -284,14 +306,20 @@
+     let req = v.get("request").cloned().unwrap_or(Value::Null);
+     let from = v.get("from").and_then(Value::as_u64).unwrap_or(0) as u32;
+     let count = v.get("count").and_then(Value::as_u64).unwrap_or(0) as u32;
+-    let mut shards = Vec::with_capacity(count as usize);
+-    for k in from..from.saturating_add(count) {
+-        let piece = simulate_shard_json(&req, k, 1, &mut |_, _| {});
+-        if serde_json::from_value::<wfsim_engine::fight::Shard>(piece.clone()).is_err() {
+-            return piece;
+-        }
+-        shards.push(piece);
+-    }
++    // ONE SETUP, and still ONE SHARD A RUN — that is the wire's contract and
++    // the fold's. What goes away is the setup per run and the parse-back that
++    // only re-checked what `to_value` had produced a line earlier.
++    let prepared = match crate::simulate::prepare(&req) {
++        Ok(p) => p,
++        Err(e) => return e,
++    };
++    // LANES ARE THE CALLER'S, and one-by-default: the page has its own fleet
++    // and never asks for this, a client with cores does.
++    let shards: Vec<Value> = prepared
++        .shards_threaded(from, count, threads_of(v))
++        .into_iter()
++        .map(|s| serde_json::to_value(s).unwrap_or(Value::Null))
++        .collect();
+     json!({ "ok": true, "shards": shards })
+ }
+ 
+@@ -320,7 +348,7 @@
+     }
+     let from = v.get("from").and_then(Value::as_u64).unwrap_or(0) as u32;
+     let count = v.get("count").and_then(Value::as_u64).unwrap_or(0) as u32;
+-    if let Err(piece) = fold_runs(&req, &mut acc, from, count) {
++    if let Err(piece) = fold_runs_with(&req, &mut acc, from, count, threads_of(v)) {
+         return piece;
+     }
+     json!({ "ok": true, "acc": acc })

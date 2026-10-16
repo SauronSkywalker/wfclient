@@ -1,0 +1,6996 @@
+[
+ {
+  "id": "torid-14d3a4fe",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@1"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "blast",
+     "cold",
+     "electricity"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.720265494013868,
+   "metric": "kpm",
+   "work": 1533991929,
+   "counts": {
+    "body_shots": 262000,
+    "dot_ticks": 0,
+    "field_ticks": 2555000,
+    "gas": 22679838588,
+    "hits": 3228637,
+    "kills": 1836,
+    "pellets": 262000,
+    "procs": 1794322,
+    "runs": 1000,
+    "shots": 262000
+   }
+  },
+  "note": {
+   "question": "14d3a4fe00db5b398d0bb03961430d61",
+   "identity": "9072de43b412eb5d92b97ba2166b49cc",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "base",
+   "src_compute_ms": 1011.0,
+   "src_lanes": 16,
+   "est6_ms": 1011
+  }
+ },
+ {
+  "id": "boar_prime-12464ba7",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "magazine_capacity",
+     "slash"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "demolisher__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 3.047273374618684,
+   "metric": "kpm",
+   "work": 2011818659,
+   "counts": {
+    "body_shots": 1380322,
+    "dot_ticks": 217471,
+    "field_ticks": 0,
+    "gas": 32236373181,
+    "hits": 2090224,
+    "kills": 8730,
+    "pellets": 1872753,
+    "procs": 1410326,
+    "runs": 1000,
+    "shots": 1380322
+   }
+  },
+  "note": {
+   "question": "12464ba7ef5388f0c69ee191f191fcd4",
+   "identity": "9c80cbd08e2e2818d4b39bab65d5d3b1",
+   "weapon": "boar_prime",
+   "ruler": "demolisher__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1246.0,
+   "src_lanes": 16,
+   "est6_ms": 1246
+  }
+ },
+ {
+  "id": "ocucor-905b6a2c",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "jolt",
+     "primed_heated_charge",
+     "riven",
+     "pistol_acuity",
+     "primed_target_cracker",
+     "pistol_elementalist",
+     "augur_seeker"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "electricity",
+     "heat",
+     "impact"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.8367432584167074,
+   "metric": "kpm",
+   "work": 2188747719,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 196443,
+    "field_ticks": 0,
+    "gas": 35774954390,
+    "hits": 2164443,
+    "kills": 2000,
+    "pellets": 1968000,
+    "procs": 1039643,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "905b6a2c12b6cc18010b777b1e09c4bd",
+   "identity": "8aad9a30c0fdb0b35e206fea2ec6053e",
+   "weapon": "ocucor",
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "src_compute_ms": 1391.0,
+   "src_lanes": 16,
+   "est6_ms": 1391
+  }
+ },
+ {
+  "id": "furis-243933d2",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_crosshairs",
+     "primed_pistol_gambit",
+     "pistol_elementalist",
+     "stunning_speed",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 55.94463541067862,
+   "metric": "kpm",
+   "work": 2788385765,
+   "counts": {
+    "body_shots": 2045000,
+    "dot_ticks": 180834,
+    "field_ticks": 0,
+    "gas": 47767715304,
+    "hits": 2368385,
+    "kills": 167635,
+    "pellets": 2187551,
+    "procs": 7522426,
+    "runs": 1000,
+    "shots": 2045000
+   }
+  },
+  "note": {
+   "question": "243933d2169dd70aeeeb25b4887977d9",
+   "identity": "f42e77e75fc63d3d689eff00a93b4e30",
+   "weapon": "furis",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1665.0,
+   "src_lanes": 16,
+   "est6_ms": 1665
+  }
+ },
+ {
+  "id": "dual_toxocyst-19db5a37",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_deadhead"
+    ],
+    "evolutions": [
+     "dual_toxocyst_evo1_incarnon_form",
+     "dual_toxocyst_fevered_frenzy",
+     "dual_toxocyst_marksmans_hand",
+     "dual_toxocyst_commodores_fortune"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "riven",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_crosshairs",
+     "galvanized_shot",
+     "anemic_agility",
+     "augur_seeker",
+     "magnetic_might"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "corrosive",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "dual_toxocyst"
+   },
+   "ruler": "demolisher__icebind1000",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.3403350917547956,
+   "metric": "kpm",
+   "work": 2398337787,
+   "counts": {
+    "body_shots": 855000,
+    "dot_ticks": 266944,
+    "field_ticks": 0,
+    "gas": 39966755757,
+    "hits": 2919552,
+    "kills": 797,
+    "pellets": 2652608,
+    "procs": 2995250,
+    "runs": 1000,
+    "shots": 855000
+   }
+  },
+  "note": {
+   "question": "19db5a377910eb698ed802f0a692bac2",
+   "identity": "2c89f66c12ca5139e2f5954c4d84eeb0",
+   "weapon": "dual_toxocyst",
+   "ruler": "demolisher__icebind1000",
+   "mode": "base",
+   "src_compute_ms": 1732.0,
+   "src_lanes": 16,
+   "est6_ms": 1732
+  }
+ },
+ {
+  "id": "latron_prime-00e9bf5a",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_compression"
+    ],
+    "evolutions": [
+     "latron_prime_evo1_incarnon_form",
+     "latron_prime_riddled_target",
+     "latron_prime_extended_volley",
+     "latron_prime_critical_parallel"
+    ],
+    "mods": [
+     "high_voltage",
+     "malignant_force",
+     "primed_cryo_rounds",
+     "galvanized_chamber",
+     "double_tap",
+     "galvanized_aptitude",
+     "vital_sense",
+     "riven"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "critical_chance",
+     "damage",
+     "viral"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "latron_prime"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 37.46582694967181,
+   "metric": "kpm",
+   "work": 2829033938,
+   "counts": {
+    "body_shots": 472994,
+    "dot_ticks": 3931,
+    "field_ticks": 0,
+    "gas": 48580678777,
+    "hits": 4018451,
+    "kills": 112007,
+    "pellets": 1989324,
+    "procs": 5181002,
+    "runs": 1000,
+    "shots": 472994
+   }
+  },
+  "note": {
+   "question": "00e9bf5a549d62f76ee8143283d07662",
+   "identity": "c71bf0506ae5ab41620f6b83e35855c8",
+   "weapon": "latron_prime",
+   "ruler": "heavy_gunner",
+   "mode": "cycle",
+   "src_compute_ms": 2390.0,
+   "src_lanes": 16,
+   "est6_ms": 2390
+  }
+ },
+ {
+  "id": "tenet_cycron-4de444da",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_enervate"
+    ],
+    "evolutions": [],
+    "mods": [
+     "frostbite",
+     "riven",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_shot",
+     "lethal_torrent",
+     "pistol_elementalist"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "critical_damage",
+     "damage",
+     "toxin"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "valence": "heat",
+    "weapon": "tenet_cycron"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 18.42574162646376,
+   "metric": "kpm",
+   "work": 3525290758,
+   "counts": {
+    "body_shots": 2826000,
+    "dot_ticks": 165452,
+    "field_ticks": 0,
+    "gas": 62505815178,
+    "hits": 2991452,
+    "kills": 54993,
+    "pellets": 2826000,
+    "procs": 10310660,
+    "runs": 1000,
+    "shots": 2826000
+   }
+  },
+  "note": {
+   "question": "4de444da8d41b8d2b9b17ad83899b46a",
+   "identity": "13c654447cc32d4f90bbf7007d759880",
+   "weapon": "tenet_cycron",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "base",
+   "src_compute_ms": 2450.0,
+   "src_lanes": 16,
+   "est6_ms": 2450
+  }
+ },
+ {
+  "id": "boar_prime-4ca4470f",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "magazine_capacity",
+     "slash"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "heavy_gunner__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 15.651834940654682,
+   "metric": "kpm",
+   "work": 2062601027,
+   "counts": {
+    "body_shots": 1380097,
+    "dot_ticks": 257365,
+    "field_ticks": 0,
+    "gas": 33252020543,
+    "hits": 2143429,
+    "kills": 46590,
+    "pellets": 1886064,
+    "procs": 1695937,
+    "runs": 1000,
+    "shots": 1380097
+   }
+  },
+  "note": {
+   "question": "4ca4470fb4dd991d8887b515789557aa",
+   "identity": "9c80cbd08e2e2818d4b39bab65d5d3b1",
+   "weapon": "boar_prime",
+   "ruler": "heavy_gunner__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1279.0,
+   "src_lanes": 16,
+   "est6_ms": 1279
+  }
+ },
+ {
+  "id": "torid-313911f7",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "heavy_caliber",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vital_sense",
+     "continuous_misery@0",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "critical_chance",
+     "fire_rate",
+     "magazine_capacity"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     0.9,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 24.309111183455762,
+   "metric": "kpm",
+   "work": 2291567811,
+   "counts": {
+    "body_shots": 1927000,
+    "dot_ticks": 0,
+    "field_ticks": 552000,
+    "gas": 37831356233,
+    "hits": 2479000,
+    "kills": 72451,
+    "pellets": 1927000,
+    "procs": 853182,
+    "runs": 1000,
+    "shots": 1927000
+   }
+  },
+  "note": {
+   "question": "313911f7c46749c80b369b9088077b65",
+   "identity": "97eed544c26954712527f14b8e3addd0",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1325.0,
+   "src_lanes": 16,
+   "est6_ms": 1325
+  }
+ },
+ {
+  "id": "torid-2cc34e90",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "heavy_caliber",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@2",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "ammo_efficiency",
+     "critical_chance",
+     "critical_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 126.29114138305164,
+   "metric": "kpm",
+   "work": 2366400947,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39328018951,
+    "hits": 2587000,
+    "kills": 378428,
+    "pellets": 1999000,
+    "procs": 771803,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2cc34e90e52671b37adca5c4dfbc118f",
+   "identity": "951b670bd29129bcc5a679ff710004e5",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1386.0,
+   "src_lanes": 16,
+   "est6_ms": 1386
+  }
+ },
+ {
+  "id": "boar_prime-8112d7f7",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 30.001904246256466,
+   "metric": "kpm",
+   "work": 2276791178,
+   "counts": {
+    "body_shots": 1507000,
+    "dot_ticks": 231552,
+    "field_ticks": 0,
+    "gas": 37535823574,
+    "hits": 2340897,
+    "kills": 89580,
+    "pellets": 2109345,
+    "procs": 2755170,
+    "runs": 1000,
+    "shots": 1507000
+   }
+  },
+  "note": {
+   "question": "8112d7f70ab7031d5b4dfcb441ba0d3a",
+   "identity": "38b631f532fc8cd05524e44e98a30c53",
+   "weapon": "boar_prime",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1422.0,
+   "src_lanes": 16,
+   "est6_ms": 1422
+  }
+ },
+ {
+  "id": "boar_prime-2b30a4b0",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "demolisher__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 1.661404200351131,
+   "metric": "kpm",
+   "work": 2211001581,
+   "counts": {
+    "body_shots": 1370000,
+    "dot_ticks": 218104,
+    "field_ticks": 0,
+    "gas": 36220031629,
+    "hits": 2171610,
+    "kills": 4580,
+    "pellets": 1953506,
+    "procs": 3780674,
+    "runs": 1000,
+    "shots": 1370000
+   }
+  },
+  "note": {
+   "question": "2b30a4b06461e9b375e7788f9a28e3a6",
+   "identity": "2a1d7003a732b4b80a26264ff2dde431",
+   "weapon": "boar_prime",
+   "ruler": "demolisher__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1449.0,
+   "src_lanes": 16,
+   "est6_ms": 1449
+  }
+ },
+ {
+  "id": "boar_prime-4c32134c",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "demolisher__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 24.96069551606162,
+   "metric": "kpm",
+   "work": 2242502981,
+   "counts": {
+    "body_shots": 1370000,
+    "dot_ticks": 140451,
+    "field_ticks": 0,
+    "gas": 36850059636,
+    "hits": 2112704,
+    "kills": 74561,
+    "pellets": 1972253,
+    "procs": 4492351,
+    "runs": 1000,
+    "shots": 1370000
+   }
+  },
+  "note": {
+   "question": "4c32134c0c71379072db98b830771f0c",
+   "identity": "2a1d7003a732b4b80a26264ff2dde431",
+   "weapon": "boar_prime",
+   "ruler": "demolisher__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1465.0,
+   "src_lanes": 16,
+   "est6_ms": 1465
+  }
+ },
+ {
+  "id": "ocucor-42b0c33e",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "projectile_speed",
+     "puncture"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 1.3149591543367456,
+   "metric": "kpm",
+   "work": 2285350594,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 202701,
+    "field_ticks": 0,
+    "gas": 37707011883,
+    "hits": 2170701,
+    "kills": 3266,
+    "pellets": 1968000,
+    "procs": 2287730,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "42b0c33e23f5f87d005e8b7d972cdb96",
+   "identity": "ced514bf5b52cb658aaba2397ccab9da",
+   "weapon": "ocucor",
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "src_compute_ms": 1495.0,
+   "src_lanes": 16,
+   "est6_ms": 1495
+  }
+ },
+ {
+  "id": "ocucor-aa5263b9",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "multishot",
+     "weak_point_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "standard_single_target",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 12.525461972831245,
+   "metric": "kpm",
+   "work": 2442698119,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 258662,
+    "field_ticks": 0,
+    "gas": 40853962397,
+    "hits": 2226662,
+    "kills": 37048,
+    "pellets": 1968000,
+    "procs": 4861882,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "aa5263b97f7bba1013f3877bccbb5f20",
+   "identity": "3e199a70b7e1cc34abc0de3579987a6f",
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "mode": "base",
+   "src_compute_ms": 1571.0,
+   "src_lanes": 16,
+   "est6_ms": 1571
+  }
+ },
+ {
+  "id": "ocucor-dd67eaba",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "puncture",
+     "weak_point_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "demolisher",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.4717439256722135,
+   "metric": "kpm",
+   "work": 2256636528,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 179189,
+    "field_ticks": 0,
+    "gas": 37132730569,
+    "hits": 2147189,
+    "kills": 1000,
+    "pellets": 1968000,
+    "procs": 2217191,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "dd67eaba8d4acf92636c9e3d7122bad4",
+   "identity": "becd10711c64df6d387b6f746c7c1a0c",
+   "weapon": "ocucor",
+   "ruler": "demolisher",
+   "mode": "base",
+   "src_compute_ms": 1580.0,
+   "src_lanes": 16,
+   "est6_ms": 1580
+  }
+ },
+ {
+  "id": "ocucor-f500637a",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "jolt",
+     "primed_heated_charge",
+     "riven",
+     "pistol_acuity",
+     "primed_target_cracker",
+     "pistol_elementalist",
+     "augur_seeker"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "electricity",
+     "heat",
+     "impact"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "standard_multi_target",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 2.3524919442369385,
+   "metric": "kpm",
+   "work": 2509307543,
+   "counts": {
+    "body_shots": 49200000,
+    "dot_ticks": 277202,
+    "field_ticks": 0,
+    "gas": 42186150875,
+    "hits": 2583317,
+    "kills": 6606,
+    "pellets": 1968000,
+    "procs": 1217396,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "f500637a31244370d92ea6ed5944cb9c",
+   "identity": "8aad9a30c0fdb0b35e206fea2ec6053e",
+   "weapon": "ocucor",
+   "ruler": "standard_multi_target",
+   "mode": "base",
+   "src_compute_ms": 1758.0,
+   "src_lanes": 16,
+   "est6_ms": 1758
+  }
+ },
+ {
+  "id": "boar_prime-f4f3af8f",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "heavy_gunner__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 41.2464937632282,
+   "metric": "kpm",
+   "work": 2275551878,
+   "counts": {
+    "body_shots": 1507000,
+    "dot_ticks": 187329,
+    "field_ticks": 0,
+    "gas": 37511037575,
+    "hits": 2296674,
+    "kills": 123388,
+    "pellets": 2109345,
+    "procs": 2721842,
+    "runs": 1000,
+    "shots": 1507000
+   }
+  },
+  "note": {
+   "question": "f4f3af8f12466f1e6e394bbe671a4372",
+   "identity": "38b631f532fc8cd05524e44e98a30c53",
+   "weapon": "boar_prime",
+   "ruler": "heavy_gunner__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1810.0,
+   "src_lanes": 16,
+   "est6_ms": 1810
+  }
+ },
+ {
+  "id": "boar_prime-f4384e57",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "heavy_gunner__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 9.84207415977685,
+   "metric": "kpm",
+   "work": 2309623651,
+   "counts": {
+    "body_shots": 1507000,
+    "dot_ticks": 301302,
+    "field_ticks": 0,
+    "gas": 38192473037,
+    "hits": 2407920,
+    "kills": 29150,
+    "pellets": 2106618,
+    "procs": 2789765,
+    "runs": 1000,
+    "shots": 1507000
+   }
+  },
+  "note": {
+   "question": "f4384e57826a6fab99f77da7ee7d5c81",
+   "identity": "38b631f532fc8cd05524e44e98a30c53",
+   "weapon": "boar_prime",
+   "ruler": "heavy_gunner__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1946.0,
+   "src_lanes": 16,
+   "est6_ms": 1946
+  }
+ },
+ {
+  "id": "furis-2e15411c",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_enervate"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_practiced_grip",
+     "furis_elemental_balance"
+    ],
+    "exilus": "suppress",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "riven",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "magnum_force",
+     "primed_target_cracker"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "heat",
+     "multishot",
+     "status_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 60.84722118762575,
+   "metric": "kpm",
+   "work": 3059674068,
+   "counts": {
+    "body_shots": 49121350,
+    "dot_ticks": 84930,
+    "field_ticks": 0,
+    "gas": 53193481362,
+    "hits": 2163900,
+    "kills": 182069,
+    "pellets": 2078970,
+    "procs": 10460321,
+    "runs": 1000,
+    "shots": 1964854
+   }
+  },
+  "note": {
+   "question": "2e15411c3f0a02809fd83aaca70774ed",
+   "identity": "480cd74fe7cf1fe2fad525ac57bd3143",
+   "weapon": "furis",
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1970.0,
+   "src_lanes": 16,
+   "est6_ms": 1970
+  }
+ },
+ {
+  "id": "dual_toxocyst-3f15f98d",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_deadhead"
+    ],
+    "evolutions": [
+     "dual_toxocyst_evo1_incarnon_form",
+     "dual_toxocyst_fevered_frenzy",
+     "dual_toxocyst_marksmans_hand",
+     "dual_toxocyst_commodores_fortune"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "riven",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_crosshairs",
+     "galvanized_shot",
+     "anemic_agility",
+     "augur_seeker",
+     "magnetic_might"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "corrosive",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "dual_toxocyst"
+   },
+   "ruler": "standard_multi_target__sp200",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 85.91844240519062,
+   "metric": "kpm",
+   "work": 3040758086,
+   "counts": {
+    "body_shots": 21375000,
+    "dot_ticks": 86410,
+    "field_ticks": 0,
+    "gas": 52815161721,
+    "hits": 3730497,
+    "kills": 257318,
+    "pellets": 3644087,
+    "procs": 3825473,
+    "runs": 1000,
+    "shots": 855000
+   }
+  },
+  "note": {
+   "question": "3f15f98deee50ade256da251dc3781d6",
+   "identity": "2c89f66c12ca5139e2f5954c4d84eeb0",
+   "weapon": "dual_toxocyst",
+   "ruler": "standard_multi_target__sp200",
+   "mode": "base",
+   "src_compute_ms": 2143.0,
+   "src_lanes": 16,
+   "est6_ms": 2143
+  }
+ },
+ {
+  "id": "furis-2ebb63fd",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "pathogen_rounds",
+     "frostbite",
+     "pistol_pestilence",
+     "riven",
+     "galvanized_diffusion",
+     "primed_pistol_gambit",
+     "pistol_elementalist",
+     "magnetic_might"
+    ],
+    "riven_neg": "puncture",
+    "riven_pos": [
+     "critical_chance",
+     "damage",
+     "heat"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_multi_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 54.67785734062809,
+   "metric": "kpm",
+   "work": 3226400425,
+   "counts": {
+    "body_shots": 50371725,
+    "dot_ticks": 296710,
+    "field_ticks": 0,
+    "gas": 56528008507,
+    "hits": 2440385,
+    "kills": 163728,
+    "pellets": 2143675,
+    "procs": 9956017,
+    "runs": 1000,
+    "shots": 2014869
+   }
+  },
+  "note": {
+   "question": "2ebb63fd0c82ca84ba92ed270e746634",
+   "identity": "11f253b52b9ca461d798ac1f01b42a00",
+   "weapon": "furis",
+   "ruler": "standard_multi_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 2169.0,
+   "src_lanes": 16,
+   "est6_ms": 2169
+  }
+ },
+ {
+  "id": "dual_toxocyst-3ecb7a9e",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [
+     "dual_toxocyst_evo1_incarnon_form",
+     "dual_toxocyst_fevered_frenzy",
+     "dual_toxocyst_ready_retaliation",
+     "dual_toxocyst_commodores_fortune"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "scorch",
+     "riven",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_crosshairs",
+     "galvanized_shot",
+     "lethal_torrent",
+     "anemic_agility"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "corrosive",
+     "electricity"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "dual_toxocyst"
+   },
+   "ruler": "demolisher__archimedea500",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.813563090210336,
+   "metric": "kpm",
+   "work": 3333190973,
+   "counts": {
+    "body_shots": 1126000,
+    "dot_ticks": 0,
+    "field_ticks": 0,
+    "gas": 58663819460,
+    "hits": 4238916,
+    "kills": 2000,
+    "pellets": 4238916,
+    "procs": 3762552,
+    "runs": 1000,
+    "shots": 1126000
+   }
+  },
+  "note": {
+   "question": "3ecb7a9e5540dd426486560ef7096b7a",
+   "identity": "46a30031c5de1c63edeafec900e9af1a",
+   "weapon": "dual_toxocyst",
+   "ruler": "demolisher__archimedea500",
+   "mode": "base",
+   "src_compute_ms": 2394.0,
+   "src_lanes": 16,
+   "est6_ms": 2394
+  }
+ },
+ {
+  "id": "boar_prime-caad99b7",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 47.97664895151548,
+   "metric": "kpm",
+   "work": 2257457560,
+   "counts": {
+    "body_shots": 1507000,
+    "dot_ticks": 180921,
+    "field_ticks": 0,
+    "gas": 37149151219,
+    "hits": 2290266,
+    "kills": 143472,
+    "pellets": 2109345,
+    "procs": 2803667,
+    "runs": 1000,
+    "shots": 1507000
+   }
+  },
+  "note": {
+   "question": "caad99b7dc84cef3a3340f61e27c6edb",
+   "identity": "38b631f532fc8cd05524e44e98a30c53",
+   "weapon": "boar_prime",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1394.0,
+   "src_lanes": 16,
+   "est6_ms": 1394
+  }
+ },
+ {
+  "id": "ocucor-d2a99812",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "puncture",
+     "weak_point_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 1.9551390515319522,
+   "metric": "kpm",
+   "work": 2291879629,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 214159,
+    "field_ticks": 0,
+    "gas": 37837592594,
+    "hits": 2182159,
+    "kills": 5173,
+    "pellets": 1968000,
+    "procs": 2352600,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "d2a998123a2f187407495cc33f87733a",
+   "identity": "becd10711c64df6d387b6f746c7c1a0c",
+   "weapon": "ocucor",
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "src_compute_ms": 1500.0,
+   "src_lanes": 16,
+   "est6_ms": 1500
+  }
+ },
+ {
+  "id": "torid-208c7587",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "riven",
+     "primary_acuity",
+     "serration",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@0"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "critical_chance",
+     "electricity",
+     "reload_while_holstered"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 27.212999093919258,
+   "metric": "kpm",
+   "work": 2365841037,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39316820752,
+    "hits": 2587000,
+    "kills": 81224,
+    "pellets": 1999000,
+    "procs": 886876,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "208c758745e8751f6bcdbcedd9401a93",
+   "identity": "9058d76cdee89cadf3c105cf5c535864",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1396.0,
+   "src_lanes": 16,
+   "est6_ms": 1396
+  }
+ },
+ {
+  "id": "torid-c06db0d9",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@0",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "ammo_efficiency",
+     "damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 106.2679753275804,
+   "metric": "kpm",
+   "work": 2363756273,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39275125471,
+    "hits": 2587000,
+    "kills": 318312,
+    "pellets": 1999000,
+    "procs": 794868,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c06db0d933a5b7900deceb006f979f1a",
+   "identity": "9626641cb0f69e6e86ef77e459e00bc9",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1399.0,
+   "src_lanes": 16,
+   "est6_ms": 1399
+  }
+ },
+ {
+  "id": "torid-218578fe",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "heavy_caliber",
+     "primary_acuity",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@1",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "blast",
+     "magazine_capacity",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 83.01552692180978,
+   "metric": "kpm",
+   "work": 2361405049,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39228100983,
+    "hits": 2607820,
+    "kills": 248527,
+    "pellets": 1999000,
+    "procs": 821887,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "218578fe860017386b86e40011f71e82",
+   "identity": "9374f7c749939d8de7054f0b3acb6c4a",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1422.0,
+   "src_lanes": 16,
+   "est6_ms": 1422
+  }
+ },
+ {
+  "id": "torid-2eef0623",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vital_sense",
+     "continuous_misery@2"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "ammo_efficiency",
+     "fire_rate",
+     "heat"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 36.36466381421917,
+   "metric": "kpm",
+   "work": 2343199831,
+   "counts": {
+    "body_shots": 1927000,
+    "dot_ticks": 69702,
+    "field_ticks": 552000,
+    "gas": 38863996628,
+    "hits": 2548702,
+    "kills": 108706,
+    "pellets": 1927000,
+    "procs": 1351673,
+    "runs": 1000,
+    "shots": 1927000
+   }
+  },
+  "note": {
+   "question": "2eef062335a902a6c910fb89c2e5df84",
+   "identity": "94379c8d2d5e4b29c95217f364d38a8a",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1422.0,
+   "src_lanes": 16,
+   "est6_ms": 1422
+  }
+ },
+ {
+  "id": "torid-c38edc76",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "high_voltage",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@0"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "electricity",
+     "magazine_capacity"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 131.53190011893804,
+   "metric": "kpm",
+   "work": 2393005875,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39860117511,
+    "hits": 2587000,
+    "kills": 394178,
+    "pellets": 1999000,
+    "procs": 1223849,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c38edc76aa4c809a90525350e5eef554",
+   "identity": "932f51936bea2e8bacce2c0d974b7a6c",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1429.0,
+   "src_lanes": 16,
+   "est6_ms": 1429
+  }
+ },
+ {
+  "id": "boar_prime-543b2032",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 16.76860466087278,
+   "metric": "kpm",
+   "work": 2292528319,
+   "counts": {
+    "body_shots": 1370000,
+    "dot_ticks": 333791,
+    "field_ticks": 0,
+    "gas": 37850566398,
+    "hits": 2305231,
+    "kills": 50064,
+    "pellets": 1971440,
+    "procs": 4546906,
+    "runs": 1000,
+    "shots": 1370000
+   }
+  },
+  "note": {
+   "question": "543b203286a5ec7618b7fbc27ecfeb98",
+   "identity": "2a1d7003a732b4b80a26264ff2dde431",
+   "weapon": "boar_prime",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1442.0,
+   "src_lanes": 16,
+   "est6_ms": 1442
+  }
+ },
+ {
+  "id": "torid-2fe87629",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@4"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "heat",
+     "magazine_capacity",
+     "viral"
+    ],
+    "riven_rolls": [
+     1.1,
+     0.9,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 106.24680896861723,
+   "metric": "kpm",
+   "work": 2402983428,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 19661,
+    "field_ticks": 588000,
+    "gas": 40059668575,
+    "hits": 2606661,
+    "kills": 318234,
+    "pellets": 1999000,
+    "procs": 1271678,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2fe87629c70e09d0c6e376ccd31e5030",
+   "identity": "9633be508e23e558616a238ce5541659",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1446.0,
+   "src_lanes": 16,
+   "est6_ms": 1446
+  }
+ },
+ {
+  "id": "torid-307cc9d1",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@2"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "heat",
+     "magazine_capacity",
+     "status_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 92.37905785604576,
+   "metric": "kpm",
+   "work": 2403010282,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 24312,
+    "field_ticks": 588000,
+    "gas": 40060205641,
+    "hits": 2611312,
+    "kills": 276631,
+    "pellets": 1999000,
+    "procs": 1299253,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "307cc9d149ed06d3ece5350c826fb671",
+   "identity": "9631335196b75e4331cc881c33ddd426",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1460.0,
+   "src_lanes": 16,
+   "est6_ms": 1460
+  }
+ },
+ {
+  "id": "torid-2def6a41",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "riven",
+     "heavy_caliber",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@2"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "blast",
+     "electricity",
+     "projectile_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 115.26285867029445,
+   "metric": "kpm",
+   "work": 2393199403,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39863988065,
+    "hits": 2617683,
+    "kills": 345361,
+    "pellets": 1999000,
+    "procs": 1120924,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2def6a41c216de9e867a778a0bebc6bf",
+   "identity": "954cf5f668b9a9295f80f54f5bc74368",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1462.0,
+   "src_lanes": 16,
+   "est6_ms": 1462
+  }
+ },
+ {
+  "id": "torid-2bf18bc9",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "riven",
+     "thermite_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@2"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "magazine_capacity",
+     "status_damage",
+     "toxin"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 29.147210628207905,
+   "metric": "kpm",
+   "work": 2417484103,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 54348,
+    "field_ticks": 588000,
+    "gas": 40349682063,
+    "hits": 2641348,
+    "kills": 87025,
+    "pellets": 1999000,
+    "procs": 1420142,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2bf18bc9e074ccf988f19b4e08dcff9c",
+   "identity": "9769815e2d9d16b90ac058d6d3b35e66",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1471.0,
+   "src_lanes": 16,
+   "est6_ms": 1471
+  }
+ },
+ {
+  "id": "torid-c2b4599b",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "stormbringer",
+     "primary_acuity",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery",
+     "magnetic_capacity",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "multishot",
+     "reload_while_holstered",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 67.30972660904455,
+   "metric": "kpm",
+   "work": 2420239914,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 14520,
+    "field_ticks": 588000,
+    "gas": 40404798288,
+    "hits": 2601520,
+    "kills": 201409,
+    "pellets": 1999000,
+    "procs": 1851947,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c2b4599b32bf2a98693b02114d975edf",
+   "identity": "98760dced1f7e633acb46d822ddd9342",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1478.0,
+   "src_lanes": 16,
+   "est6_ms": 1478
+  }
+ },
+ {
+  "id": "torid-c3fe52e3",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "aerial_ace",
+    "mods": [
+     "malignant_force",
+     "riven",
+     "hellfire",
+     "primary_acuity",
+     "bladed_rounds",
+     "hunter_track",
+     "vile_acceleration",
+     "vital_sense"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "critical_chance",
+     "gas"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 113.63345020305583,
+   "metric": "kpm",
+   "work": 2469361944,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 197010,
+    "field_ticks": 588000,
+    "gas": 41387238893,
+    "hits": 2784010,
+    "kills": 340430,
+    "pellets": 1999000,
+    "procs": 1269997,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c3fe52e3071df30582a77dc5a9d50878",
+   "identity": "968b4eedf899039b718c668139c6c0f4",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1498.0,
+   "src_lanes": 16,
+   "est6_ms": 1498
+  }
+ },
+ {
+  "id": "torid-c451b4f9",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_renewed_horror",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "riven",
+     "high_voltage",
+     "heavy_caliber",
+     "primary_acuity",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@4"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "heat",
+     "weak_point_critical_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 69.86965051374054,
+   "metric": "kpm",
+   "work": 2456693346,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 41133866932,
+    "hits": 2759158,
+    "kills": 209126,
+    "pellets": 1999000,
+    "procs": 1910557,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c451b4f9a8ebd687269cd5a146ef4b18",
+   "identity": "9221887eeb0528f2c30c04ab9fb8e533",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1498.0,
+   "src_lanes": 16,
+   "est6_ms": 1498
+  }
+ },
+ {
+  "id": "torid-c184a8a5",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "heavy_caliber",
+     "primary_acuity",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@1",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "ammo_efficiency",
+     "magazine_capacity",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 38.634656815741955,
+   "metric": "kpm",
+   "work": 2503898987,
+   "counts": {
+    "body_shots": 2145000,
+    "dot_ticks": 0,
+    "field_ticks": 625000,
+    "gas": 42077979741,
+    "hits": 2770000,
+    "kills": 115350,
+    "pellets": 2145000,
+    "procs": 939684,
+    "runs": 1000,
+    "shots": 2145000
+   }
+  },
+  "note": {
+   "question": "c184a8a58690f0e6b5b03964a5299b16",
+   "identity": "98df4be6cb4e70ed0a66b27ff0aa60f8",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1504.0,
+   "src_lanes": 16,
+   "est6_ms": 1504
+  }
+ },
+ {
+  "id": "torid-2d6ee7f6",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_extended_volley",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@4",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "blast",
+     "damage",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 71.08695762350948,
+   "metric": "kpm",
+   "work": 2522672294,
+   "counts": {
+    "body_shots": 2145000,
+    "dot_ticks": 0,
+    "field_ticks": 625000,
+    "gas": 42453445887,
+    "hits": 2791756,
+    "kills": 212759,
+    "pellets": 2145000,
+    "procs": 901481,
+    "runs": 1000,
+    "shots": 2145000
+   }
+  },
+  "note": {
+   "question": "2d6ee7f647a2e8cf6a78e569feed8495",
+   "identity": "981cb4ed34137259ebe38bb6f820f31e",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1507.0,
+   "src_lanes": 16,
+   "est6_ms": 1507
+  }
+ },
+ {
+  "id": "torid-c0b72183",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_renewed_horror",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "stormbringer",
+     "primary_acuity",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "magnetic_capacity",
+     "continuous_misery@0",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "critical_chance",
+     "reload_while_holstered",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 84.39939846525397,
+   "metric": "kpm",
+   "work": 2420955293,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 13070,
+    "field_ticks": 588000,
+    "gas": 40419105861,
+    "hits": 2600070,
+    "kills": 252686,
+    "pellets": 1999000,
+    "procs": 1807424,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c0b72183102f6b47531e4574cf73f219",
+   "identity": "988aeab7f0b0881d919afdb431f7e31e",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1508.0,
+   "src_lanes": 16,
+   "est6_ms": 1508
+  }
+ },
+ {
+  "id": "torid-30d3108f",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "heavy_caliber",
+     "primary_acuity",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@1",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "critical_chance",
+     "magazine_capacity",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     0.9,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 96.0426164619865,
+   "metric": "kpm",
+   "work": 2497820158,
+   "counts": {
+    "body_shots": 2145000,
+    "dot_ticks": 0,
+    "field_ticks": 625000,
+    "gas": 41956403177,
+    "hits": 2770000,
+    "kills": 287636,
+    "pellets": 2145000,
+    "procs": 872404,
+    "runs": 1000,
+    "shots": 2145000
+   }
+  },
+  "note": {
+   "question": "30d3108f833f3f342467d6af2126cbc2",
+   "identity": "9418015a9a47da6d04096d9ec2ae8988",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1512.0,
+   "src_lanes": 16,
+   "est6_ms": 1512
+  }
+ },
+ {
+  "id": "torid-31c95e30",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "riven",
+     "thermite_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@0"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "radiation",
+     "toxin"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 136.91579327737057,
+   "metric": "kpm",
+   "work": 2442500043,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 11946,
+    "field_ticks": 588000,
+    "gas": 40850000870,
+    "hits": 2598946,
+    "kills": 410328,
+    "pellets": 1999000,
+    "procs": 1737307,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "31c95e30841b1364ebd5a1013cef2631",
+   "identity": "5a332913ff7a16a93312a64b00a4c9ae",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1517.0,
+   "src_lanes": 16,
+   "est6_ms": 1517
+  }
+ },
+ {
+  "id": "torid-288bff29",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_renewed_horror",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "high_voltage",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "magazine_capacity",
+     "magnetic",
+     "projectile_speed"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 20.042815688143733,
+   "metric": "kpm",
+   "work": 2465915547,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 107014,
+    "field_ticks": 588000,
+    "gas": 41318310944,
+    "hits": 2694014,
+    "kills": 59527,
+    "pellets": 1999000,
+    "procs": 2037169,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "288bff2931b7124d5ca1a44ea47f6594",
+   "identity": "954305663e220b40646c035654081037",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1539.0,
+   "src_lanes": 16,
+   "est6_ms": 1539
+  }
+ },
+ {
+  "id": "torid-23f38af6",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "riven",
+     "thermite_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@0"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "magazine_capacity",
+     "status_damage",
+     "toxin"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 101.48040570484352,
+   "metric": "kpm",
+   "work": 2398807051,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 109,
+    "field_ticks": 588000,
+    "gas": 39976141036,
+    "hits": 2587109,
+    "kills": 303959,
+    "pellets": 1999000,
+    "procs": 1278375,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "23f38af614d10bbb1e6ed9ae9b7dd3c9",
+   "identity": "9739909d7381438b02594404808c789c",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1540.0,
+   "src_lanes": 16,
+   "est6_ms": 1540
+  }
+ },
+ {
+  "id": "boar_prime-6ec9a7d3",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "heavy_gunner__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 23.9209459131132,
+   "metric": "kpm",
+   "work": 2305055667,
+   "counts": {
+    "body_shots": 1507000,
+    "dot_ticks": 256942,
+    "field_ticks": 0,
+    "gas": 38101113350,
+    "hits": 2366198,
+    "kills": 71403,
+    "pellets": 2109256,
+    "procs": 2838072,
+    "runs": 1000,
+    "shots": 1507000
+   }
+  },
+  "note": {
+   "question": "6ec9a7d3c7b9676733de459e6d3ed6ce",
+   "identity": "38b631f532fc8cd05524e44e98a30c53",
+   "weapon": "boar_prime",
+   "ruler": "heavy_gunner__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1541.0,
+   "src_lanes": 16,
+   "est6_ms": 1541
+  }
+ },
+ {
+  "id": "ocucor-e6901b9a",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "puncture",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 1.338332861114728,
+   "metric": "kpm",
+   "work": 2336422644,
+   "counts": {
+    "body_shots": 2022000,
+    "dot_ticks": 202871,
+    "field_ticks": 0,
+    "gas": 38728452887,
+    "hits": 2224871,
+    "kills": 3417,
+    "pellets": 2022000,
+    "procs": 2351805,
+    "runs": 1000,
+    "shots": 2022000
+   }
+  },
+  "note": {
+   "question": "e6901b9a355906cd39e5a969b94ecc96",
+   "identity": "32f3e0a2424d430dd8e024b895646e1e",
+   "weapon": "ocucor",
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "src_compute_ms": 1542.0,
+   "src_lanes": 16,
+   "est6_ms": 1542
+  }
+ },
+ {
+  "id": "torid-2119c5d4",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "riven",
+     "hellfire",
+     "primary_acuity",
+     "galvanized_scope",
+     "hammer_shot",
+     "vile_acceleration",
+     "vital_sense"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "projectile_speed",
+     "toxin"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 45.999814855084445,
+   "metric": "kpm",
+   "work": 2468851495,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 33267,
+    "field_ticks": 588000,
+    "gas": 41377029916,
+    "hits": 2620267,
+    "kills": 137601,
+    "pellets": 1999000,
+    "procs": 2217675,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2119c5d482cb5c40d85882cce2073305",
+   "identity": "936f3167ab7aa1a9f68cba8836b9bf24",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1553.0,
+   "src_lanes": 16,
+   "est6_ms": 1553
+  }
+ },
+ {
+  "id": "ocucor-c4dd89c4",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "slash",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 1.6266049897051738,
+   "metric": "kpm",
+   "work": 2368807255,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 208624,
+    "field_ticks": 0,
+    "gas": 39376145105,
+    "hits": 2176624,
+    "kills": 4037,
+    "pellets": 1968000,
+    "procs": 3495906,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "c4dd89c4f83eebca0ed2a5f23a42e017",
+   "identity": "e1cf0f93109f96cc507b108adc40bd8f",
+   "weapon": "ocucor",
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "src_compute_ms": 1561.0,
+   "src_lanes": 16,
+   "est6_ms": 1561
+  }
+ },
+ {
+  "id": "torid-c242932c",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "riven",
+     "high_voltage",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@3"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "ammo_efficiency",
+     "cold",
+     "heat"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 54.74608276345125,
+   "metric": "kpm",
+   "work": 2479202364,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 41584047296,
+    "hits": 2902580,
+    "kills": 163736,
+    "pellets": 1999000,
+    "procs": 1951096,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c242932c33d3cda6bfbdf51cab0b94cd",
+   "identity": "939d940fb06f5b9c9e9959bfd39ad497",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1571.0,
+   "src_lanes": 16,
+   "est6_ms": 1571
+  }
+ },
+ {
+  "id": "ocucor-cf873490",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "magazine_capacity",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "standard_single_target",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 7.146001293289301,
+   "metric": "kpm",
+   "work": 2424875356,
+   "counts": {
+    "body_shots": 2074000,
+    "dot_ticks": 223233,
+    "field_ticks": 0,
+    "gas": 40497507128,
+    "hits": 2297233,
+    "kills": 21014,
+    "pellets": 2074000,
+    "procs": 3422469,
+    "runs": 1000,
+    "shots": 2074000
+   }
+  },
+  "note": {
+   "question": "cf873490f3949f9308a4deb39628468e",
+   "identity": "81430bfdebafbec0635db7d414b7e765",
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "mode": "base",
+   "src_compute_ms": 1580.0,
+   "src_lanes": 16,
+   "est6_ms": 1580
+  }
+ },
+ {
+  "id": "torid-28804413",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "riven",
+     "primary_acuity",
+     "galvanized_aptitude",
+     "galvanized_scope",
+     "bladed_rounds",
+     "hunter_track",
+     "vital_sense",
+     "magnetic_capacity"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "electricity",
+     "fire_rate",
+     "status_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 36.41441498223215,
+   "metric": "kpm",
+   "work": 1624600714,
+   "counts": {
+    "body_shots": 294000,
+    "dot_ticks": 106967,
+    "field_ticks": 2880853,
+    "gas": 24492014280,
+    "hits": 3281820,
+    "kills": 108793,
+    "pellets": 294000,
+    "procs": 2200640,
+    "runs": 1000,
+    "shots": 294000
+   }
+  },
+  "note": {
+   "question": "2880441311b87ebb45191eff197feff6",
+   "identity": "95e20b9b3ef890975b5862bcbd8c7546",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "base",
+   "src_compute_ms": 1590.0,
+   "src_lanes": 16,
+   "est6_ms": 1590
+  }
+ },
+ {
+  "id": "ocucor-4e959f90",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "status_chance",
+     "weak_point_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "standard_single_target",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 11.056785682010524,
+   "metric": "kpm",
+   "work": 2447866516,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 244433,
+    "field_ticks": 0,
+    "gas": 40957330334,
+    "hits": 2212433,
+    "kills": 32578,
+    "pellets": 1968000,
+    "procs": 4983101,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "4e959f90259215d1ad0141f199353c35",
+   "identity": "a93c92982199c3961d6d21df9b644669",
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "mode": "base",
+   "src_compute_ms": 1602.0,
+   "src_lanes": 16,
+   "est6_ms": 1602
+  }
+ },
+ {
+  "id": "ocucor-216ba06f",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "puncture",
+     "reload_while_holstered"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "demolisher",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.33226719535127713,
+   "metric": "kpm",
+   "work": 2254656013,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 178906,
+    "field_ticks": 0,
+    "gas": 37093120268,
+    "hits": 2146906,
+    "kills": 795,
+    "pellets": 1968000,
+    "procs": 2188442,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "216ba06faf6bac6a19f6b6e8d8855f6b",
+   "identity": "4b48ddd1e1f1f14c7987da85acf020a3",
+   "weapon": "ocucor",
+   "ruler": "demolisher",
+   "mode": "base",
+   "src_compute_ms": 1606.0,
+   "src_lanes": 16,
+   "est6_ms": 1606
+  }
+ },
+ {
+  "id": "torid-26bb7559",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "rime_rounds",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@0"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "electricity",
+     "heat",
+     "viral"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 145.56410964679586,
+   "metric": "kpm",
+   "work": 2512035208,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 42240704170,
+    "hits": 3042551,
+    "kills": 436265,
+    "pellets": 1999000,
+    "procs": 1718254,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "26bb75590d53c0269eee0eec7bff3705",
+   "identity": "957b1f2cbdb402ba285bc13304b554f5",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1650.0,
+   "src_lanes": 16,
+   "est6_ms": 1650
+  }
+ },
+ {
+  "id": "torid-227ac64f",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "malignant_force",
+     "riven",
+     "hellfire",
+     "primary_acuity",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@4",
+     "magnetic_capacity"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "magazine_capacity",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 22.593075682808294,
+   "metric": "kpm",
+   "work": 2482375010,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 188565,
+    "field_ticks": 588000,
+    "gas": 41647500219,
+    "hits": 2775565,
+    "kills": 67326,
+    "pellets": 1999000,
+    "procs": 2032280,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "227ac64fcef7af7c379b90e466ec0dae",
+   "identity": "90d15c9fd1f59a326f292b60ae2c18b5",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1663.0,
+   "src_lanes": 16,
+   "est6_ms": 1663
+  }
+ },
+ {
+  "id": "ocucor-a543c820",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "multishot",
+     "weak_point_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 3.5385213919546703,
+   "metric": "kpm",
+   "work": 2446744466,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 241844,
+    "field_ticks": 0,
+    "gas": 40934889330,
+    "hits": 2209844,
+    "kills": 10002,
+    "pellets": 1968000,
+    "procs": 4549922,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "a543c82048238e53a7064e5dff549759",
+   "identity": "3e199a70b7e1cc34abc0de3579987a6f",
+   "weapon": "ocucor",
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "src_compute_ms": 1667.0,
+   "src_lanes": 16,
+   "est6_ms": 1667
+  }
+ },
+ {
+  "id": "torid-27865da7",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "malignant_force",
+     "riven",
+     "thermite_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@2"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "critical_damage",
+     "gas"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 146.22503457061762,
+   "metric": "kpm",
+   "work": 2589745827,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 198213,
+    "field_ticks": 588000,
+    "gas": 43794916544,
+    "hits": 2785213,
+    "kills": 438243,
+    "pellets": 1999000,
+    "procs": 2398717,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "27865da78c7d0007d99a60a90abdcd34",
+   "identity": "9674a7b38f87757af2540fb4676d3cd3",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1684.0,
+   "src_lanes": 16,
+   "est6_ms": 1684
+  }
+ },
+ {
+  "id": "furis-2a67e82d",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_enervate"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_practiced_grip",
+     "furis_elemental_balance"
+    ],
+    "exilus": "lethal_momentum",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "riven",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "pistol_elementalist",
+     "magnetic_might"
+    ],
+    "riven_neg": "reload_speed",
+    "riven_pos": [
+     "critical_damage",
+     "damage",
+     "heat"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 59.42896233961492,
+   "metric": "kpm",
+   "work": 2698886557,
+   "counts": {
+    "body_shots": 1985070,
+    "dot_ticks": 153975,
+    "field_ticks": 0,
+    "gas": 45977731152,
+    "hits": 2238323,
+    "kills": 177823,
+    "pellets": 2084348,
+    "procs": 7037232,
+    "runs": 1000,
+    "shots": 1985070
+   }
+  },
+  "note": {
+   "question": "2a67e82d032f54212ce28ac839ec69ab",
+   "identity": "b675c36974e390c81b5d394e25940b3d",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1697.0,
+   "src_lanes": 16,
+   "est6_ms": 1697
+  }
+ },
+ {
+  "id": "torid-276fee26",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "rime_rounds",
+     "primary_acuity",
+     "galvanized_aptitude",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@3",
+     "magnetic_capacity",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "corrosive",
+     "critical_chance",
+     "magazine_capacity"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     0.9,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 58.77603915830044,
+   "metric": "kpm",
+   "work": 1855048596,
+   "counts": {
+    "body_shots": 334000,
+    "dot_ticks": 142805,
+    "field_ticks": 3271000,
+    "gas": 29100971920,
+    "hits": 3747805,
+    "kills": 176273,
+    "pellets": 334000,
+    "procs": 3284367,
+    "runs": 1000,
+    "shots": 334000
+   }
+  },
+  "note": {
+   "question": "276fee2695441690ed87a34b7255be89",
+   "identity": "9507bcbc9faaf9621b0fccfe839adb71",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "base",
+   "src_compute_ms": 1709.0,
+   "src_lanes": 16,
+   "est6_ms": 1709
+  }
+ },
+ {
+  "id": "ocucor-9ca3ed7e",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "projectile_speed",
+     "puncture"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "standard_single_target",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 7.263895196982839,
+   "metric": "kpm",
+   "work": 2323813791,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 223673,
+    "field_ticks": 0,
+    "gas": 38476275829,
+    "hits": 2191673,
+    "kills": 21364,
+    "pellets": 1968000,
+    "procs": 3250999,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "9ca3ed7e43e1072d7ae8c96d7d8e4f42",
+   "identity": "ced514bf5b52cb658aaba2397ccab9da",
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "mode": "base",
+   "src_compute_ms": 1744.0,
+   "src_lanes": 16,
+   "est6_ms": 1744
+  }
+ },
+ {
+  "id": "torid-31b8284a",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@1"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "heat",
+     "projectile_speed",
+     "viral"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 36.94657960245229,
+   "metric": "kpm",
+   "work": 2414775854,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 37831,
+    "field_ticks": 588000,
+    "gas": 40295517084,
+    "hits": 2624831,
+    "kills": 110434,
+    "pellets": 1999000,
+    "procs": 1400866,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "31b8284ab4ce7e5a2f0cb7fe63bb8003",
+   "identity": "984b00a6d5811a681d302cbdddd0862b",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1767.0,
+   "src_lanes": 16,
+   "est6_ms": 1767
+  }
+ },
+ {
+  "id": "torid-2598a1d0",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "infected_clip",
+     "hellfire",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "ammo_efficiency",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 38.28040481843008,
+   "metric": "kpm",
+   "work": 2473363253,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 47260,
+    "field_ticks": 588000,
+    "gas": 41467265077,
+    "hits": 2634260,
+    "kills": 114429,
+    "pellets": 1999000,
+    "procs": 2267020,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2598a1d079eb66d41640e121978fa263",
+   "identity": "94410de2102faa71865751b6ee16fb02",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1774.0,
+   "src_lanes": 16,
+   "est6_ms": 1774
+  }
+ },
+ {
+  "id": "furis-e067117a",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "galvanized_shot",
+     "primed_pistol_gambit",
+     "pistol_elementalist",
+     "riven"
+    ],
+    "riven_neg": "ammo_maximum",
+    "riven_pos": [
+     "critical_chance",
+     "critical_damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 56.73795321036614,
+   "metric": "kpm",
+   "work": 2874645483,
+   "counts": {
+    "body_shots": 2016996,
+    "dot_ticks": 179593,
+    "field_ticks": 0,
+    "gas": 49492909677,
+    "hits": 2327111,
+    "kills": 169906,
+    "pellets": 2147518,
+    "procs": 9279399,
+    "runs": 1000,
+    "shots": 2016996
+   }
+  },
+  "note": {
+   "question": "e067117a54369f1fee4d354dd969a585",
+   "identity": "3c9955192a6535de71e7afdb8835060d",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1798.0,
+   "src_lanes": 16,
+   "est6_ms": 1798
+  }
+ },
+ {
+  "id": "furis-1a925ea3",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_enervate"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_practiced_grip",
+     "furis_elemental_balance"
+    ],
+    "exilus": "lethal_momentum",
+    "mods": [
+     "frostbite",
+     "riven",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "pistol_elementalist",
+     "magnetic_might"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "critical_damage",
+     "damage",
+     "toxin"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 118.29681116729753,
+   "metric": "kpm",
+   "work": 2677007131,
+   "counts": {
+    "body_shots": 2013986,
+    "dot_ticks": 44578,
+    "field_ticks": 0,
+    "gas": 45540142621,
+    "hits": 2178150,
+    "kills": 354400,
+    "pellets": 2133572,
+    "procs": 5131678,
+    "runs": 1000,
+    "shots": 2013986
+   }
+  },
+  "note": {
+   "question": "1a925ea320ccbfa262161c5559d423fb",
+   "identity": "c37d87cefea6de7e90c651970d4eb2e9",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1803.0,
+   "src_lanes": 16,
+   "est6_ms": 1803
+  }
+ },
+ {
+  "id": "furis-fd9b85d1",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "galvanized_shot",
+     "primed_pistol_gambit",
+     "pistol_elementalist",
+     "riven"
+    ],
+    "riven_neg": "ammo_maximum",
+    "riven_pos": [
+     "critical_chance",
+     "critical_damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 55.51024596709296,
+   "metric": "kpm",
+   "work": 2874843885,
+   "counts": {
+    "body_shots": 2016996,
+    "dot_ticks": 181592,
+    "field_ticks": 0,
+    "gas": 49496877715,
+    "hits": 2329110,
+    "kills": 166299,
+    "pellets": 2147518,
+    "procs": 9271447,
+    "runs": 1000,
+    "shots": 2016996
+   }
+  },
+  "note": {
+   "question": "fd9b85d1cac1980543dac5fb633bea39",
+   "identity": "5a7a8273e76d9aa1bf74024f0575a2da",
+   "weapon": "furis",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1828.0,
+   "src_lanes": 16,
+   "est6_ms": 1828
+  }
+ },
+ {
+  "id": "torid-c31aa46e",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "galvanized_chamber",
+     "galvanized_scope",
+     "hunter_track",
+     "vile_acceleration",
+     "vital_sense",
+     "magnetic_capacity",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "corrosive",
+     "magazine_capacity",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     0.9,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 157.53988256624552,
+   "metric": "kpm",
+   "work": 2851883387,
+   "counts": {
+    "body_shots": 2131887,
+    "dot_ticks": 22691,
+    "field_ticks": 851406,
+    "gas": 49037667751,
+    "hits": 3072919,
+    "kills": 472241,
+    "pellets": 2198822,
+    "procs": 4336858,
+    "runs": 1000,
+    "shots": 2131887
+   }
+  },
+  "note": {
+   "question": "c31aa46e60ad094f56c3d5eb0e6c40c7",
+   "identity": "92f56158431590e77ce6279ab130dccc",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1829.0,
+   "src_lanes": 16,
+   "est6_ms": 1829
+  }
+ },
+ {
+  "id": "torid-2beee2c9",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@0",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "ammo_efficiency",
+     "damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 54.97950096071885,
+   "metric": "kpm",
+   "work": 2371031889,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39420637793,
+    "hits": 2587000,
+    "kills": 164452,
+    "pellets": 1999000,
+    "procs": 854779,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2beee2c957876dab8bff94488a491929",
+   "identity": "9626641cb0f69e6e86ef77e459e00bc9",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1835.0,
+   "src_lanes": 16,
+   "est6_ms": 1835
+  }
+ },
+ {
+  "id": "torid-bfc6543a",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "heavy_caliber",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vital_sense",
+     "continuous_misery@2",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "critical_chance",
+     "fire_rate",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 31.661995614888003,
+   "metric": "kpm",
+   "work": 2357636353,
+   "counts": {
+    "body_shots": 1927000,
+    "dot_ticks": 0,
+    "field_ticks": 552000,
+    "gas": 39152727060,
+    "hits": 2479000,
+    "kills": 94677,
+    "pellets": 1927000,
+    "procs": 1862342,
+    "runs": 1000,
+    "shots": 1927000
+   }
+  },
+  "note": {
+   "question": "bfc6543a63c667140736b52c2b19bbb7",
+   "identity": "934fdf2febfa7e84862181b182e03add",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1858.0,
+   "src_lanes": 16,
+   "est6_ms": 1858
+  }
+ },
+ {
+  "id": "boar_prime-aa6cabe4",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "demolisher__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 24.929297557529363,
+   "metric": "kpm",
+   "work": 2249370190,
+   "counts": {
+    "body_shots": 1507000,
+    "dot_ticks": 139287,
+    "field_ticks": 0,
+    "gas": 36987403817,
+    "hits": 2248375,
+    "kills": 74378,
+    "pellets": 2109088,
+    "procs": 2815534,
+    "runs": 1000,
+    "shots": 1507000
+   }
+  },
+  "note": {
+   "question": "aa6cabe4be76dd8f0215c8cc06a5e4cd",
+   "identity": "38b631f532fc8cd05524e44e98a30c53",
+   "weapon": "boar_prime",
+   "ruler": "demolisher__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1864.0,
+   "src_lanes": 16,
+   "est6_ms": 1864
+  }
+ },
+ {
+  "id": "furis-1a1a6f85",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "primed_pistol_gambit",
+     "riven"
+    ],
+    "riven_neg": "ammo_maximum",
+    "riven_pos": [
+     "critical_chance",
+     "critical_damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 87.13342851176796,
+   "metric": "kpm",
+   "work": 2834527694,
+   "counts": {
+    "body_shots": 1964854,
+    "dot_ticks": 23902,
+    "field_ticks": 0,
+    "gas": 48690553896,
+    "hits": 2102872,
+    "kills": 260966,
+    "pellets": 2078970,
+    "procs": 9662612,
+    "runs": 1000,
+    "shots": 1964854
+   }
+  },
+  "note": {
+   "question": "1a1a6f85c5d34a9c13f16589d3bb4c74",
+   "identity": "80cb398b2083136082cf1687b3c3399b",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1873.0,
+   "src_lanes": 16,
+   "est6_ms": 1873
+  }
+ },
+ {
+  "id": "ocucor-80083afc",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "pistol_elementalist",
+     "augur_seeker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "slash",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "demolisher",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.3573565341682553,
+   "metric": "kpm",
+   "work": 2332687754,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 179351,
+    "field_ticks": 0,
+    "gas": 38653755081,
+    "hits": 2147351,
+    "kills": 1000,
+    "pellets": 1968000,
+    "procs": 3339774,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "80083afcd24a2c0cb84e999e487f9895",
+   "identity": "e1cf0f93109f96cc507b108adc40bd8f",
+   "weapon": "ocucor",
+   "ruler": "demolisher",
+   "mode": "base",
+   "src_compute_ms": 1882.0,
+   "src_lanes": 16,
+   "est6_ms": 1882
+  }
+ },
+ {
+  "id": "furis-3240372b",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "primed_pistol_gambit",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "critical_chance",
+     "puncture",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 63.12391615784703,
+   "metric": "kpm",
+   "work": 2947475112,
+   "counts": {
+    "body_shots": 2022286,
+    "dot_ticks": 129427,
+    "field_ticks": 0,
+    "gas": 50949502258,
+    "hits": 2277378,
+    "kills": 188905,
+    "pellets": 2147951,
+    "procs": 8858839,
+    "runs": 1000,
+    "shots": 2022286
+   }
+  },
+  "note": {
+   "question": "3240372b16eecf7984cdf4279c1f5ae8",
+   "identity": "1e21afb827073ade1858dd7d6b49e7a1",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1887.0,
+   "src_lanes": 16,
+   "est6_ms": 1887
+  }
+ },
+ {
+  "id": "torid-e0d9aa23",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "infected_clip",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@3"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "heat",
+     "reload_while_holstered",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 101.6764458930103,
+   "metric": "kpm",
+   "work": 2435623697,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 27442,
+    "field_ticks": 588000,
+    "gas": 40712473951,
+    "hits": 2614442,
+    "kills": 304550,
+    "pellets": 1999000,
+    "procs": 1766861,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "e0d9aa23faff0dee903578a1e130fc02",
+   "identity": "912b8e39bfbc32ae862ff2e1a68ceea5",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1902.0,
+   "src_lanes": 16,
+   "est6_ms": 1902
+  }
+ },
+ {
+  "id": "ocucor-e23f8efd",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "jolt",
+     "primed_heated_charge",
+     "riven",
+     "pistol_acuity",
+     "primed_target_cracker",
+     "pistol_elementalist",
+     "augur_seeker"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "electricity",
+     "heat",
+     "impact"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "standard_single_target",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 2.3534664339223617,
+   "metric": "kpm",
+   "work": 2169171933,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 218129,
+    "field_ticks": 0,
+    "gas": 35383438661,
+    "hits": 2186129,
+    "kills": 6621,
+    "pellets": 1968000,
+    "procs": 1038973,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "e23f8efd8e176b68809795f4b498db33",
+   "identity": "8aad9a30c0fdb0b35e206fea2ec6053e",
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "mode": "base",
+   "src_compute_ms": 1905.0,
+   "src_lanes": 16,
+   "est6_ms": 1905
+  }
+ },
+ {
+  "id": "torid-c1c53985",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_extended_volley",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vital_sense",
+     "continuous_misery@0"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "critical_chance",
+     "fire_rate",
+     "heat"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 95.7102995055199,
+   "metric": "kpm",
+   "work": 2373705894,
+   "counts": {
+    "body_shots": 1927000,
+    "dot_ticks": 22568,
+    "field_ticks": 552000,
+    "gas": 39474117887,
+    "hits": 2501568,
+    "kills": 286650,
+    "pellets": 1927000,
+    "procs": 1759403,
+    "runs": 1000,
+    "shots": 1927000
+   }
+  },
+  "note": {
+   "question": "c1c539853a03c41a1a08c830aaeb8d64",
+   "identity": "91b4b27063a15dcc76ddd6b8565998ef",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1910.0,
+   "src_lanes": 16,
+   "est6_ms": 1910
+  }
+ },
+ {
+  "id": "torid-c2b8acd1",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "malignant_force",
+     "riven",
+     "hellfire",
+     "primary_acuity",
+     "vile_acceleration",
+     "vital_sense",
+     "magnetic_capacity",
+     "hunter_track@2"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "magazine_capacity",
+     "reload_while_holstered"
+    ],
+    "riven_rolls": [
+     1.1,
+     0.9,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 72.32435443229537,
+   "metric": "kpm",
+   "work": 2440833984,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 43585,
+    "field_ticks": 588000,
+    "gas": 40816679693,
+    "hits": 2630585,
+    "kills": 216517,
+    "pellets": 1999000,
+    "procs": 1903246,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "c2b8acd17a97d2a1f9ec73be6e0fb7dd",
+   "identity": "91abe60845579b351e7b7811e6a57f14",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1911.0,
+   "src_lanes": 16,
+   "est6_ms": 1911
+  }
+ },
+ {
+  "id": "torid-24e0a8bc",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_extended_volley",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@0",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "projectile_speed",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 114.50049944643004,
+   "metric": "kpm",
+   "work": 2505869224,
+   "counts": {
+    "body_shots": 2145000,
+    "dot_ticks": 0,
+    "field_ticks": 625000,
+    "gas": 42117384498,
+    "hits": 2770000,
+    "kills": 343045,
+    "pellets": 2145000,
+    "procs": 851310,
+    "runs": 1000,
+    "shots": 2145000
+   }
+  },
+  "note": {
+   "question": "24e0a8bc98b1f97a175f7a7b9e8b0035",
+   "identity": "94bbcb1eacc2bf9687d95bf46abab661",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1914.0,
+   "src_lanes": 16,
+   "est6_ms": 1914
+  }
+ },
+ {
+  "id": "furis-efb10c97",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "primed_pistol_gambit",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "critical_chance",
+     "puncture",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 64.8694899311398,
+   "metric": "kpm",
+   "work": 2934717807,
+   "counts": {
+    "body_shots": 2022140,
+    "dot_ticks": 118539,
+    "field_ticks": 0,
+    "gas": 50694356159,
+    "hits": 2265188,
+    "kills": 194137,
+    "pellets": 2146649,
+    "procs": 8717410,
+    "runs": 1000,
+    "shots": 2022140
+   }
+  },
+  "note": {
+   "question": "efb10c97c860a10501e9f129b4f5dd0f",
+   "identity": "03bdef2d442b03f1fa77b022ae4182de",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1920.0,
+   "src_lanes": 16,
+   "est6_ms": 1920
+  }
+ },
+ {
+  "id": "furis-1c04cb94",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_practiced_grip",
+     "furis_elemental_balance"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "primed_pistol_gambit",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_pos": [
+     "critical_chance",
+     "puncture",
+     "status_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     0.9,
+     1.1
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 61.40968816856252,
+   "metric": "kpm",
+   "work": 2865671055,
+   "counts": {
+    "body_shots": 1962167,
+    "dot_ticks": 133445,
+    "field_ticks": 0,
+    "gas": 49313421101,
+    "hits": 2203035,
+    "kills": 183782,
+    "pellets": 2069590,
+    "procs": 8621885,
+    "runs": 1000,
+    "shots": 1962167
+   }
+  },
+  "note": {
+   "question": "1c04cb9469158d72c5aa0ac138335b1d",
+   "identity": "a5555a81fe100e3c86bf69445c98873f",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1940.0,
+   "src_lanes": 16,
+   "est6_ms": 1940
+  }
+ },
+ {
+  "id": "torid-94579800",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "heavy_caliber",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "fire_rate",
+     "projectile_speed",
+     "status_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 27.110569652080923,
+   "metric": "kpm",
+   "work": 2993332227,
+   "counts": {
+    "body_shots": 2636000,
+    "dot_ticks": 0,
+    "field_ticks": 766000,
+    "gas": 51866644544,
+    "hits": 3402000,
+    "kills": 80817,
+    "pellets": 2636000,
+    "procs": 1176970,
+    "runs": 1000,
+    "shots": 2636000
+   }
+  },
+  "note": {
+   "question": "945798009352977744f27ba67b39e987",
+   "identity": "9152643a09d217c3e0e1fa9c0f6e54c8",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 1944.0,
+   "src_lanes": 16,
+   "est6_ms": 1944
+  }
+ },
+ {
+  "id": "torid-bd6dfda3",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "stormbringer",
+     "galvanized_chamber",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vital_sense",
+     "magnetic_capacity",
+     "hunter_track@1",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "fire_rate",
+     "multishot",
+     "reload_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 64.31170424536299,
+   "metric": "kpm",
+   "work": 2882042456,
+   "counts": {
+    "body_shots": 2216040,
+    "dot_ticks": 87953,
+    "field_ticks": 868186,
+    "gas": 49640849131,
+    "hits": 3238616,
+    "kills": 192440,
+    "pellets": 2282477,
+    "procs": 3648846,
+    "runs": 1000,
+    "shots": 2216040
+   }
+  },
+  "note": {
+   "question": "bd6dfda3bb841c9394e2d2b585b200fe",
+   "identity": "8f58e56e31e899ab8708a0dd17f25296",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1951.0,
+   "src_lanes": 16,
+   "est6_ms": 1951
+  }
+ },
+ {
+  "id": "torid-291973f2",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "fire_rate",
+     "heat",
+     "magazine_capacity"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 106.59548473389742,
+   "metric": "kpm",
+   "work": 3052731338,
+   "counts": {
+    "body_shots": 2636000,
+    "dot_ticks": 3541,
+    "field_ticks": 766000,
+    "gas": 53054626768,
+    "hits": 3405541,
+    "kills": 319326,
+    "pellets": 2636000,
+    "procs": 1733834,
+    "runs": 1000,
+    "shots": 2636000
+   }
+  },
+  "note": {
+   "question": "291973f2062d87b2b51294ce3e5cc37f",
+   "identity": "95301b15462cfb9abc75b530fa0e9889",
+   "weapon": "torid",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1958.0,
+   "src_lanes": 16,
+   "est6_ms": 1958
+  }
+ },
+ {
+  "id": "furis-425eb6ab",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "pistol_elementalist",
+     "hydraulic_crosshairs",
+     "riven"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "critical_chance",
+     "damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 56.76411088808596,
+   "metric": "kpm",
+   "work": 2986763825,
+   "counts": {
+    "body_shots": 2016996,
+    "dot_ticks": 172196,
+    "field_ticks": 0,
+    "gas": 51735276517,
+    "hits": 2319714,
+    "kills": 169986,
+    "pellets": 2147518,
+    "procs": 11305455,
+    "runs": 1000,
+    "shots": 2016996
+   }
+  },
+  "note": {
+   "question": "425eb6ab901c0f19b42f7d7ddbba1ae2",
+   "identity": "95c2568fdc9370a299cf22dc62eedc8d",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 1967.0,
+   "src_lanes": 16,
+   "est6_ms": 1967
+  }
+ },
+ {
+  "id": "torid-236cec79",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "stormbringer",
+     "galvanized_chamber",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "magnetic_capacity",
+     "hunter_track@2",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "status_chance",
+     "weak_point_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 169.92217809299976,
+   "metric": "kpm",
+   "work": 2829768761,
+   "counts": {
+    "body_shots": 2100544,
+    "dot_ticks": 24792,
+    "field_ticks": 814866,
+    "gas": 48595375230,
+    "hits": 2997906,
+    "kills": 509315,
+    "pellets": 2158248,
+    "procs": 4892118,
+    "runs": 1000,
+    "shots": 2100544
+   }
+  },
+  "note": {
+   "question": "236cec79c731d17fcd586e34f6f64b6f",
+   "identity": "96125d610c75e35cb6c6da46b7e72875",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1973.0,
+   "src_lanes": 16,
+   "est6_ms": 1973
+  }
+ },
+ {
+  "id": "torid-24c48111",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@1"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "electricity",
+     "magazine_capacity"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 116.7796563819859,
+   "metric": "kpm",
+   "work": 2397744532,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39954890643,
+    "hits": 2587000,
+    "kills": 349938,
+    "pellets": 1999000,
+    "procs": 1251286,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "24c481118745ce802fe862d5aa339185",
+   "identity": "93336a5f2b651b7ead221328ee95ebaf",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1977.0,
+   "src_lanes": 16,
+   "est6_ms": 1977
+  }
+ },
+ {
+  "id": "torid-2e1e58f9",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_renewed_horror",
+     "torid_survivors_edge"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "riven",
+     "thermite_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@1"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "gas",
+     "reload_speed",
+     "toxin"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 116.20891397678879,
+   "metric": "kpm",
+   "work": 2653375124,
+   "counts": {
+    "body_shots": 2145000,
+    "dot_ticks": 202345,
+    "field_ticks": 625000,
+    "gas": 45067502494,
+    "hits": 2972345,
+    "kills": 348167,
+    "pellets": 2145000,
+    "procs": 1949504,
+    "runs": 1000,
+    "shots": 2145000
+   }
+  },
+  "note": {
+   "question": "2e1e58f9ddf345125284980ef5cfe7e7",
+   "identity": "95368b74d6f5822ced0a86894d73fa0f",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 1994.0,
+   "src_lanes": 16,
+   "est6_ms": 1994
+  }
+ },
+ {
+  "id": "ocucor-8c6abfc3",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "jolt",
+     "primed_heated_charge",
+     "riven",
+     "pistol_acuity",
+     "primed_target_cracker",
+     "pistol_elementalist",
+     "augur_seeker"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "electricity",
+     "heat",
+     "impact"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "demolisher",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 0.29727584557385006,
+   "metric": "kpm",
+   "work": 2168943248,
+   "counts": {
+    "body_shots": 1968000,
+    "dot_ticks": 178978,
+    "field_ticks": 0,
+    "gas": 35378864964,
+    "hits": 2146978,
+    "kills": 8,
+    "pellets": 1968000,
+    "procs": 1039734,
+    "runs": 1000,
+    "shots": 1968000
+   }
+  },
+  "note": {
+   "question": "8c6abfc3c21f3f0b068b4e6d7aec28c6",
+   "identity": "8aad9a30c0fdb0b35e206fea2ec6053e",
+   "weapon": "ocucor",
+   "ruler": "demolisher",
+   "mode": "base",
+   "src_compute_ms": 1997.0,
+   "src_lanes": 16,
+   "est6_ms": 1997
+  }
+ },
+ {
+  "id": "dual_toxocyst-49645288",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_deadhead"
+    ],
+    "evolutions": [
+     "dual_toxocyst_evo1_incarnon_form",
+     "dual_toxocyst_fevered_frenzy",
+     "dual_toxocyst_marksmans_hand",
+     "dual_toxocyst_commodores_fortune"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "riven",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_crosshairs",
+     "galvanized_shot",
+     "anemic_agility",
+     "augur_seeker",
+     "magnetic_might"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "corrosive",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "dual_toxocyst"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "base"
+  },
+  "expected": {
+   "score": 85.91844240519062,
+   "metric": "kpm",
+   "work": 2947042201,
+   "counts": {
+    "body_shots": 855000,
+    "dot_ticks": 86410,
+    "field_ticks": 0,
+    "gas": 50940844020,
+    "hits": 3730497,
+    "kills": 257318,
+    "pellets": 3644087,
+    "procs": 3825473,
+    "runs": 1000,
+    "shots": 855000
+   }
+  },
+  "note": {
+   "question": "49645288f3863fe60b604418bfd7ddc9",
+   "identity": "2c89f66c12ca5139e2f5954c4d84eeb0",
+   "weapon": "dual_toxocyst",
+   "ruler": "standard_single_target__sp200",
+   "mode": "base",
+   "src_compute_ms": 2001.0,
+   "src_lanes": 16,
+   "est6_ms": 2001
+  }
+ },
+ {
+  "id": "furis-63cf2123",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "primed_heated_charge",
+     "scorch",
+     "riven",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "primed_pistol_gambit",
+     "pistol_elementalist",
+     "magnetic_might"
+    ],
+    "riven_neg": "weapon_recoil",
+    "riven_pos": [
+     "heat",
+     "multishot",
+     "status_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 56.63139055792436,
+   "metric": "kpm",
+   "work": 3005643303,
+   "counts": {
+    "body_shots": 2017066,
+    "dot_ticks": 238391,
+    "field_ticks": 0,
+    "gas": 52112866071,
+    "hits": 2400985,
+    "kills": 169647,
+    "pellets": 2162594,
+    "procs": 9675472,
+    "runs": 1000,
+    "shots": 2017066
+   }
+  },
+  "note": {
+   "question": "63cf21235bcd78eaa20212fc9ceaddc3",
+   "identity": "35e5265bef9e1bdcc97048557ee543e9",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 2012.0,
+   "src_lanes": 16,
+   "est6_ms": 2012
+  }
+ },
+ {
+  "id": "furis-c6728a79",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "deep_freeze",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "riven",
+     "galvanized_diffusion",
+     "hollow_point",
+     "pistol_elementalist",
+     "magnetic_might"
+    ],
+    "riven_neg": "puncture",
+    "riven_pos": [
+     "critical_chance",
+     "damage",
+     "heat"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 59.580098344892164,
+   "metric": "kpm",
+   "work": 2906410003,
+   "counts": {
+    "body_shots": 50349200,
+    "dot_ticks": 118611,
+    "field_ticks": 0,
+    "gas": 50128200071,
+    "hits": 2251708,
+    "kills": 178415,
+    "pellets": 2133097,
+    "procs": 5945867,
+    "runs": 1000,
+    "shots": 2013968
+   }
+  },
+  "note": {
+   "question": "c6728a793544dc64d726ffa25c71af7c",
+   "identity": "f518e1dad7133bedcaa7c744204a399a",
+   "weapon": "furis",
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 2015.0,
+   "src_lanes": 16,
+   "est6_ms": 2015
+  }
+ },
+ {
+  "id": "furis-cf6667ef",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "galvanized_shot",
+     "primed_pistol_gambit",
+     "pistol_elementalist",
+     "riven"
+    ],
+    "riven_neg": "ammo_maximum",
+    "riven_pos": [
+     "critical_chance",
+     "critical_damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 56.73795321036614,
+   "metric": "kpm",
+   "work": 3053140346,
+   "counts": {
+    "body_shots": 50424900,
+    "dot_ticks": 179593,
+    "field_ticks": 0,
+    "gas": 53062806927,
+    "hits": 2327111,
+    "kills": 169906,
+    "pellets": 2147518,
+    "procs": 9279399,
+    "runs": 1000,
+    "shots": 2016996
+   }
+  },
+  "note": {
+   "question": "cf6667eff1dd09e7d6354d4ebf428f94",
+   "identity": "3c9955192a6535de71e7afdb8835060d",
+   "weapon": "furis",
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 2015.0,
+   "src_lanes": 16,
+   "est6_ms": 2015
+  }
+ },
+ {
+  "id": "furis-16072134",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_deadhead"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_pos": [
+     "critical_chance",
+     "damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 77.67354824619223,
+   "metric": "kpm",
+   "work": 2981411540,
+   "counts": {
+    "body_shots": 1964041,
+    "dot_ticks": 81470,
+    "field_ticks": 0,
+    "gas": 51628230815,
+    "hits": 2168594,
+    "kills": 232580,
+    "pellets": 2087124,
+    "procs": 10381230,
+    "runs": 1000,
+    "shots": 1964041
+   }
+  },
+  "note": {
+   "question": "160721347264b6031764362c2c7a7a49",
+   "identity": "9b315d32bd0b09551d036ea2300ad172",
+   "weapon": "furis",
+   "ruler": "standard_single_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 2021.0,
+   "src_lanes": 16,
+   "est6_ms": 2021
+  }
+ },
+ {
+  "id": "furis-679ee8de",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_stormburst",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "primed_convulsion",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "primed_pistol_gambit",
+     "magnetic_might",
+     "riven"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "critical_damage",
+     "damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 103.26924356559662,
+   "metric": "kpm",
+   "work": 2950817383,
+   "counts": {
+    "body_shots": 49122900,
+    "dot_ticks": 64130,
+    "field_ticks": 0,
+    "gas": 51016347663,
+    "hits": 2148022,
+    "kills": 309366,
+    "pellets": 2083892,
+    "procs": 7465374,
+    "runs": 1000,
+    "shots": 1964916
+   }
+  },
+  "note": {
+   "question": "679ee8de240fe992f6d13f4fed5c4453",
+   "identity": "ce8dfbe33f68c1f93312a7d6bf775412",
+   "weapon": "furis",
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 2029.0,
+   "src_lanes": 16,
+   "est6_ms": 2029
+  }
+ },
+ {
+  "id": "furis-d28cd48e",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "galvanized_shot",
+     "primed_pistol_gambit",
+     "pistol_elementalist",
+     "riven"
+    ],
+    "riven_neg": "ammo_maximum",
+    "riven_pos": [
+     "critical_chance",
+     "critical_damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 56.72862228131338,
+   "metric": "kpm",
+   "work": 3053473145,
+   "counts": {
+    "body_shots": 50424900,
+    "dot_ticks": 180829,
+    "field_ticks": 0,
+    "gas": 53069462912,
+    "hits": 2328347,
+    "kills": 169885,
+    "pellets": 2147518,
+    "procs": 9284507,
+    "runs": 1000,
+    "shots": 2016996
+   }
+  },
+  "note": {
+   "question": "d28cd48e1c108aaa50aaf3de4df66921",
+   "identity": "5a7a8273e76d9aa1bf74024f0575a2da",
+   "weapon": "furis",
+   "ruler": "standard_multi_target__archimedea500",
+   "mode": "cycle",
+   "src_compute_ms": 2031.0,
+   "src_lanes": 16,
+   "est6_ms": 2031
+  }
+ },
+ {
+  "id": "torid-bf4a18ed",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "projectile_speed",
+     "radiation"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 125.49559533972348,
+   "metric": "kpm",
+   "work": 2370151932,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 39403038649,
+    "hits": 2587000,
+    "kills": 376013,
+    "pellets": 1999000,
+    "procs": 771955,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "bf4a18ed6818e3d17c9a255a13c3429b",
+   "identity": "979dde77ed973e8e0d4c735eb5df60df",
+   "weapon": "torid",
+   "ruler": "standard_single_target__sp200",
+   "mode": "cycle",
+   "src_compute_ms": 2032.0,
+   "src_lanes": 16,
+   "est6_ms": 2032
+  }
+ },
+ {
+  "id": "boar_prime-21ef73ac",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "toxic_barrage",
+     "riven",
+     "blaze",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "multishot",
+     "status_chance"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "heavy_gunner__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 9.999669240962685,
+   "metric": "kpm",
+   "work": 2312186381,
+   "counts": {
+    "body_shots": 1370000,
+    "dot_ticks": 337069,
+    "field_ticks": 0,
+    "gas": 38243727639,
+    "hits": 2307248,
+    "kills": 29755,
+    "pellets": 1970179,
+    "procs": 4566519,
+    "runs": 1000,
+    "shots": 1370000
+   }
+  },
+  "note": {
+   "question": "21ef73aca252504809cd63fb4aecef13",
+   "identity": "2a1d7003a732b4b80a26264ff2dde431",
+   "weapon": "boar_prime",
+   "ruler": "heavy_gunner__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 2034.0,
+   "src_lanes": 16,
+   "est6_ms": 2034
+  }
+ },
+ {
+  "id": "furis-15a59b25",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "secondary_enervate"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_extended_volley",
+     "furis_elemental_balance"
+    ],
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "riven",
+     "galvanized_diffusion",
+     "hornet_strike",
+     "primed_target_cracker",
+     "pistol_elementalist"
+    ],
+    "riven_neg": "ammo_maximum",
+    "riven_pos": [
+     "critical_chance",
+     "heat",
+     "multishot"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 56.4902343231694,
+   "metric": "kpm",
+   "work": 3008417809,
+   "counts": {
+    "body_shots": 2016996,
+    "dot_ticks": 181229,
+    "field_ticks": 0,
+    "gas": 52168356195,
+    "hits": 2328747,
+    "kills": 169219,
+    "pellets": 2147518,
+    "procs": 11372363,
+    "runs": 1000,
+    "shots": 2016996
+   }
+  },
+  "note": {
+   "question": "15a59b25615ea34ef905cc0643035c0d",
+   "identity": "38068c42f377aba96199585861eb1046",
+   "weapon": "furis",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 2041.0,
+   "src_lanes": 16,
+   "est6_ms": 2041
+  }
+ },
+ {
+  "id": "furis-6120c04e",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "cascadia_flare"
+    ],
+    "evolutions": [
+     "furis_evo1_incarnon_form",
+     "furis_haven_foray",
+     "furis_executioners_fortune",
+     "furis_elemental_balance"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "pistol_pestilence",
+     "primed_heated_charge",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_crosshairs",
+     "pistol_elementalist",
+     "riven"
+    ],
+    "riven_neg": "zoom",
+    "riven_pos": [
+     "critical_chance",
+     "damage",
+     "multishot"
+    ],
+    "riven_rolls": [
+     0.9,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "furis"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 56.65197488531515,
+   "metric": "kpm",
+   "work": 3017744413,
+   "counts": {
+    "body_shots": 2016996,
+    "dot_ticks": 184167,
+    "field_ticks": 0,
+    "gas": 52354888279,
+    "hits": 2331685,
+    "kills": 169732,
+    "pellets": 2147518,
+    "procs": 11367648,
+    "runs": 1000,
+    "shots": 2016996
+   }
+  },
+  "note": {
+   "question": "6120c04ebd3091efb745bbf152995638",
+   "identity": "0f3979cc4370381a4c07625fb0798b61",
+   "weapon": "furis",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 2043.0,
+   "src_lanes": 16,
+   "est6_ms": 2043
+  }
+ },
+ {
+  "id": "torid-2f0ebc14",
+  "kind": "board",
+  "lanes": 6,
+  "payload": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "high_voltage",
+     "malignant_force",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "continuous_misery@1"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "cold",
+     "magazine_capacity",
+     "viral"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle"
+  },
+  "expected": {
+   "score": 39.697293828313875,
+   "metric": "kpm",
+   "work": 2444317844,
+   "counts": {
+    "body_shots": 1999000,
+    "dot_ticks": 0,
+    "field_ticks": 588000,
+    "gas": 40886356895,
+    "hits": 2587000,
+    "kills": 118630,
+    "pellets": 1999000,
+    "procs": 1916677,
+    "runs": 1000,
+    "shots": 1999000
+   }
+  },
+  "note": {
+   "question": "2f0ebc144875f7bd7729e2ced73e9318",
+   "identity": "909fa57c569ea8e9e6b9d10a92d7d59a",
+   "weapon": "torid",
+   "ruler": "standard_single_target__icebind1000",
+   "mode": "cycle",
+   "src_compute_ms": 2062.0,
+   "src_lanes": 16,
+   "est6_ms": 2062
+  }
+ }
+]

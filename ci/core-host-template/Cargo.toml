@@ -1,0 +1,16 @@
+[package]
+name = "wfsim-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Minimal local compute host for the portable WFSim client"
+
+[[bin]]
+name = "wfsim-core"
+path = "src/main.rs"
+
+[dependencies]
+wfsim-webapi = { path = "../webapi" }
+wfsim-optimizer = { path = "../optimizer" }
+serde_json.workspace = true
