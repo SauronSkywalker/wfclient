@@ -28,11 +28,33 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 TOOLCHAIN = "1.97.1-x86_64-pc-windows-msvc"
 FEATURES_TRAIN = "wfsim-core/fast-alloc,wfsim-core/pgo-exit"
 FEATURES_FINAL = "wfsim-core/fast-alloc"
+
+
+def pgo_dir(out: pathlib.Path) -> pathlib.Path:
+    """A profile directory the LLVM runtime can actually create.
+
+    ``-Cprofile-generate=<dir>`` bakes the path into the binary, and the profile
+    runtime creates the file with a narrow-char fopen.  Under a non-ASCII
+    directory (a checkout below ``D:\\工程\\`` and the like) that create fails
+    *silently*, the engine still answers and quits cleanly, and this script then
+    stops with "no .profraw produced".  Measured: the very same instrumented
+    binary writes a 2.9 MB profile the moment LLVM_PROFILE_FILE names an ASCII
+    path.  So only the profile lives on an ASCII path; the build cache around it
+    may stay wherever the caller asked for.
+    """
+    try:
+        str(out).encode("ascii")
+    except UnicodeEncodeError:
+        fallback = pathlib.Path(tempfile.gettempdir()) / "wfsim-pgo"
+        print(f"note: {out} is not ASCII; profiles go to {fallback}")
+        return fallback
+    return out / "pgo"
 
 
 def run(cmd, cwd=None, env=None, check=True):
@@ -117,8 +139,12 @@ def main() -> int:
         raise SystemExit(f"{work} has no Cargo.toml - run ci/fetch_sources.py first")
 
     t0 = time.time()
-    pgo = out / "pgo"
+    pgo = pgo_dir(out)
     pgo.mkdir(parents=True, exist_ok=True)
+    # A retried run can find the previous run's profile here (the cache restores
+    # it); merging stale counters with fresh ones would train on the wrong mix.
+    for old in pgo.glob("*.profraw"):
+        old.unlink()
 
     # 1) instrumented build (only this one can write a profile: needs libprofiler_builtins)
     gen_exe = cargo_build(work, out, a.target_cpu, False, FEATURES_TRAIN,

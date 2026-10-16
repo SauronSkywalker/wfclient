@@ -55,7 +55,12 @@ def main() -> int:
     riven = spread(json.load(open(BASE / "riven_corpus.json", encoding="utf-8")),
                    a.riven)
     prof.mkdir(parents=True, exist_ok=True)
-    env = dict(os.environ, WFSIM_PORT=str(a.port))
+    env = dict(os.environ, WFSIM_PORT=str(a.port),
+               # Name the profile file ourselves.  -Cprofile-generate=<dir> bakes an
+               # absolute path into the binary and the runtime creates it with a
+               # narrow-char fopen: under a non-ASCII directory (D:\工程\...) the
+               # create fails silently and the build then says "no .profraw".
+               LLVM_PROFILE_FILE=str(prof / "default_%m_%p.profraw"))
     p = subprocess.Popen([a.engine], env=env, cwd=str(prof),
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
