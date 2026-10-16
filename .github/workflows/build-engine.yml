@@ -35,13 +35,13 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 150
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Repeat runs must not pay 6 minutes of downloads again.  The key carries
       # the run id on purpose (a cache entry is immutable, so a new key is how
       # you update it); restore-keys reuses whatever the previous run saved.
       - name: cache the upstream worktree + cargo registry
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             engine-src/work
@@ -55,7 +55,7 @@ jobs:
       # run compiles the mimalloc C library, serde, the optimizer and webapi
       # crates twice -- the instrumented pass alone took 3m58s on the runner.
       - name: cache the msvc target dir
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: dist/target
           key: wfsim-target-${{ runner.os }}-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-${{ github.run_id }}
@@ -68,7 +68,7 @@ jobs:
       # rustc only warns when a profile's control flow moved, and the gates below
       # still verify every bit, so a near miss is free speed rather than risk.
       - name: cache the PGO profile
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: dist/pgo
           key: wfsim-pgo-${{ hashFiles('ci/patches/**', 'ci/tools/corpus.json', 'ci/tools/riven_corpus.json') }}-${{ github.run_id }}
@@ -76,7 +76,7 @@ jobs:
             wfsim-pgo-${{ hashFiles('ci/patches/**', 'ci/tools/corpus.json', 'ci/tools/riven_corpus.json') }}-
             wfsim-pgo-
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -95,7 +95,7 @@ jobs:
         run: python ci/build_engine.py --crt-static --target-cpu x86-64-v3 --rivens-gate 3 --reuse-profdata
 
       - name: upload engine + identity + gate logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wfsim-core-and-identity
           path: |
