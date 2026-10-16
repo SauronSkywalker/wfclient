@@ -10,6 +10,7 @@ on:
   push:
     paths:
       - "ci/patches/**"
+      - "ci/core-host-template/**"
       - "ci/fetch_sources.py"
       - "ci/build_engine.py"
       - "ci/tools/**"

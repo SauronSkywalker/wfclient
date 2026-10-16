@@ -11,6 +11,28 @@ name = "wfsim-core"
 path = "src/main.rs"
 
 [dependencies]
+mimalloc = { version = "0.1", optional = true }
 wfsim-webapi = { path = "../webapi" }
 wfsim-optimizer = { path = "../optimizer" }
 serde_json.workspace = true
+
+[features]
+# WHY THIS IS OPT-IN.  `libmimalloc-sys` vendors mimalloc's C source and builds
+# it with cc-rs, so the GNU target needs a C compiler — and the portable
+# toolchain in this package does NOT carry one (`toolchain/bin` holds only
+# patch.exe).  Measured 2026-10-16, bit for bit identical: mimalloc is 6.3%
+# faster on board rows and 6.1% on riven searches.
+#   * a machine WITH MinGW-w64 gcc: `sync_engine.build_env()` hands cc-rs that
+#     gcc and `build_core()` passes `--features wfsim-core/fast-alloc`;
+#   * a machine WITHOUT one: the feature stays off, the engine allocates with
+#     `System` (upstream behaviour) and still builds and runs.
+# Without this gate a client-side rebuild after an upstream engine change would
+# die in cc-rs with `failed to find tool "gcc.exe"`.
+fast-alloc = ["dep:mimalloc"]
+# PGO TRAINING ONLY.  `-Cprofile-generate` writes its counters when the process
+# exits, and every engine this client runs is killed with TerminateProcess — so
+# an instrumented training run has to ask for the dump through `POST /api/quit`.
+# The symbol that dumps it exists only in an instrumented build, so the route is
+# compiled only when this feature is on; a `profile-use` build has no such route
+# and behaves exactly like a normal engine.
+pgo-exit = []
