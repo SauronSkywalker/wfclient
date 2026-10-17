@@ -1,0 +1,66 @@
+name: watch-engine
+
+# Workflow 4/4 -- 上游漂移守望者：上游一改"计算方式"，服务器就换 engine id。
+# 用上游仓库的 push 事件是没用的：那是别人的仓库，我们收不到 webhook；
+# 而且上游每次 push 大多是站点页面/文案，engine id 才是与计算强相关的信号。
+# 所以这里定时问服务器"你现在服务的是哪个 engine"，只要本仓库还没有 engine-<id> 这条
+# release，就 dispatch 一次 build-engine。
+on:
+  schedule:
+    # 每 30 分钟一次（错开整点，避开 GitHub 的定时任务拥堵）
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write        # 需要 dispatch build-engine
+
+# 守望者自己串行跑就够了
+concurrency:
+  group: watch-engine
+  cancel-in-progress: false
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: is the engine the server serves already published?
+        id: drift
+        shell: python
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          import json, os, urllib.request, pathlib
+
+          rel = json.loads(urllib.request.urlopen("https://wfsim.app/release.json", timeout=30).read())
+          engine = str(rel.get("engine") or "")
+          print(f"server serves: engine={engine} release={rel.get('release')} commit={rel.get('commit')}")
+
+          req = urllib.request.Request(
+              f"https://api.github.com/repos/{os.environ['REPO']}/releases?per_page=100",
+              headers={"Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                       "Accept": "application/vnd.github+json"},
+          )
+          tags = {r["tag_name"] for r in json.loads(urllib.request.urlopen(req, timeout=30).read())}
+          published = sorted(t for t in tags if t.startswith("engine-"))
+          print("we published:", published)
+
+          have = bool(engine) and f"engine-{engine}" in tags
+          print("needed:", not have)
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"needed={'false' if have else 'true'}\n")
+              f.write(f"engine={engine}\n")
+
+      - name: there is no engine-<id> release for it yet -- go build
+        if: steps.drift.outputs.needed == 'true' && steps.drift.outputs.engine != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "engine ${{ steps.drift.outputs.engine }} is not published yet -> dispatching build-engine"
+          gh workflow run build-engine.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}"

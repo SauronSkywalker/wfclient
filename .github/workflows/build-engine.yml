@@ -1,42 +1,35 @@
 name: build-engine
 
-# Workflow 1 of 2 -- "补丁变了 -> 自动产出最新引擎"
-# It syncs the *latest* upstream sources, applies ci/patches/*.patch and builds the engine the
-# fast way (MSVC + PGO + mimalloc).  Nothing is published until the bit-identity gates pass --
-# and the gates run as four parallel jobs so the tail is max(board+anchors, slowest riven)
-# instead of their sum:
-#
-#   build        ~2 min warm (cold: fetch + 2 cargo passes, cached by actions/cache)
-#   gate-board   board-100 + wasm-anchors-105, sequentially on one runner (~63-135 s each)
-#   gate-riven   one frozen riven each (matrix of 3, fail-fast off so all three report)
-#
-# Measuring the split in the wild: runs 38970844958 (256 s of gates) and 38973837158 (544 s).
+# Workflow 1/4 -- 产物线：把"上游当前 revision + 我们的补丁"编成交付引擎。
+# 只负责构建与产物，不负责判定：四道逐位闸门搬到了 gate-engine.yml。
+#   定稿规则：**构建成功就发布**；验算不一致只让 gate-engine 红叉（+失败邮件），不挡发布。
+#   这样上游一改计算、服务器换 engine id 时，我们能第一时间把新引擎发出去，
+#   而不是被"旧冻结基准对不上"卡死（用户端就会 404）。
+# 触发：
+#   * watch-engine 每隔 30 分钟比对"服务器 engine id vs 本仓库 engine-<id> release"，
+#     一旦发现没发布过就 dispatch 这里（上游是别人的仓库，拿不到 webhook）；
+#   * ci/patches/** 或 ci/core-host-template/** 变更（只有这两类才真的会改变引擎）；
+#   * 手动（可指定上游 ref）。
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "23 */6 * * *"          # catch upstream moves even when nothing changed here
-  # Only the two inputs that can change the engine itself trigger a rebuild.
-  # Tooling, docs and this workflow do not: editing a script is not a new engine,
-  # and one cold run costs ~9 minutes of a Windows runner across four jobs
-  # (measured: run 38991005621, 09:28:29 -> 09:37:31).  Those edits are covered by
-  # the six-hourly cron below, or by pressing "Run workflow" when they need an
-  # immediate check -- and `[skip ci]` in a commit message skips the push event
-  # entirely when even the repack is not wanted.
+    inputs:
+      ref:
+        description: "要编译的上游 commit/ref（留空＝服务器当前引擎所用的那个 commit）"
+        required: false
+        default: ""
   push:
     paths:
-      - "ci/patches/**"                # the four engine patches: real byte changes
-      - "ci/core-host-template/**"     # our own core-host crate: real byte changes
+      - "ci/patches/**"
+      - "ci/core-host-template/**"
 
 permissions:
   contents: read
 
+# 同一时间只跑一个引擎构建：并发构建只会互相抢缓存、白烧时间
 concurrency:
   group: build-engine
   cancel-in-progress: false
 
-# A Windows runner's stdout is cp1252, so any non-ASCII print (these tools are
-# bilingual) raises UnicodeEncodeError and kills the step after the work is done
-# -- measured on run 38968135623.  UTF-8 mode makes that impossible.
 env:
   PYTHONUTF8: "1"
   PYTHONIOENCODING: utf-8
@@ -44,14 +37,11 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
 
-      # Repeat runs must not pay 6 minutes of downloads again.  The key carries
-      # the run id on purpose (a cache entry is immutable, so a new key is how
-      # you update it); restore-keys reuses whatever the previous run saved.
-      - name: cache the upstream worktree + cargo registry
+      - name: cache the synced upstream tree + the cargo registry
         uses: actions/cache@v6
         with:
           path: |
@@ -62,122 +52,75 @@ jobs:
           restore-keys: |
             wfsim-ci-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-
 
-      # The compile cache itself: ~542 MB locally (409 MB of it `deps`).  A cold
-      # run compiles the mimalloc C library, serde, the optimizer and webapi
-      # crates twice -- the instrumented pass alone took 3m58s on the runner.
-      - name: cache the msvc target dir
+      - name: cache the compiled dependencies (dist/target)
         uses: actions/cache@v6
         with:
           path: dist/target
-          key: wfsim-target-${{ runner.os }}-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-${{ github.run_id }}
+          key: wfsim-target-${{ runner.os }}-${{ hashFiles('ci/patches/**') }}-${{ github.run_id }}
           restore-keys: |
-            wfsim-target-${{ runner.os }}-${{ hashFiles('ci/patches/**', 'ci/core-host-template/**') }}-
-            wfsim-target-${{ runner.os }}-
+            wfsim-target-${{ runner.os }}-${{ hashFiles('ci/patches/**') }}-
 
-      # The trained PGO profile (~3 MB) is the most valuable intermediate product
-      # we have: reusing it skips the instrumented build *and* the training run.
-      # rustc only warns when a profile's control flow moved, and the gates below
-      # still verify every bit, so a near miss is free speed rather than risk.
       - name: cache the PGO profile
         uses: actions/cache@v6
         with:
           path: dist/pgo
           key: wfsim-pgo-${{ hashFiles('ci/patches/**', 'ci/tools/corpus.json', 'ci/tools/riven_corpus.json') }}-${{ github.run_id }}
           restore-keys: |
-            wfsim-pgo-${{ hashFiles('ci/patches/**', 'ci/tools/corpus.json', 'ci/tools/riven_corpus.json') }}-
             wfsim-pgo-
 
       - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
-      - name: rust toolchain (matches the client's pinned 1.97.1)
+      - name: resolve the upstream ref (the server's own commit when we can read it)
+        id: ref
+        shell: python
+        env:
+          INPUT_REF: ${{ github.event.inputs.ref }}
         run: |
-          rustup toolchain install 1.97.1-x86_64-pc-windows-msvc --profile minimal
-          rustup component add llvm-tools-preview --toolchain 1.97.1-x86_64-pc-windows-msvc
-          rustc --version
+          import json, os, urllib.request, pathlib
+
+          ref = (os.environ.get("INPUT_REF") or "").strip()
+          origin = "manual input"
+          if not ref:
+              try:
+                  rel = json.loads(urllib.request.urlopen("https://wfsim.app/release.json", timeout=30).read())
+                  ref = str(rel.get("commit") or "").rstrip("+")
+                  origin = f"release.json (engine {rel.get('engine')}, release {rel.get('release')})"
+              except Exception as e:
+                  print(f"WARNING: cannot read release.json ({type(e).__name__}: {e}); falling back to main")
+          ref = ref or "main"
+          print(f"building upstream ref {ref}   [{origin}]")
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"ref={ref}\n")
+
+      - name: rust toolchain - pinned, because the engine is built with 1.97.1
+        run: |
+          rustup toolchain install 1.97.1-x86_64-pc-windows-msvc --profile minimal --component llvm-tools-preview
+          rustup default 1.97.1-x86_64-pc-windows-msvc
 
       - name: fetch upstream sources + apply our patches
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python ci/fetch_sources.py
+        run: python ci/fetch_sources.py --ref "${{ steps.ref.outputs.ref }}"
 
-      - name: build MSVC + PGO engine
+      - name: build the MSVC + PGO engine (gates live in gate-engine.yml)
         run: python ci/build_engine.py --crt-static --target-cpu x86-64-v3 --gates none --reuse-profdata
 
-      - name: upload engine + identity
+      - name: upload the engine + its identity
         uses: actions/upload-artifact@v7
         with:
           name: wfsim-core-and-identity
           path: |
             dist/wfsim-core.exe
             dist/engine-identity.json
+          if-no-files-found: error
           retention-days: 30
 
-      # The trained profile is what makes the offline self-build pack (published by
-      # release.yml as `wfclient-deps-<id>.zip`) skip its ~4.5 minutes of instrumented
-      # build + sampling on the user's machine, so it rides along as its own artifact.
-      - name: upload the PGO profile
+      - name: upload the PGO profile (so a local native build can reuse it)
         uses: actions/upload-artifact@v7
         with:
           name: pgo-profile
           path: dist/pgo/default.profdata
           if-no-files-found: warn
           retention-days: 30
-
-  # Two slices on one runner: they share the exe download and a runner, and each is
-  # only ~1-2 minutes.  Splitting them too would save another minute, not worth a job.
-  gate-board:
-    needs: build
-    runs-on: windows-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.11"
-      - uses: actions/download-artifact@v8
-        with:
-          name: wfsim-core-and-identity
-          path: dist
-      - name: 100 frozen board rows + the 5 site-wasm anchors
-        run: python ci/gate_engine.py --exe dist/wfsim-core.exe --gate board --port 9501
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: gate-board-logs
-          path: dist/gate-*.log
-          retention-days: 14
-
-  # One frozen riven per runner, all three at once.  fail-fast is off so a broken
-  # riven does not hide whether the other two still match the site's wasm.
-  gate-riven:
-    needs: build
-    runs-on: windows-latest
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        riven:
-          - riven-SR2N0246
-          - riven-SR2N024X
-          - riven-SR2N0270
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.11"
-      - uses: actions/download-artifact@v8
-        with:
-          name: wfsim-core-and-identity
-          path: dist
-      - name: ${{ matrix.riven }}
-        run: >-
-          python ci/gate_engine.py --exe dist/wfsim-core.exe --gate riven
-          --riven-corpus ci/tools/riven3.json --riven-only ${{ matrix.riven }} --port 9503
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: gate-log-${{ matrix.riven }}
-          path: dist/gate-*.log
-          retention-days: 14

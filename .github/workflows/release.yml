@@ -129,7 +129,10 @@ jobs:
       - name: pack the portable zip
         run: python ci/pack_portable.py --build-dir dist/staging --keep-build
 
-      - name: smoke test the packed engine (5 WASM anchors)
+      - name: smoke test the packed engine (5 WASM anchors; informational only)
+        # 只留证，不卡发布：上游一改计算方式，冻结基准必然对不上，
+        # 判定交给 gate-engine.yml（红叉 + 邮件），这里挂掉不该让用户拿不到便携包。
+        continue-on-error: true
         run: python ci/tools/run_corpus.py dist/staging/engine/wfsim-core.exe --anchors --port 9510
 
       - name: publish the portable release

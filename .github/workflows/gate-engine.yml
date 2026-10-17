@@ -1,0 +1,96 @@
+name: gate-engine
+
+# Workflow 2/4 -- 逐位判定：引擎编好后，单独跑"结果与站点一致"的四道闸门。
+# 为什么从 build-engine 里搬出来：
+#   上游一改计算，服务器就换 engine id；此时旧引擎的冻结基准必然对不上，
+#   如果验算挂在发布路径上，就会像现在这样"永远发不出新引擎，用户端 404"。
+#   定稿规则：**构建成功就发布**，验算不一致只让这条工作流红叉（GitHub 会给
+#   仓库主人发失败邮件）+ 日志留证，不挡发布。
+on:
+  workflow_run:
+    workflows: ["build-engine"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "build-engine 的 run id（留空＝最近一次构建）"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: gate-engine
+  cancel-in-progress: false
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  gate-board:
+    # 只有构建真的成功了才值得验算（也包括手动触发）
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: download the freshly built engine
+        uses: actions/download-artifact@v8
+        with:
+          name: wfsim-core-and-identity
+          path: dist
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 100 frozen board rows + the five site-wasm anchors
+        run: python ci/gate_engine.py --exe dist/wfsim-core.exe --gate board --port 9501
+
+      - name: keep the gate log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate-board-logs
+          path: dist/logs/
+          if-no-files-found: warn
+          retention-days: 30
+
+  gate-riven:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: windows-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false          # 一条紫卡失败不影响另外两条的结论
+      matrix:
+        riven: [riven-SR2N0246, riven-SR2N024X, riven-SR2N0270]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: download the freshly built engine
+        uses: actions/download-artifact@v8
+        with:
+          name: wfsim-core-and-identity
+          path: dist
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ${{ matrix.riven }}
+        run: python ci/gate_engine.py --exe dist/wfsim-core.exe --gate riven --riven-corpus ci/tools/riven3.json --riven-only ${{ matrix.riven }} --port 9503
+
+      - name: keep the gate log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate-log-${{ matrix.riven }}
+          path: dist/logs/
+          if-no-files-found: warn
+          retention-days: 30
