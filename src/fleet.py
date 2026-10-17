@@ -5029,7 +5029,8 @@ class Fleet:
             return
         try:
             import json as _json
-            path = paths.ROOT / "data" / "task_answers.json"
+            # paths.ROOT is a str: `/` on it is a TypeError, not a join.
+            path = pathlib.Path(paths.ROOT) / "data" / "task_answers.json"
             path.parent.mkdir(parents=True, exist_ok=True)
             payload = {
                 "riven_pending": [dict(x) for x in self._pending_riven_entries()],

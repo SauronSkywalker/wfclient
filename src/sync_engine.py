@@ -2180,8 +2180,9 @@ def main() -> int:
             log(f"ERROR: {type(e).__name__}: {e}")
             return 1
     if args.install_portable is not None:
-        ok, msg = install_portable(args.install_portable or None)
-        log(msg)
+        # install_portable() logs its own summary line (including the skipped
+        # list); logging the returned message again printed the same line twice.
+        ok, _msg = install_portable(args.install_portable or None)
         return 0 if ok else 1
 
     try:

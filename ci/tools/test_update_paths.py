@@ -1,0 +1,125 @@
+# -*- coding: utf-8 -*-
+"""整包更新路径的回归测试（现场事故 2026-10-17 14:16）。
+
+现场事故的完整因果：整包替换其实**成功**了（替换 1770 个文件、engine/wfsim-core.exe
+也换成了新的 5a8b8f55fb10 / sha256 592f6553…），但 `_relaunch()` 里的
+
+    bat = paths.ROOT / "run-portable.bat"
+
+`paths.ROOT` 在 src/paths.py 里是 **str**（`os.path.dirname`），str 除以 str 直接抛
+`TypeError: unsupported operand type(s) for /: 'str' and 'str'`。异常冒到
+`_auto_update_locked` 的兜底分支 → `_abort_update`/`_rollback_core` →
+`_restore_old_state()` 把**更新前**的 state.json 写回去（engine=c461ec36fbcd、
+sha256=7d05f937），于是"磁盘上的引擎是新的、账本说是旧的"⇒ 每一次检查都判定"没更新
+成功"，反复重下 22.6 MB 整包，每次都在同一行崩掉。
+
+本测试钉住四件事：① 不许再出现 str 除法；② 整包替换到位之后不许回滚账本（整包没有
+wfsim-core.prev.exe，src/ 也回不去）；③ 替换后要把包里的 state.json 采纳进来；
+④ 顺手修掉的重复日志行/错位文案别再回来。
+
+用法：python test_update_paths.py [包目录]      （默认取 CI 包）
+"""
+import os
+import pathlib
+import re
+import sys
+
+ROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else
+                    pathlib.Path(__file__).resolve().parent
+                    / "client-portable-20261017-0345-ci").resolve()
+SRC = ROOT / "src"
+APP = (SRC / "app.py").read_text(encoding="utf-8")
+FLEET = (SRC / "fleet.py").read_text(encoding="utf-8")
+SYNC = (SRC / "sync_engine.py").read_text(encoding="utf-8")
+WF = ROOT / ".github" / "workflows"
+HAS_CI = WF.is_dir()
+
+checks: list[tuple[str, bool]] = []
+
+
+def check(name: str, ok: bool) -> None:
+    checks.append((name, bool(ok)))
+
+
+# --- ① 任何地方都不许把 paths.<常量> 当 pathlib.Path 用 -----------------------
+offenders = []
+for p in sorted(SRC.glob("*.py")):
+    for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+        if re.search(r"paths\.[A-Z_]+ *[/]", line):
+            offenders.append(f"{p.name}:{i}")
+check("src 里没有 paths.<常量> / 的 str 除法", not offenders)
+for o in offenders:
+    print("     str 除法残留:", o)
+
+# --- ② _relaunch：join + isfile，且都在 try 里 --------------------------------
+relaunch = APP[APP.index("async def _relaunch("):]
+relaunch = relaunch[:relaunch.index("async def _resume_after_update(")]
+check("_relaunch 用 os.path.join(paths.ROOT, 'run-portable.bat')",
+      'os.path.join(paths.ROOT, "run-portable.bat")' in relaunch)
+check("_relaunch 用 os.path.isfile 判断批处理",
+      "os.path.isfile(bat)" in relaunch and "bat.is_file()" not in relaunch)
+check("bat 的拼法在 try 之内（异常必须被自己兜住，不能冒到回滚）",
+      relaunch.index("os.path.join(paths.ROOT") > relaunch.index("try:"))
+check("包目录里 run-portable.bat 真的存在，join 出来的路径能命中",
+      os.path.isfile(os.path.join(str(ROOT), "run-portable.bat")))
+
+# --- ③ 整包替换到位后不许回滚账本 ---------------------------------------------
+install = APP[APP.index("async def _install_and_restart("):]
+install = install[:install.index("async def _relaunch(")]
+check("_install_and_restart 在整包分支里置 _package_installed = True",
+      "self._package_installed = True" in install)
+check("置位发生在 _relaunch() 之前（否则重启失败时兜底又会回滚）",
+      0 < install.index("self._package_installed = True")
+      < install.index("await self._relaunch()"))
+check("替换后采纳包里的 state.json（known_engine / local_engine）",
+      "sync_engine.load_state" in install and 'st["engine"]' in install)
+
+locked = APP[APP.index("async def _auto_update_locked("):]
+locked = locked[:locked.index("async def _manual_fast_rebuild(")]
+check("_auto_update_locked 的 except 里对整包做了区分",
+      "if self._package_installed:" in locked)
+check("整包分支不调用 _abort_update（回滚会写回旧 state.json）",
+      locked.index("if self._package_installed:") < locked.index(
+          "await self._abort_update("))
+check("整包分支给出人工重启的提示",
+      "请手动重开客户端以启用新版本" in locked)
+check("finally 的兜底回滚排除整包情形",
+      "and not self._package_installed" in locked)
+check("引擎线仍然保留回滚（else: _abort_update）",
+      "else:" in locked[locked.index("if self._package_installed:"):
+                        locked.index("await self._abort_update(") + 40])
+
+# --- ④ 重复日志与错位文案 ------------------------------------------------------
+cli = SYNC[SYNC.index('if args.install_portable is not None:'):]
+cli = cli[:cli.index("try:", 10)]
+check("--install-portable 分支不再重复打印 install_portable 的返回值",
+      "ok, _msg = install_portable(" in cli and "\n        log(msg)" not in cli)
+check("install_portable 自己仍然打印汇总行",
+      re.search(r"\n    log\(msg\)\n    return True, msg", SYNC) is not None)
+check("等待空闲的文案按整包/引擎线区分",
+      'what = "整包已下载" if self._package_pending else "新核心已就绪"' in install
+      and "新核心构建完成；等待" not in install)
+check("fleet.py 用 pathlib.Path(paths.ROOT) 拼任务落盘路径",
+      'pathlib.Path(paths.ROOT) / "data" / "task_answers.json"' in FLEET)
+
+# --- ⑤ CI（只在仓库包里查，运行包没有 .github） --------------------------------
+if HAS_CI:
+    be = (WF / "build-engine.yml").read_text(encoding="utf-8")
+    rp = (WF / "repack.yml").read_text(encoding="utf-8")
+    check("build-engine 的 refresh 用 always() && （否则 need.result=='failure' 恒假）",
+          "always() && needs.verify.result == 'failure'" in be)
+    check("repack 的锚点冒烟不拦发布",
+          re.search(r"name: smoke test the packed engine.*?continue-on-error: true",
+                    rp, re.S) is not None)
+    wb = ROOT / "ci" / "tools" / "wasm_baseline.mjs"
+    if wb.is_file():
+        check("wasm_baseline 写出前建目录（dist/ 可能不存在）",
+              "mkdirSync(path.dirname(path.resolve(out)), { recursive: true })"
+              in wb.read_text(encoding="utf-8"))
+
+ok_n = sum(1 for _, v in checks if v)
+bad_n = len(checks) - ok_n
+for name, v in checks:
+    print("  %s %s" % ("PASS" if v else "FAIL", name))
+print("%d passed, %d failed   （包：%s）" % (ok_n, bad_n, ROOT))
+sys.exit(0 if bad_n == 0 and ok_n else 1)

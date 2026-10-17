@@ -154,7 +154,9 @@ jobs:
   # 三：闸门红了＝冻结基准过期了，用站点 wasm 重算基准表（green 就什么都不做）。
   refresh:
     needs: verify
-    if: ${{ needs.verify.result == 'failure' }}
+    # `always()` 不能省：不带状态函数的 if 会被 GitHub 隐含地和 success() 相与，
+    # 于是 "needs.verify.result == 'failure'" 恒为假（旧写法就是这样，refresh 从没跑过）。
+    if: ${{ always() && needs.verify.result == 'failure' }}
     uses: ./.github/workflows/refresh-baseline.yml
     with:
       run_id: ${{ github.run_id }}

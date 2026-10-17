@@ -890,6 +890,10 @@ class WfSimClient(App):
         #: True while a WHOLE-PACKAGE download is staged: it replaces src/ as
         #: well as engine/, so finishing it means relaunching this client.
         self._package_pending = False
+        #: True once `--install-portable` has actually overwritten src/ and
+        #: engine/.  From that moment there is no old tree left to roll back to
+        #: and the package's own state.json is the truth.
+        self._package_installed = False
         #: GitHub's switchable-engine catalog, refreshed on the same 10-minute
         #: timer as the source update check.
         self._engine_catalog: dict | None = None
@@ -2363,7 +2367,8 @@ class WfSimClient(App):
 
     async def _install_and_restart(self, rel: dict) -> None:
         slots = self.fleet.slot_count()
-        self._event("update", f"新核心构建完成；等待 {slots} 个计算进程无任务")
+        what = "整包已下载" if self._package_pending else "新核心已就绪"
+        self._event("update", f"{what}；等待 {slots} 个计算进程收尾")
         if not await self._wait_update_idle():
             raise TimeoutError(f"等待 {slots} 个计算进程空闲超时")
         self._event("update", f"{slots} 个计算进程已空闲；关闭进程并替换核心")
@@ -2386,6 +2391,20 @@ class WfSimClient(App):
             if rc != 0:
                 raise RuntimeError(f"整包替换退出码 {rc}")
             self._package_pending = False
+            self._package_installed = True
+            # The package's own engine-src/state.json is on disk now: adopt it
+            # here so this window reports the new engine even when the relaunch
+            # below fails.  data/config.json is deliberately kept (it holds the
+            # user's settings), so known_engine has to be written by hand.
+            try:
+                st = await self.fleet._io(sync_engine.load_state) or {}
+                if st.get("engine"):
+                    self.cfg["known_engine"] = st["engine"]
+                    self.cfg["engine_exe"] = "engine\\wfsim-core.exe"
+                    config.save(self.cfg)
+                    self.fleet.local_engine = st["engine"]
+            except Exception:
+                pass
             self._event("update", "整包已替换（客户端 + 引擎）；重启窗口以启用新版本")
             await self._relaunch()
             return
@@ -2408,12 +2427,16 @@ class WfSimClient(App):
         checked once: if it died immediately, this window stays so the error in
         logs/ is still visible.
         """
-        bat = paths.ROOT / "run-portable.bat"
+        # paths.ROOT is a str (see paths.py): dividing it with `/` raised
+        # `TypeError: unsupported operand type(s) for /: 'str' and 'str'` AFTER a
+        # whole-package update had already replaced src/ and engine/, which then
+        # ran the old rollback and put the previous state.json back.
         flags = (int(getattr(subprocess, "CREATE_NEW_CONSOLE", 0x10))
                  | int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x200)))
         try:
-            if bat.is_file():
-                proc = subprocess.Popen(["cmd", "/c", str(bat)],
+            bat = os.path.join(paths.ROOT, "run-portable.bat")
+            if os.path.isfile(bat):
+                proc = subprocess.Popen(["cmd", "/c", bat],
                                         cwd=str(paths.ROOT), creationflags=flags)
             else:
                 proc = subprocess.Popen([sys.executable, "src/app.py"],
@@ -2532,12 +2555,23 @@ class WfSimClient(App):
             if isinstance(e, (KeyboardInterrupt, SystemExit)):
                 raise
             self._event("error", f"核心更新失败: {type(e).__name__}: {e}")
-            await self._abort_update(old_engine, old_state, was_paused)
+            if self._package_installed:
+                # src/ and engine/ are ALREADY the new package, so there is no
+                # old tree to restore.  Rewriting state.json back — which is all
+                # _rollback_core could actually do, since a package install
+                # leaves no wfsim-core.prev.exe — made the folder disagree with
+                # its own engine and every later check re-downloaded the whole
+                # package.  Keep the new bookkeeping and just restart computing.
+                self._event("update", "整包已替换到位；请手动重开客户端以启用新版本")
+                await self._restart_fleet()
+            else:
+                await self._abort_update(old_engine, old_state, was_paused)
             if isinstance(e, asyncio.CancelledError):
                 raise
         finally:
             self._updating = False
-            if not self.fleet.running and not succeeded:
+            if (not self.fleet.running and not succeeded
+                    and not self._package_installed):
                 # One final safety net: never leave the console with the
                 # engines closed and no way back to the old core.
                 try:
