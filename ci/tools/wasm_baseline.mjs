@@ -93,6 +93,7 @@ function pickShard(items, shard) {
 }
 function writeOut(name, doc) {
   const out = arg("out", path.join(HERE, name));
+  fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(doc, null, 1));
   console.log("wrote %s (%d KB)", out, Math.round(fs.statSync(out).size / 1024));
   return out;

@@ -6,10 +6,9 @@ name: gate-engine
 #   如果验算挂在发布路径上，就会像现在这样"永远发不出新引擎，用户端 404"。
 #   定稿规则：**构建成功就发布**，验算不一致只让这条工作流红叉（GitHub 会给
 #   仓库主人发失败邮件）+ 日志留证，不挡发布。
+# 触发方式：由 release.yml 在**发布完成之后**派发（保证先让用户拿到引擎，
+# 验算排在后面，谁也挡不住谁）；也可以手动派发。
 on:
-  workflow_run:
-    workflows: ["build-engine"]
-    types: [completed]
   workflow_dispatch:
     inputs:
       run_id:
@@ -35,6 +34,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: windows-latest
     timeout-minutes: 40
+    outputs:
+      engine: ${{ steps.ident.outputs.engine }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -48,6 +49,17 @@ jobs:
           path: dist
           run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: read the engine identity
+        id: ident
+        shell: python
+        run: |
+          import json, os, pathlib
+          d = json.loads(pathlib.Path("dist/engine-identity.json").read_text(encoding="utf-8"))
+          eng = d.get("engine_online") or d.get("engine") or "unknown"
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"engine={eng}\n")
+          print(eng)
 
       - name: 100 frozen board rows + the five site-wasm anchors
         run: python ci/gate_engine.py --exe dist/wfsim-core.exe --gate board --port 9501

@@ -129,12 +129,6 @@ jobs:
       - name: pack the portable zip
         run: python ci/pack_portable.py --build-dir dist/staging --keep-build
 
-      - name: smoke test the packed engine (5 WASM anchors; informational only)
-        # 只留证，不卡发布：上游一改计算方式，冻结基准必然对不上，
-        # 判定交给 gate-engine.yml（红叉 + 邮件），这里挂掉不该让用户拿不到便携包。
-        continue-on-error: true
-        run: python ci/tools/run_corpus.py dist/staging/engine/wfsim-core.exe --anchors --port 9510
-
       - name: publish the portable release
         uses: softprops/action-gh-release@v3
         with:
@@ -149,7 +143,6 @@ jobs:
             |---|---|
             | engine id | `${{ steps.ident.outputs.engine }}` |
             | 引擎 sha256 | `${{ steps.ident.outputs.sha }}` |
-            | 打包前冒烟 | 5 个站点 WASM 锚点逐位一致 |
 
             只想替换引擎、不想重下整包的话，见 `engine-${{ steps.ident.outputs.engine }}`。
             详细说明见包内 `README-便携包.md`，引擎身份见 `engine/engine-identity.json`。
@@ -260,3 +253,21 @@ jobs:
           files: dist/wfclient-deps-*.zip
           overwrite_files: true
           fail_on_unmatched_files: true
+
+  # 发布完了再叫验证：构建/发布与验算彻底脱钩 —— 构建成功就自动发布（上面三个 job），
+  # 验算在这之后才开始，跑多久、红不红都不影响用户已经能下到引擎。
+  verify:
+    needs: [engine, portable, deps]
+    if: ${{ always() && (needs.engine.result == 'success' || needs.portable.result == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+    steps:
+      - name: trigger gate-engine on the build that was just published
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run gate-engine.yml \
+            --repo "${{ github.repository }}" --ref main \
+            -f run_id=${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
