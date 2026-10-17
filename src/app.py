@@ -110,6 +110,22 @@ class PriorityTable(DataTable):
         event.stop()
 
 
+def core_source() -> str:
+    """Which update line this package is on: `prebuilt` or `local`.
+
+    Local reads only — `engine-src/state.json`'s `core_source`, the `prebuilt`
+    flag CI writes, and then what is actually on disk (no `toolchain/bin/
+    cargo.exe`, no `patches/`).  A package that came off the release page can
+    never build: it has neither the toolchain nor the source tree, so it must
+    not be offered a build button, and it must not pause the fleet every five
+    minutes to run a cargo that is not there.
+    """
+    try:
+        return str(sync_engine.core_source() or sync_engine.CORE_SOURCE_LOCAL)
+    except Exception:
+        return sync_engine.CORE_SOURCE_LOCAL
+
+
 class SettingsScreen(Screen):
     """A compact card of one-row settings."""
 
@@ -145,7 +161,7 @@ class SettingsScreen(Screen):
     /* A full "跟随系统" is eight cells wide; fixed width keeps every label
        whole instead of letting the row squeeze it to one character. */
     .setting-row Button.scale-btn { width: 11; min-width: 11; }
-    #settingsnote { padding: 1 2; height: 7; }
+    #settingsnote { padding: 1 2; height: auto; }
     #rebuild_engine, #rebuild_fast {
         height: 3; min-width: 11; text-style: bold;
         background: #d9770640; color: #fbbf24;
@@ -169,6 +185,11 @@ class SettingsScreen(Screen):
         self.on_scale = on_scale
         self.on_slots = on_slots
         self._refreshing = False
+        #: A prebuilt ("通用引擎") package has no rust toolchain and no source
+        #: tree, so the two build actions cannot ever run here.  They are
+        #: HIDDEN rather than shown-disabled: an option that cannot be honoured
+        #: is not an option to put in front of the user.
+        self.prebuilt = core_source() == sync_engine.CORE_SOURCE_PREBUILT
 
     def compose(self):
         yield Header()
@@ -205,14 +226,17 @@ class SettingsScreen(Screen):
                 yield Static("Board协议", classes="setting-name")
                 yield Static("协议 8", id="board_proto_value",
                              classes="setting-value")
-            with Horizontal(classes="setting-row action-row"):
-                yield Static("清理缓存重建引擎", classes="setting-name")
-                yield Static("本机 CPU 优化", classes="setting-value")
-                yield Button("重建", id="rebuild_engine")
-            with Horizontal(classes="setting-row action-row"):
-                yield Static("快速重新编译引擎", classes="setting-name")
-                yield Static("增量，不清理缓存", classes="setting-value")
-                yield Button("编译", id="rebuild_fast")
+            # The two build actions exist only on the self-compiled line; on a
+            # prebuilt package they are not yielded at all (see `self.prebuilt`).
+            if not self.prebuilt:
+                with Horizontal(classes="setting-row action-row"):
+                    yield Static("清理缓存重建引擎", classes="setting-name")
+                    yield Static("本机 CPU 优化", classes="setting-value")
+                    yield Button("重建", id="rebuild_engine")
+                with Horizontal(classes="setting-row action-row"):
+                    yield Static("快速重新编译引擎", classes="setting-name")
+                    yield Static("增量，不清理缓存", classes="setting-value")
+                    yield Button("编译", id="rebuild_fast")
             with Horizontal(classes="setting-row"):
                 yield Static("界面缩放", classes="setting-name")
                 yield Static("", id="scale_value", classes="setting-value")
@@ -279,8 +303,9 @@ class SettingsScreen(Screen):
                 self.query_one(f"#scale{pct}", Button).set_class(
                     int(pct) == scale, "on")
             busy = bool(getattr(self.fleet, "maintenance", False))
-            self.query_one("#rebuild_engine", Button).disabled = busy
-            self.query_one("#rebuild_fast", Button).disabled = busy
+            if not self.prebuilt:
+                self.query_one("#rebuild_engine", Button).disabled = busy
+                self.query_one("#rebuild_fast", Button).disabled = busy
             slots = self.fleet.slot_count()
             self.query_one("#slots_value", Static).update(
                 f"{slots} / {config.SLOTS_MAX}")
@@ -292,15 +317,24 @@ class SettingsScreen(Screen):
                 "[bold white on #d97706] 设置 [/]\n"
                 "[dim]数值设置用每行的 −/+ 调整；开关直接点击。[/dim]\n"
                 "[dim]Esc 返回。[/dim]")
+            # The two build actions are not on this screen when the package is
+            # prebuilt, so neither is the paragraph that explains them; the
+            # download line says what it does instead.
+            build_note = (
+                "[dim]本包是预编译包（随包发的是通用引擎，不含 rust 工具链与源码树）：\n"
+                "没有本地编译选项。服务器下发新引擎时会自动下载、校验 sha256 后安装，\n"
+                "下载期间照常计算，只在安装前短暂排空。[/dim]\n"
+                if self.prebuilt else
+                "[dim]清理重建会暂停接任务，按本机 CPU 从零编译引擎，耗时数分钟。\n"
+                "快速重编只走增量（保留 build-cache），把新的补丁编进引擎，通常快得多。\n")
             self.query_one("#settingsnote", Static).update(
                 (f"[dim]{engine_note}[/dim]\n" if engine_note else "") +
                 "[dim]小批量上传关闭：整包完成后上传。\n"
                 "小批量上传开启：每 2 条上传一次，最后不足 2 条在包结束时上传。[/dim]\n"
                 "[dim]Board 协议固定为 8，一扇门、无切换；服务端哪天回 fallback 7，\n"
                 "本客户端会暂停领取任务，不会退回旧协议。[/dim]\n"
-                "[dim]清理重建会暂停接任务，按本机 CPU 从零编译引擎，耗时数分钟。\n"
-                "快速重编只走增量（保留 build-cache），把新的补丁编进引擎，通常快得多。\n"
-                "计算进程的 −/+ 会先暂停接任务、等正在算的行上传完，再按新数量重启引擎\n"
+                + build_note +
+                "[dim]计算进程的 −/+ 会先暂停接任务、等正在算的行上传完，再按新数量重启引擎\n"
                 "并重新给每个进程分配线程（默认 3，最少 1，最多 10）。\n"
                 "界面缩放改的是当前 Windows Terminal 配置档的字号（50%~200%），\n"
                 "选“跟随系统”恢复原来的字号；非 Windows Terminal 可能不生效。[/dim]")

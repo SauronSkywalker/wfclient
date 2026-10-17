@@ -104,7 +104,9 @@ def main() -> int:
     cfg["engine_exe"] = "engine\\wfsim-core.exe"
     (build / "data" / "config.json").write_text(
         json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    for name in ("run-portable.bat", "README.txt", "README-便携包.md"):
+    # 自构建说明.md 也要进包：README-便携包.md 里链到它，而且"想自己编译的人"
+    # 正是从便携包这一页往下看的。它只有 8 KB，不影响包体。
+    for name in ("run-portable.bat", "README.txt", "README-便携包.md", "自构建说明.md"):
         if (root / name).exists():
             shutil.copy2(root / name, build / name)
 
@@ -122,6 +124,11 @@ def main() -> int:
         "optimizer_tree_sha": identity.get("optimizer_tree_sha") or "",
         "patches_sha": identity.get("patches_sha") or "",
         "installed": f"ci:{stamp}",
+        # The zip ships no toolchain/, no patches/ and no core-host-template/,
+        # so it can only DOWNLOAD a core.  Saying so in the state is what keeps
+        # sync_engine from hashing the empty patch set as "our patches changed"
+        # and pausing the fleet to run a cargo that is not in the zip.
+        "core_source": "prebuilt",
         "prebuilt": True,
     }
     (build / "engine-src" / "state.json").write_text(

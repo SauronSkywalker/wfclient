@@ -1,0 +1,242 @@
+name: repack
+
+# 只重打包：不重构引擎、不 force push、不需要 build-engine 的产物。
+#
+# 为什么单独一条：
+#   engine-<id> 那条线只在**引擎变了**时才值得跑（几分钟的 MSVC+PGO 编译）。但改动
+#   客户端 src/、打包脚本或说明文档时，引擎一个字节都没变，却需要一个新的 zip ——
+#   之前只能去 dispatch `release` 并手填 run_id，或者干脆重跑一遍 CI 编译。
+#
+# 这条线做的事：把**已经发布过的** `engine-<id>` release 里的引擎取回来，校验它和
+#   engine-identity.json 里的 sha256 一致，重新打包 zip、跑 5 个站点 WASM 锚点冒烟，
+#   然后覆盖同名 `portable-<id>` 资产。它不碰引擎、不新建标签、不 git push，
+#   也不会触发 build-engine（build-engine 的 path 过滤里没有这些路径）。
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: "要重打包的 engine id（留空 = 用最新的 engine-* release）"
+        required: false
+  push:
+    paths:
+      - "src/**"
+      - "ci/**"
+      - "README*.md"
+      - "SECOND-DEVELOPMENT.md"
+      - "NOTICE.md"
+      - "自构建说明.md"
+      - ".github/workflows/repack.yml"
+
+permissions:
+  contents: write          # download the engine release, overwrite the zip asset
+  actions: read
+
+concurrency:
+  group: release           # same group as release.yml: one publisher at a time
+  cancel-in-progress: false
+
+# cp1252 stdout on a Windows runner + a Chinese print = a killed step.
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  repack:
+    runs-on: windows-latest
+    outputs:
+      engine: ${{ steps.pick.outputs.engine }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: resolve the engine id
+        id: pick
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WANT: ${{ github.event.inputs.engine }}
+        run: |
+          $want = $env:WANT
+          if (-not $want) {
+            $want = (gh release list --limit 40 --json tagName --jq '.[].tagName' |
+                     Where-Object { $_ -like 'engine-*' } | Select-Object -First 1)
+          }
+          if (-not $want) { throw "找不到 engine-* release，也没有指定 engine" }
+          $id = $want -replace '^engine-', ''
+          "engine=$id" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "repacking portable-$id from the published engine release"
+
+      - name: download that engine's assets (no build, no artifact)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          gh release download "engine-${{ steps.pick.outputs.engine }}" `
+             --pattern wfsim-core.exe --pattern engine-identity.json --dir dist --clobber
+          Get-ChildItem dist | Select-Object Name, Length
+
+      - name: verify the downloaded engine is the published one
+        shell: python
+        run: |
+          import hashlib, json, pathlib
+          ident = json.loads(pathlib.Path("dist/engine-identity.json").read_text(encoding="utf-8"))
+          want = str(ident.get("sha256") or "").lower()
+          got = hashlib.sha256(pathlib.Path("dist/wfsim-core.exe").read_bytes()).hexdigest()
+          print("published", want)
+          print("downloaded", got)
+          if len(want) != 64 or want != got:
+              raise SystemExit("the engine asset does not match its identity file")
+
+      - name: pack the portable zip
+        run: python ci/pack_portable.py --build-dir dist/staging --keep-build
+
+      - name: smoke test the packed engine (5 WASM anchors)
+        run: python ci/tools/run_corpus.py dist/staging/engine/wfsim-core.exe --anchors --port 9510
+
+      - name: confirm the packed engine is on the prebuilt line
+        shell: python
+        run: |
+          import json, pathlib
+          state = json.loads(pathlib.Path("dist/staging/engine-src/state.json").read_text(encoding="utf-8"))
+          print(json.dumps(state, ensure_ascii=False, indent=2))
+          if state.get("core_source") != "prebuilt":
+              raise SystemExit("the packed state must say core_source=prebuilt")
+          if (pathlib.Path("dist/staging") / "toolchain").exists():
+              raise SystemExit("a portable zip must not ship toolchain/")
+
+      - name: publish the portable release (same tag, replaced asset)
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: portable-${{ steps.pick.outputs.engine }}
+          name: "wfclient portable ${{ steps.pick.outputs.engine }}"
+          make_latest: "true"
+          body: |
+            完整便携包：内置打好补丁的引擎（MSVC + PGO + mimalloc，随包预编译）、客户端 src、
+            便携版 Python 与依赖、使用说明与启动脚本。解压后双击 `run-portable.bat` 即可运行。
+
+            | 字段 | 值 |
+            |---|---|
+            | engine id | `${{ steps.pick.outputs.engine }}` |
+            | 打包前冒烟 | 5 个站点 WASM 锚点逐位一致 |
+            | 本次由 | `repack` 工作流，引擎字节取自已发布的 `engine-${{ steps.pick.outputs.engine }}` |
+
+            只想替换引擎、不想重下整包的话，见 `engine-${{ steps.pick.outputs.engine }}`。
+            详细说明见包内 `README-便携包.md`，引擎身份见 `engine/engine-identity.json`。
+          files: dist/wfsim-portable-*.zip
+          overwrite_files: true      # the zip is named by engine id only, so each id keeps exactly one
+          fail_on_unmatched_files: true
+
+  # 第三条发布线：源码 + 构建脚本（给别人自己编译用）。
+  #
+  # 为什么和打包放在一起：这条线**不需要引擎**（源码就是源码），所以没有任何理由再跑一次
+  #   MSVC+PGO 编译；它只需要当前仓库的内容，代价几秒。引擎 id 借用 repack 刚解析出来的那个，
+  #   这样三条线的标签是同一组，用户一眼能对上。
+  selfbuild:
+    runs-on: windows-latest
+    needs: repack
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: pack the sources zip (client src + ci + docs)
+        shell: python
+        run: |
+          import pathlib, zipfile
+          root = pathlib.Path(".")
+          out = pathlib.Path("dist/wfclient-src.zip")
+          out.parent.mkdir(parents=True, exist_ok=True)
+          # 只放"能自己编译"需要的东西：客户端 src、CI/构建脚本、补丁、文档、许可。
+          # 不放 engine/（预编译那是在另一条线）、python/（那是运行用的 embed Python）、
+          # engine-src/（那是下载来的上游树，构建脚本会自己拉）。
+          files = ["README.md", "README-便携包.md", "SECOND-DEVELOPMENT.md", "NOTICE.md",
+                   "自构建说明.md", "LICENSE", "LICENSE-DATA.md", "TRADEMARK.md",
+                   "run-portable.bat", ".gitattributes", "data/config.json"]
+          dirs = ["src", "ci", ".github"]
+          with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+              for name in files:
+                  p = root / name
+                  if p.is_file():
+                      z.write(p, name)
+                  else:
+                      print("skip (missing):", name)
+              for d in dirs:
+                  for p in sorted((root / d).rglob("*")):
+                      if p.is_file() and "__pycache__" not in p.parts:
+                          # as_posix(): zip entries must use "/", never the Windows "\"
+                          z.write(p, p.relative_to(root).as_posix())
+          with zipfile.ZipFile(out) as z:
+              names = z.namelist()
+          print(out, out.stat().st_size, "bytes,", len(names), "files")
+          for must in ("src/app.py", "src/sync_engine.py", "ci/build_engine.py",
+                       "ci/patches/wfsim-compute-optimization.patch", "自构建说明.md"):
+              if must not in names:
+                  raise SystemExit("the sources zip is missing " + must)
+
+      - name: show the dependency table that goes in the release body
+        shell: python
+        run: |
+          import pathlib
+          doc = pathlib.Path("自构建说明.md")
+          if not doc.is_file():
+              raise SystemExit("自构建说明.md is missing")
+          text = doc.read_text(encoding="utf-8")
+          for must in ("rustup.rs", "visualstudio.microsoft.com/visual-cpp-build-tools",
+                       "llvm-tools-preview", "winlibs.com", "msys2.org",
+                       "git-scm.com/download/win", "github.com/settings/tokens"):
+              if must not in text:
+                  raise SystemExit("the build doc does not mention " + must)
+          print("build doc:", len(text), "chars,", text.count("\n") + 1, "lines")
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: selfbuild-${{ needs.repack.outputs.engine }}
+          name: "wfclient self-build sources ${{ needs.repack.outputs.engine }}"
+          make_latest: "false"      # 便携包那条线才是 latest
+          body: |
+            自己编译引擎用的源码包：客户端 `src/`、构建脚本 `ci/`、上游补丁、文档与许可。
+            完整依赖说明见仓库根目录的 `自构建说明.md`（也在 zip 里）。
+
+            ### 两条编译路径，先选一条
+
+            | 路径 | 要装什么 | 相对速度 |
+            |---|---|---|
+            | A. 便携 GNU 链（可完全离线） | 基本上什么都不用装；可选 MinGW-w64 gcc 以开启 mimalloc | 1.00× |
+            | B. MSVC + PGO（发布包口径） | rustup 锁版本工具链 + VS 2022 生成工具 + `llvm-tools-preview` | **3.4×** |
+
+            实测（8 核 16 线程，100 条 board）：A = 102.7 s，B = 29.9 s ⇒ 3.43×。
+
+            ### 依赖与官方安装渠道
+
+            | 依赖 | 版本 | 官方渠道 |
+            |---|---|---|
+            | Rust 工具链 | `1.97.1-x86_64-pc-windows-msvc`（锁版本） | https://rustup.rs · https://www.rust-lang.org/tools/install |
+            | VS 2022 生成工具（`link.exe` + Windows SDK + `cl.exe`） | 任意 2022（实测 14.44.35207） | https://visualstudio.microsoft.com/visual-cpp-build-tools/ · `winget install --id Microsoft.VisualStudio.2022.BuildTools -e` |
+            | `llvm-profdata`（PGO） | 随工具链（LLVM 22.1） | `rustup component add llvm-tools-preview` · https://doc.rust-lang.org/rustc/profile-guided-optimization.html |
+            | crates.io 依赖 | 见 `engine-src/work/Cargo.lock` | https://crates.io |
+            | MinGW-w64 gcc（可选，仅 mimalloc） | 任意 | https://www.msys2.org/ · https://winlibs.com/ |
+            | Git for Windows（可选） | ≥ 2.40 | https://git-scm.com/download/win |
+            | GitHub PAT（可选） | fine-grained，public 只读 | https://github.com/settings/tokens |
+
+            也有的前提：Windows 10/11 x64、磁盘约 2 GB（编译目标目录 542 MB + cargo registry 110 MB）、
+            Python 3.11+（只跑 `ci/` 脚本）、能访问 GitHub（取上游源码；匿名 60 次/小时够用）。
+
+            ### 三步开始
+
+            ```bat
+            python ci\fetch_sources.py                    :: 拉上游源码 + 打本仓补丁
+            python ci\build_engine.py --crt-static --target-cpu x86-64-v3 --rivens-gate 3
+            python ci\tools\run_corpus.py dist\wfsim-core.exe --anchors   :: 逐位闸门
+            ```
+
+            常见坑（中文路径让 `ar.exe` 乱码、`no .profraw produced`、便携链不支持 PGO、
+            `gas` 按源码条数计费……）逐条写在 `自构建说明.md` 的最后一节。
+
+            只想要"开箱即用"？用 `portable-${{ needs.repack.outputs.engine }}` 那条线的完整便携包。
+          files: dist/wfclient-src.zip
+          overwrite_files: true
+          fail_on_unmatched_files: true

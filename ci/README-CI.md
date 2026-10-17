@@ -3,14 +3,17 @@
 上游每次发新 revision，客户端会**自己**从源码重编引擎（便携 GNU 链，慢约 3.4×）。
 本目录负责补上"快速版"：**MSVC + PGO + mimalloc** 的预编译引擎，并在发布前用逐位闸门证明它与站点接受的值完全一致。
 
-## 两个工作流（`.github/workflows/`）
+## 三个工作流（`.github/workflows/`）
 
 | 工作流 | 触发 | 做什么 |
 |---|---|---|
 | `build-engine.yml` | 定时（每 6 小时）/ 手动 / `ci/patches/**` 变动 | **3 个 job**：`build`（拉最新上游源码 → 打补丁 → MSVC+PGO 构建 → 上传 exe+身份 json）、`gate-board`（100 board + 5 锚点）、`gate-riven`（矩阵 3 条紫卡各一个 job，并行） |
 | `release.yml`（工作流名 `release`） | 上一个工作流**全部 job 成功后** / 手动 | 发**两条独立 Release**：`engine-<id>`（只放引擎 exe + 身份 json）与 `portable-<id>`（完整便携包 zip，标 latest）；便携包那条打包前跑 5 个 WASM 锚点冒烟 |
+| `repack.yml`（工作流名 `repack`） | `src/**`、`ci/**`、说明文档 变动 / 手动 | **只重打包**，两个 job：`repack` 从已发布的 `engine-<id>` release 取回引擎（校验 sha256 与身份 json 一致）→ 重打包 zip → 锚点冒烟 → 覆盖同名 `portable-<id>` 资产；`selfbuild` 不打引擎，只发出 **`selfbuild-<id>`**（源码 + `ci/` + 补丁 + `自构建说明.md`，339 KB，几秒），给想自己编译的人。不编译引擎、不新建引擎标签、不 `git push` |
 
 `release.yml` 靠 `workflow_run: completed + conclusion == success` 触发 ⇒ 任一闸门 job 失败就**不会发版**（这就是"闸门串在发布前面"的实现方式，而不是靠脚本里的顺序）。
+
+`repack.yml` 存在的理由：改了客户端 `src/` 或打包脚本时引擎一个字节都没变，但需要一个新 zip。以前只能手填 `run_id` 去 dispatch `release`，或干脆重跑一遍编译；现在推送即重打包，且**永远不会**触发 `build-engine`（它的 path 过滤里没有这些路径）。
 
 CI 用 `--target-cpu x86-64-v3`（通用 AVX2 基线）；本地自建建议 `native`。
 

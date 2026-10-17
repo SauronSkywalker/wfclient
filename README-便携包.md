@@ -36,8 +36,13 @@
 
 ## 上游更新了怎么办
 
-1. 客户端**会自己发现**（比较 `wire engine` 与站点 `served engine`），并尝试自建引擎——但本包不含工具链，所以自建会失败；
-2. 到本仓库 [Releases](../../releases) 下载最新的 `wfsim-portable-*.zip`，解压覆盖即可（`data\config.json` 可以保留，把里面的 `verifiers` / `claimed` 一并保留就能延续本机身份）。
+本包是**预编译包**（`engine-src/state.json` 里写着 `core_source: prebuilt`），所以只有一条更新线：
+
+1. 客户端在同步应答里看到服务器下发了新 engine id（`wire engine` 与站点 `served engine` 不一致）时会提示"服务器已下发新引擎；后台下载中（计算不中断）"，从本仓库 `engine-<id>` Release 下载对应引擎、校验 sha256，**下载期间照常计算**，只在安装前短暂排空；
+2. 想马上拿到整包也可以：到本仓库 [Releases](../../releases) 下载最新的 `wfsim-portable-*.zip`，解压覆盖（`data\config.json` 可以保留，把里面的 `verifiers` / `claimed` 一并保留就能延续本机身份）。
+
+本包**不显示**"重建引擎 / 编译引擎"两个设置项：包里既没有 rust 工具链也没有源码树，本地编译这条路不存在。
+想自己编译（可以拿 `native` + 本机 MSVC，比通用发布包快约 12%），去下载源码包 `selfbuild-<id>`，依赖清单与官方安装渠道见 [`自构建说明.md`](自构建说明.md)。
 
 ## 文件夹里有什么
 

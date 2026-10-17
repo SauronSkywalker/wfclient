@@ -80,12 +80,14 @@ ci/build_engine.py      MSVC+PGO 构建（PGO 三轮；`--gates` 决定在这里
 ci/gate_engine.py       独立闸门 job：对已下载的 exe 跑 board+锚点，或一条紫卡（--riven-only）
 ci/pack_portable.py     打便携包（引擎 + src + 便携 Python + 依赖 + 文档 + 启动脚本）
 ci/requirements.txt     依赖清单（textual 等）
-.github/workflows/      build-engine.yml（补丁变→最新引擎）、release.yml（两条线发 Release）
+.github/workflows/      build-engine.yml（补丁变→最新引擎）、release.yml（发 Release）、
+                        repack.yml（只重打包 + 发源码包）
+自构建说明.md            自己编译引擎要什么依赖、官方渠道（也在 selfbuild-<id> Release 里）
 ```
 
 ---
 
-## 两个 CI 工作流
+## 三个 CI 工作流
 
 1. **`build-engine.yml`** —— 定时（每 6 小时）+ 手动 + `ci/patches/**` 变动时，**3 个 job**：`build`（拉**最新**上游源码 → 应用 `ci/patches/*.patch` → MSVC+PGO 构建 → 上传 `wfsim-core.exe` / `engine-identity.json`）、`gate-board`（100 board + 5 锚点）、`gate-riven`（3 条紫卡各一个 job，**并行**）。四路闸门彼此独立，所以墙钟是 `max(board+锚点, 最慢那条紫卡)` 而不是它们的和；任一路失败 ⇒ 工作流失败 ⇒ 不发版。
 2. **`release.yml`**（工作流名 `release`）—— 上一个工作流成功后（或手动）**发布两条独立的 Release 线**：
@@ -97,6 +99,7 @@ ci/requirements.txt     依赖清单（textual 等）
 
    标签就是 engine id ⇒ 同一个引擎重发是幂等的（覆盖同名资产），客户端也不需要遍历历史。
    便携包那条线打包前再跑 5 个站点 WASM 锚点冒烟。
+3. **`repack.yml`**（工作流名 `repack`）—— 改客户端 `src/`、打包脚本或文档时触发（也可手动），**不重新编译引擎**：从已发布的 `engine-<id>` 取回引擎（校验 sha256 与身份 json 一致）→ 重打包 `portable-<id>` → 锚点冒烟 → 覆盖同名资产；同一个 job 图里还会发第三条线 **`selfbuild-<id>`**（源码 + 构建脚本 + 补丁 + [`自构建说明.md`](自构建说明.md)，339 KB 的 zip，几秒完成）—— 这条线给想**自己编译**的人，依赖清单与官方安装渠道都写在 Release 正文和那份说明里。
 
 CI 里引擎用 `-C target-cpu=x86-64-v3`（一档 AVX2 基线）而不是 `native`：那边是通用托管机，`native` 只能在构建机上跑。本地自建仍建议 `native`（本机 Zen 4 下比 v3 快 12.5%）。
 
