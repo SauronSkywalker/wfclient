@@ -83,12 +83,8 @@ FooterKey { background: #111111; }
 FooterKey .footer-key--key { padding: 0; }
 SettingsScreen { background: #000000; color: #eaeaea; }
 #settingshead { padding: 1 2; height: 6; }
-.setting-row { height: 3; padding: 0 2; }
-.setting-name { width: 22; content-align: left middle; }
-.setting-value { width: 12; content-align: center middle; }
-.setting-row Button { width: 5; min-width: 5; margin: 0 1; background: #d97706; color: #ffffff; }
-#small_batch { padding: 1 2; height: 3; }
-#settingsnote { padding: 1 2; height: 5; }
+/* The rows, the plates and the note live in SettingsScreen.CSS; the rules that
+   used to sit here were overridden by it and only invited drift. */
 """
 
 
@@ -125,24 +121,39 @@ class SettingsScreen(Screen):
         width: 92; margin: 0 2 1 2; padding: 0 1; height: auto;
         border: none; background: #000000;
     }
-    /* ONE LINE A BUTTON, like the footer bar: black/white by default, white
-       on hover, and yellow/black for the choice that is in force. */
+    /* ONE LINE A CLICKABLE THING.  Every control that can be pressed wears a
+       quiet 12% white plate, the choice in force wears a 25% amber plate with
+       amber text, and the two actions that take minutes stand three rows tall
+       (Textual's own button height) so they never read as another −/+.
+       Hover brightens the plate instead of inverting to white-on-black. */
     .setting-row { height: 1; padding: 0 1; }
+    .setting-row.action-row { height: 3; }
     .setting-name { width: 20; content-align: left middle; }
     .setting-value { width: 16; content-align: right middle; }
     .setting-row Button {
         height: 1; min-width: 5; margin: 0 0 0 1; padding: 0 1;
-        border: none; background: #000000; color: #ffffff;
+        border: none; background: #ffffff1f; color: #eaeaea;
     }
-    .setting-row Button:hover { background: #ffffff; color: #000000; }
-    .setting-row Button:focus { background: #ffffff; color: #000000; }
-    .setting-row Button.on { background: #d97706; color: #000000; }
-    .setting-row Button:disabled { background: #0b0b0b; color: #666666; }
+    .setting-row Button:hover { background: #ffffff33; color: #ffffff; }
+    .setting-row Button:focus { background: #ffffff33; color: #ffffff;
+        text-style: bold; }
+    .setting-row Button.on { background: #d9770640; color: #fbbf24;
+        text-style: bold; }
+    .setting-row Button.on:hover, .setting-row Button.on:focus {
+        background: #d9770666; color: #fde68a; }
+    .setting-row Button:disabled { background: #ffffff0f; color: #4a4a4a; }
     /* A full "跟随系统" is eight cells wide; fixed width keeps every label
        whole instead of letting the row squeeze it to one character. */
     .setting-row Button.scale-btn { width: 11; min-width: 11; }
     #settingsnote { padding: 1 2; height: 7; }
-    #rebuild_engine, #rebuild_fast { min-width: 9; }
+    #rebuild_engine, #rebuild_fast {
+        height: 3; min-width: 11; text-style: bold;
+        background: #d9770640; color: #fbbf24;
+    }
+    #rebuild_engine:hover, #rebuild_fast:hover {
+        background: #d9770666; color: #fde68a; }
+    #rebuild_engine:disabled, #rebuild_fast:disabled {
+        background: #ffffff0f; color: #4a4a4a; }
     """
 
     def __init__(self, fleet, on_change=None, engine_state=None,
@@ -192,13 +203,13 @@ class SettingsScreen(Screen):
                 yield Button("关", id="task_persist_toggle")
             with Horizontal(classes="setting-row"):
                 yield Static("Board协议", classes="setting-name")
-                yield Static("协议 8（一扇门，无切换）", id="board_proto_value",
+                yield Static("协议 8", id="board_proto_value",
                              classes="setting-value")
-            with Horizontal(classes="setting-row"):
+            with Horizontal(classes="setting-row action-row"):
                 yield Static("清理缓存重建引擎", classes="setting-name")
                 yield Static("本机 CPU 优化", classes="setting-value")
                 yield Button("重建", id="rebuild_engine")
-            with Horizontal(classes="setting-row"):
+            with Horizontal(classes="setting-row action-row"):
                 yield Static("快速重新编译引擎", classes="setting-name")
                 yield Static("增量，不清理缓存", classes="setting-value")
                 yield Button("编译", id="rebuild_fast")
@@ -256,11 +267,12 @@ class SettingsScreen(Screen):
             pb.set_class(persisted, "on")
             # board wire: protocol 8, one door, no switch — and nothing to
             # switch TO.  A server that answers `fallback: 7` stops this client
-            # (fleet._proto8_off); it never speaks the classic wire.
-            pinned = "（服务端已关闭协议8，已暂停领取任务）" if getattr(
-                self.fleet, "_proto8_off", False) else ""
+            # (fleet._proto8_off); it never speaks the classic wire.  The value
+            # column is 16 cells wide, so the parenthetical lives in the notes
+            # below instead of being trimmed to "协议 8（一".
+            paused = getattr(self.fleet, "_proto8_off", False)
             self.query_one("#board_proto_value", Static).update(
-                f"协议 8（一扇门，无切换）{pinned}")
+                "协议 8 · 已暂停" if paused else "协议 8")
             scale = int(self.fleet.cfg.get("ui_scale_percent") or 0)
             self.query_one("#scale_value", Static).update(ui_scale.label(scale))
             for pct in ui_scale.SCALE_CHOICES:
@@ -284,6 +296,8 @@ class SettingsScreen(Screen):
                 (f"[dim]{engine_note}[/dim]\n" if engine_note else "") +
                 "[dim]小批量上传关闭：整包完成后上传。\n"
                 "小批量上传开启：每 2 条上传一次，最后不足 2 条在包结束时上传。[/dim]\n"
+                "[dim]Board 协议固定为 8，一扇门、无切换；服务端哪天回 fallback 7，\n"
+                "本客户端会暂停领取任务，不会退回旧协议。[/dim]\n"
                 "[dim]清理重建会暂停接任务，按本机 CPU 从零编译引擎，耗时数分钟。\n"
                 "快速重编只走增量（保留 build-cache），把新的补丁编进引擎，通常快得多。\n"
                 "计算进程的 −/+ 会先暂停接任务、等正在算的行上传完，再按新数量重启引擎\n"
@@ -769,6 +783,11 @@ class WfSimClient(App):
         #: ONE timer, TEN minutes, TWO signals: `engine` and `optimizer/src`
         self._update_check_at = 0.0
         self._update_check_interval = 600.0
+        #: WHICH UPDATE LINE THIS COPY IS — "prebuilt" (the CI zip: a compiled
+        #: core, no toolchain) or "local" (carries the rust toolchain and builds
+        #: from sources).  Read once from the package's own state and cached:
+        #: nothing about the package changes while the console runs.
+        self._core_source: str | None = None
         #: a failed rebuild backs off instead of hammering the same broken
         #: upstream every ten minutes forever
         self._update_backoff = 300.0
@@ -778,6 +797,9 @@ class WfSimClient(App):
         self._pat_state = {"state": "checking"}
         self._pat_check_at = 0.0
         self._leaderboard_at = -1.0
+        #: the last fault each panel reported, so a panel that faults on every
+        #: tick is logged once per distinct failure instead of twice a second
+        self._paint_errors: dict[str, str] = {}
 
     # ------------------------------------------------------------- compose
     def compose(self) -> ComposeResult:
@@ -1120,13 +1142,14 @@ class WfSimClient(App):
     def _paint_rank(self, s: dict) -> None:
         lb = s.get("leaderboard") or []
         lb_at = float(s.get("leaderboard_at") or 0.0)
+        err = str(s.get("leaderboard_error") or "")
         self.query_one("#rank-title", Static).update(
             "[bold white on #d97706] 贡献者排行 [/]"
             f" [dim]在线 {s.get('leaderboard_computing', 0)}/"
-            f"{s.get('leaderboard_total', 0)} · 60秒刷新[/dim]")
+            f"{s.get('leaderboard_total', 0)} · 2分钟刷新 · [/dim]"
+            f"{self._rank_freshness(lb_at, err)}")
         if lb_at == self._leaderboard_at:
             return
-        self._leaderboard_at = lb_at
         r = self.query_one("#rank", DataTable)
         # REBUILD THE COLUMNS, AND PUT THE READER BACK.
         #
@@ -1158,6 +1181,12 @@ class WfSimClient(App):
             except Exception:
                 rank, points, rate = 0, "0", "0"
             r.add_row(f"{rank:02d}", str(name), points, rate)
+        # THE TIMESTAMP IS THE "PAINTED" MARK, taken only once the rows are in.
+        # It used to be set before the rebuild, so a fault between the two left
+        # it advanced over an empty table and every later tick returned early on
+        # the equal timestamp — the ranking appeared to stop updating forever.
+        # Taken here, a fault leaves it alone and the next tick retries.
+        self._leaderboard_at = lb_at
         # AFTER THE NEXT LAYOUT, not now: the rows just added have not been
         # measured yet, so `max_scroll_y` is still the post-`clear()` zero and
         # an offset set here would be clamped away.
@@ -1171,6 +1200,37 @@ class WfSimClient(App):
             r.scroll_y = min(float(y), r.max_scroll_y)
         except Exception:
             pass
+
+    @staticmethod
+    def _rank_freshness(lb_at: float, err: str) -> str:
+        """How old the ranking on screen is, or why there is none.
+
+        THE AGE IS THE HONEST ANSWER to "why is it not moving": upstream
+        republishes the ranking every ten minutes (`stats_contributors_ms` in
+        worker/dials.js, default and minimum 600 s) and serves the last file for
+        up to twenty, so a reading that is minutes old with no error means the
+        server has not written a new one — not that this client failed.
+
+        The styling comes back WITH the text: the caller closes its `[dim]`
+        span before this, because a red inside a dim reads grey — a failure has
+        to look like one.
+        """
+        if err:
+            # brackets out: rich reads them as markup and raises on an unclosed
+            # tag, which would take the whole panel down for a log line
+            short = err.replace("[", "(").replace("]", ")")[:28]
+            # a CHIP, not red text: it is unmissable on any background, and it
+            # reads as an error even where colour is lost (piped output, a
+            # monochrome theme) because the block itself is the signal
+            return f"[bold white on #b91c1c] 更新失败 {short} [/]"
+        if lb_at <= 0.0:
+            return "[dim]尚未取得[/dim]"
+        age = max(0.0, time.time() - lb_at)
+        if age < 5.0:
+            return "[dim]刚刚更新[/dim]"
+        if age < 60.0:
+            return f"[dim]{int(age)} 秒前更新[/dim]"
+        return f"[dim]{int(age // 60)} 分 {int(age % 60)} 秒前更新[/dim]"
 
     @staticmethod
     def _slot_idle_lines(st: dict, port: int, lanes: int, bar: str) -> list[str]:
@@ -1488,22 +1548,50 @@ class WfSimClient(App):
                 t.add_row(*cells, key=v["id"])
 
     def _paint(self) -> None:
+        """Repaint every panel, EACH ON ITS OWN.
+
+        ONE FAULT MUST NOT FREEZE THE REST: a painting error anywhere in here
+        used to abort the whole of `_paint`, so every panel after the fault —
+        the ranking is last — kept showing whatever it last painted.  A
+        persistent fault therefore froze that panel for the rest of the
+        session, which reads to the user as "the leaderboard stopped
+        updating".  Each panel now catches its own error, and the failure is
+        reported once per distinct message rather than twice a second.
+        """
         try:
             f = self.fleet
             s = f.snapshot()
             st = s["stats"]
             paused = bool(f.paused)
-            self._paint_header(s, st, paused)
-            self._paint_pool(s, st, f, paused)
-            self.query_one("#pat", Static).update(self._pat_panel_text())
-            self._paint_rank(s)
-            self._paint_slots(s, f)
-            self._paint_verifiers(s, f)
         except Exception as e:
+            self._paint_failed("snapshot", e)
+            return
+
+        def panel(name: str, paint) -> None:
             try:
-                self._event("error", f"paint failed: {type(e).__name__}: {e}")
-            except Exception:
-                pass
+                paint()
+            except Exception as e:
+                self._paint_failed(name, e)
+            else:
+                self._paint_errors.pop(name, None)
+
+        panel("header", lambda: self._paint_header(s, st, paused))
+        panel("pool", lambda: self._paint_pool(s, st, f, paused))
+        panel("pat", lambda: self.query_one("#pat", Static).update(self._pat_panel_text()))
+        panel("rank", lambda: self._paint_rank(s))
+        panel("slots", lambda: self._paint_slots(s, f))
+        panel("verifiers", lambda: self._paint_verifiers(s, f))
+
+    def _paint_failed(self, panel: str, e: Exception) -> None:
+        """Say which panel broke, once per distinct failure."""
+        text = f"{type(e).__name__}: {e}"
+        if self._paint_errors.get(panel) == text:
+            return
+        self._paint_errors[panel] = text
+        try:
+            self._event("error", f"paint {panel} failed: {text}")
+        except Exception:
+            pass
     # ------------------------------------------------------------- actions
     _PAT_STATIC = {
         "checking": "GitHub PAT 检查中…",
@@ -1748,16 +1836,46 @@ class WfSimClient(App):
         if patches_moved and not engine_moved and not opt_moved:
             self._event("update", f"本地补丁已更新（{str(known_patches)[:12]} -> "
                                   f"{str(cur_patches)[:12]}），开始重编引擎")
-        self._announce_core_moves(engine_moved, opt_moved, online,
-                                  local_engine, known_opt, opt_sha)
-        reason = ("本地补丁已更新" if patches_moved and not engine_moved
-                  and not opt_moved else "")
+        prebuilt = self._core_source == sync_engine.CORE_SOURCE_PREBUILT
+        if prebuilt:
+            # This line never syncs sources and never compiles: the served engine
+            # has a published core, so the update is a download of those bytes.
+            self._event("update", f"engine 更新: 本地 {local_engine or '?'} -> "
+                                  f"服务器 {online}")
+            self._event("update", "服务器已下发新引擎；后台下载中（计算不中断）")
+            if not engine_moved:
+                return
+        else:
+            self._announce_core_moves(engine_moved, opt_moved, online,
+                                      local_engine, known_opt, opt_sha)
+        reason = ("服务器已下发新引擎" if prebuilt else
+                  ("本地补丁已更新" if patches_moved and not engine_moved
+                   and not opt_moved else ""))
         if self._auto_update_task is None or self._auto_update_task.done():
             self._auto_update_task = asyncio.create_task(
                 self._auto_update(rel, reason=reason))
 
+    async def _is_prebuilt(self) -> bool:
+        """True when this package can only DOWNLOAD a core, never build one.
+
+        Asked of the package itself (`engine-src/state.json`), never inferred at
+        update time: if a prebuilt zip could decide to rebuild, it would pause
+        the fleet to run cargo that is not in the zip, fail on a missing
+        core-host template, and retry forever (measured 2026-10-17).
+        """
+        if self._core_source is None:
+            try:
+                self._core_source = str(
+                    await self.fleet._io(sync_engine.core_source) or "")
+            except Exception:
+                self._core_source = sync_engine.CORE_SOURCE_LOCAL
+        return self._core_source == sync_engine.CORE_SOURCE_PREBUILT
+
     async def _check_updates(self, force: bool = False) -> None:
-        """FOUR SIGNALS, ONE TIMER, EVERY TEN MINUTES.
+        """TWO LINES, TWO CHECKS.
+
+        A LOCAL copy (this repo's sources + the bundled rust toolchain) follows
+        FOUR SIGNALS every ten minutes:
 
           1. GitHub site/release.json + site/engines — the switchable list.
           2. wfsim.app/release.json engine — the served core id.
@@ -1766,11 +1884,18 @@ class WfSimClient(App):
           4. THIS CLIENT'S PATCH SET — local, and the only one that moves when a
              patch changes.
 
+        A PREBUILT copy (the CI zip: a compiled core, no toolchain) follows ONE
+        signal and touches GitHub never: the served engine id.  See
+        `_check_updates_prebuilt`.
+
         The served engine or optimizer moving, or a patch changing, means the
         core on disk is stale.  The wire id may be an older accepted id and is
         validated separately.
         """
         if not self._update_check_due(force):
+            return
+        if await self._is_prebuilt():
+            await self._check_updates_prebuilt(force)
             return
         catalog = await self._read_engine_catalog()
         rel = await self._read_release()
@@ -1783,6 +1908,35 @@ class WfSimClient(App):
             return
         self._start_core_update(rel, online, local_engine, known_opt, opt_sha,
                                 known_patches, cur_patches, force)
+
+    async def _check_updates_prebuilt(self, force: bool) -> None:
+        """The prebuilt line's whole periodic check: the served engine id.
+
+        No GitHub, no optimizer tree, no local patch comparison.  A zip that
+        ships a compiled core has nothing local to compare — its `patches_sha`
+        is the shipped value while the tree has none, so comparing them reports
+        a change that does not exist and would send the client off to compile
+        sources it does not have.  The engine the server is serving is the whole
+        signal; the published core for that id is a download.
+
+        The engine catalog (a GitHub API call) is fetched only when the user
+        actually opens the version list — see `_ensure_engine_catalog`.
+        """
+        rel = await self._read_release()
+        if rel is None:
+            return
+        online = str(rel.get("engine") or "")
+        state = await self.fleet._io(sync_engine.load_state) or {}
+        local_engine = (state.get("engine")
+                        or self.fleet.cfg.get("known_engine") or None)
+        self.fleet.local_engine = local_engine
+        if online and online != local_engine:
+            self._start_core_update(rel, online, local_engine, None, None,
+                                    None, None, force)
+            return
+        if force:
+            self._event("update", f"本地核心 {local_engine or '?'} = "
+                                  f"服务器 {online or '?'}，已是最新")
 
     def _engine_options(self) -> list[dict]:
         catalog = self._engine_catalog or (self.fleet.engine_catalog if self.fleet else None)
@@ -2074,6 +2228,23 @@ class WfSimClient(App):
             return
         await self._rollback_core(old_engine, old_state)
 
+    async def _prepare_download(self, rel: dict, reason: str = "") -> None:
+        """Prebuilt line: fetch the published core FIRST, drain only to install.
+
+        The order is the point for a volunteer machine.  A download needs no
+        idle slots, so the fleet keeps computing all the way through it, and the
+        pause-drain starts only once the bytes are staged — at which point the
+        swap is the only thing left.
+        """
+        engine = str(rel.get("engine") or "")
+        self._event("update", f"{reason or '服务器已下发新引擎'}：下载核心 {engine}")
+        rc = await self._run_sync_engine("--download-core", engine)
+        if rc != 0:
+            raise RuntimeError(f"下载核心退出码 {rc}")
+        self._event("update", "下载完成；进入暂停排空流程")
+        self.fleet.maintenance = True
+        await self.fleet.pause_drain()
+
     async def _prepare_update(self, clean: bool, reason: str = "") -> None:
         reason = reason or ("手动清理缓存重建引擎" if clean else "检测到核心更新")
         self._event("update", f"{reason}：进入暂停排空流程")
@@ -2106,7 +2277,10 @@ class WfSimClient(App):
         was_paused = bool(self.fleet.paused)
         succeeded = False
         try:
-            await self._prepare_update(clean, reason)
+            if self._core_source == sync_engine.CORE_SOURCE_PREBUILT:
+                await self._prepare_download(rel, reason)
+            else:
+                await self._prepare_update(clean, reason)
             await self._finish_update(rel)
             succeeded = True
             # The pin may have tracked the just-replaced latest (or an auto
@@ -2176,6 +2350,13 @@ class WfSimClient(App):
     async def _manual_rebuild(self, clean: bool, reason: str) -> None:
         if not self.fleet or not self.ready:
             self._event("update", "客户端尚未就绪，请稍后再重建引擎")
+            return
+        if await self._is_prebuilt():
+            # Honest answer instead of a five-minute pause that cannot succeed:
+            # this package has a compiled core and no toolchain to compile with.
+            self._event("update", "本包是预编译包（不含 rust 工具链），只能下载官方核心，"
+                                  "无法本地编译；请下载带工具链的自编译包，"
+                                  "或等待服务器下发新引擎后自动下载")
             return
         if (self._updating or self._engine_switch_lock.locked()
                 or (self._auto_update_task is not None

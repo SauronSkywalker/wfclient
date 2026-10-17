@@ -86,6 +86,25 @@ WORKSPACE_MEMBERS = 'members = ["core-host", "engine", "optimizer", "webapi", "t
 #: The Python client speaks this protocol; the Rust core is arithmetic only.
 CLIENT_PROTOCOL = 7
 
+#: THE TWO UPDATE LINES ARE TWO DIFFERENT RELEASE PACKAGES.
+#:
+#: "prebuilt" — the CI-built portable zip.  It ships a compiled core, no
+#:   `toolchain/` and no `engine-src/work`, so the only way it can ever take a
+#:   new core is to DOWNLOAD one: `releases/download/engine-<id>/`.
+#: "local"   — a copy that carries the bundled rust toolchain and rebuilds from
+#:   synced upstream sources plus our patches.
+#:
+#: Which one this copy is has to be a property of the package, not a guess made
+#: at update time: a portable zip that tries to build pauses the fleet, calls
+#: cargo that is not there, fails on a missing core-host template, and retries
+#: every five minutes forever (measured on the first CI-built zip, 2026-10-17).
+CORE_SOURCE_PREBUILT = "prebuilt"
+CORE_SOURCE_LOCAL = "local"
+
+#: Where the prebuilt line downloads from.  Overridable with data/config.json
+#: `update_repo`, so a mirror or a personal fork needs no code change.
+UPDATE_REPO_DEFAULT = "SauronSkywalker/wfclient"
+
 
 def load_config() -> dict:
     try:
@@ -97,6 +116,29 @@ def load_config() -> dict:
 def configured_pat() -> str:
     """The user-controlled GitHub PAT.  Never log or return it for display."""
     return str(load_config().get("github_pat") or "").strip()
+
+
+def update_repo() -> str:
+    """The repository the prebuilt line downloads cores from."""
+    return str(load_config().get("update_repo") or "").strip() or UPDATE_REPO_DEFAULT
+
+
+def core_source() -> str:
+    """Which of the two update lines this copy belongs to.
+
+    The state file decides it, and a copy that predates the key is judged by
+    what is actually on disk: no bundled cargo, or no patch set, means it cannot
+    compile a core however it was labelled — so it is a prebuilt copy.
+    """
+    state = load_state()
+    src = str(state.get("core_source") or "").strip()
+    if src in (CORE_SOURCE_PREBUILT, CORE_SOURCE_LOCAL):
+        return src
+    if state.get("prebuilt"):
+        return CORE_SOURCE_PREBUILT
+    if not (RUST / "bin" / "cargo.exe").exists() or not PATCHES.is_dir():
+        return CORE_SOURCE_PREBUILT
+    return CORE_SOURCE_LOCAL
 
 
 def is_github_url(url: str) -> bool:
@@ -1199,6 +1241,53 @@ def stage_core(built: pathlib.Path, release: dict, optimizer_sha: str) -> pathli
     return STAGED_CORE
 
 
+def engine_release_base(engine: str) -> str:
+    """`releases/download/engine-<id>/` on the update repo.
+
+    A plain asset download on purpose: no API call, so the prebuilt line never
+    spends the 60-requests-an-hour anonymous GitHub budget that the source line
+    needs for its tree walk.
+    """
+    return f"https://github.com/{update_repo()}/releases/download/engine-{engine}"
+
+
+def download_core(engine: str) -> pathlib.Path:
+    """Fetch the published prebuilt core for `engine` and stage it.
+
+    This is the whole of the prebuilt line's update step: no sources, no
+    patches, no cargo.  The bytes were compiled and bit-gated by CI, so the
+    client's job here is only to prove it received exactly those bytes: the
+    identity file next to the asset carries the sha256, and the download is
+    rejected unless it matches.
+    """
+    engine = str(engine or "").strip()
+    if not engine:
+        raise RuntimeError("download_core needs an engine id")
+    base = engine_release_base(engine)
+    identity = json.loads(http_bytes(base + "/engine-identity.json").decode("utf-8"))
+    want = str(identity.get("sha256") or "").strip().lower()
+    if len(want) != 64:
+        raise RuntimeError(f"{base}/engine-identity.json carries no sha256")
+    log(f"downloading {base}/wfsim-core.exe")
+    data = http_bytes(base + "/wfsim-core.exe")
+    got = sha256(data)
+    if got != want:
+        raise RuntimeError(f"downloaded core sha256 mismatch: {got} != {want}")
+    STAGED_DIR.mkdir(parents=True, exist_ok=True)
+    built = STAGED_DIR / "downloaded.exe"
+    tmp = built.with_suffix(".tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, built)
+    rel = {
+        "engine": engine,
+        "release": identity.get("release_online") or identity.get("release"),
+        "commit": identity.get("commit"),
+    }
+    stage_core(built, rel, str(identity.get("optimizer_tree_sha") or patches_sha()))
+    log(f"downloaded core {engine} sha256={got[:12]} bytes={len(data)}")
+    return STAGED_CORE
+
+
 def install_staged() -> pathlib.Path:
     """Install the last staged core.  NO network, NO build, NO running engine."""
     if not PENDING.exists():
@@ -1282,6 +1371,8 @@ def _build_parser() -> argparse.ArgumentParser:
                     help="build and stage the core; do not replace the live exe")
     ap.add_argument("--install-staged", action="store_true",
                     help="install the previously staged core with no network/build")
+    ap.add_argument("--download-core", metavar="ENGINE", default="",
+                    help="prebuilt line: fetch + stage the published core for this engine id")
     ap.add_argument("--clean", action="store_true",
                     help="build from an empty build-cache/target")
     return ap
@@ -1327,6 +1418,14 @@ def _update_signals(rel: dict, state: dict):
     opt_changed = bool(opt_sha) and stored_opt != opt_sha
     cur_patches = patches_sha()
     patches_changed = state.get("patches_sha") != cur_patches
+    if core_source() == CORE_SOURCE_PREBUILT:
+        # A prebuilt package ships no patch set and no sources, so both of these
+        # compare a local tree that does not exist: the empty patch set hashes to
+        # da39a3ee… against a recorded 1e8bb8f3…, which used to read as "our
+        # patches changed" and sent a portable zip off to run cargo it does not
+        # have.  This line only ever follows the served engine id.
+        opt_changed = False
+        patches_changed = False
     hash_ok = installed_core_matches_state()
     return (engine_changed, opt_changed, patches_changed, hash_ok, stored_opt, opt_sha,
             cur_patches)
@@ -1383,6 +1482,13 @@ def main() -> int:
     args = _build_parser().parse_args()
     if args.install_staged:
         return _install_staged_cli()
+    if args.download_core:
+        try:
+            download_core(args.download_core)
+            return 0
+        except Exception as e:
+            log(f"ERROR: {type(e).__name__}: {e}")
+            return 1
 
     try:
         rel = release_info()

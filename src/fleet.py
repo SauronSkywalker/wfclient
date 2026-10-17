@@ -6308,10 +6308,18 @@ class Fleet:
     async def _refresh_leaderboard(self) -> None:
         """Read the public ranking and compute this run's points/minute.
 
-        The server's own leaderboard cache is 60 seconds, so this is asked at
-        the same cadence.  A contributor's baseline is taken when that key is
-        first seen in this process; a later row therefore cannot borrow points
-        earned before the client opened.
+        THE RANKING IS A TEN-MINUTE FILE, NOT A MINUTE'S CALL: the worker
+        rewrites `stats/contributors.json` every `stats_contributors_ms` (whose
+        default AND minimum are both 10 minutes), `/api/contributors` reads that
+        file back for up to two periods, and the edge holds the answer a further
+        60 seconds -- `worker/contribution.js`, `worker/dials.js`,
+        docs/BOARD.md §"The public stats".  So this is asked every two minutes:
+        ahead of the data, and not one request per reader per minute for an
+        answer that cannot have moved.  (The number that does move each minute
+        is the tally on the home page, which this client does not show.)  A
+        contributor's baseline is taken when that key is first seen in this
+        process; a later row therefore cannot borrow points earned before the
+        client opened.
         """
         r = await self._io(self.remote.contributors, 100)
         if not isinstance(r, dict) or not r.get("ok"):
@@ -6319,7 +6327,10 @@ class Fleet:
             return
         self._apply_leaderboard(r, time.time())
 
-    async def leaderboard_loop(self, every: float = 60.0) -> None:
+    async def leaderboard_loop(self, every: float = 120.0) -> None:
+        # TWO MINUTES, NOT ONE: the ranking is republished every ten (see
+        # `_refresh_leaderboard`), so a minute's cadence was six reads of the
+        # same bytes.  The first read still lands immediately, before the sleep.
         while self.running:
             try:
                 await self._refresh_leaderboard()
