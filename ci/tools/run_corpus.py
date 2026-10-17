@@ -13,6 +13,10 @@ import argparse, json, os, subprocess, sys, time, urllib.request, urllib.error
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
 sys.path.insert(0, ROOT)
+# The embedded CPython in the portable package runs isolated (python311._pth), so it does
+# NOT add the script's directory to sys.path the way a normal interpreter does -- without
+# this line `--anchors` dies on "No module named 'verify_pipeline'" next to it.
+sys.path.insert(0, BASE)
 
 
 def pin(pid, cpus):

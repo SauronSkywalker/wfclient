@@ -1,6 +1,6 @@
 name: release
 
-# Workflow 2 of 2 -- 编译成功后自动发布，两条独立的 release 线：
+# Workflow 2 of 2 -- 编译成功后自动发布，三条独立的 release 线：
 #
 #   engine-<id>     只放引擎本体（wfsim-core.exe + engine-identity.json）
 #                   给"只想换引擎"的人和客户端更新器用；标签就是 engine id，客户端
@@ -9,8 +9,11 @@ name: release
 #                   + 说明 + 启动脚本），是给普通用户的下载入口，标为 latest。
 #                   zip 只按 engine id 命名 + 同名覆盖 ⇒ 每个 id 永远只有 1 个包
 #                   （早先用时间戳命名，一天就堆了 4 个 ~22 MB 的包）。
+#   deps-<id>       放"自编译依赖包"：除 Visual Studio 以外全部自包含，解压进便携包
+#                   就能在设置页点「编译本机最快引擎」（native + PGO，比通用版快
+#                   10%~15%）。给想要最快本体、又不想装 rustup / 拉源码的用户。
 #
-# 两条线各自发布，互不覆盖：只想换引擎的人不必再下一整个包，反之亦然。
+# 三条线各自发布，互不覆盖：只想换引擎的人不必再下一整个包，反之亦然。
 on:
   workflow_run:
     workflows: ["build-engine"]
@@ -149,4 +152,108 @@ jobs:
             详细说明见包内 `README-便携包.md`，引擎身份见 `engine/engine-identity.json`。
           files: dist/wfsim-portable-*.zip
           overwrite_files: true      # the zip is named by engine id only, so each id keeps exactly one
+          fail_on_unmatched_files: true
+
+  # Workflow 2 of 2, third product -- 想让本机跑 native 引擎、又不想装 rustup / 自己拉源码的人，
+  # 只要把这条 zip 解压进 portable 包，再装一个 Visual Studio，就能在设置页点「编译本机最快引擎」。
+  # 这里不编译引擎（编译已经在 build-engine 里做过并过了闸门），只把"编译引擎需要的东西"打包：
+  # 裁剪过的 rust msvc 工具链（346 MB）、离线 crate 缓存、本次 revision 的 PGO 剖面、补丁与
+  # 已打补丁的上游源码。除 Visual Studio 以外全部自包含（.lib 不允许再分发，见 自构建说明.md §3.1）。
+  deps:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: download the engine identity built by build-engine
+        uses: actions/download-artifact@v8
+        with:
+          name: wfsim-core-and-identity
+          path: dist
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The profile is optional by design (the client trains one locally when it is
+      # missing, ~4.5 minutes slower); `if-no-files-found: warn` on the producer side
+      # makes that a warning rather than a failed delivery.
+      - name: download the trained PGO profile
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: pgo-profile
+          path: dist/pgo
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: rust toolchain (the same pinned 1.97.1 the engine is built with)
+        run: |
+          rustup toolchain install 1.97.1-x86_64-pc-windows-msvc --profile minimal
+          rustup component add llvm-tools-preview --toolchain 1.97.1-x86_64-pc-windows-msvc
+
+      - name: fetch upstream sources + apply our patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python ci/fetch_sources.py
+
+      # Vendored crates: the user's machine compiles with CARGO_NET_OFFLINE=true, so the
+      # registry has to be inside the zip.  `cargo fetch` fills cache/ + src/ + index/.
+      - name: vendor the crate registry
+        env:
+          CARGO_HOME: ${{ github.workspace }}\dist\cargo-home
+        run: cargo fetch
+        working-directory: engine-src/work
+
+      - name: trim the toolchain (1.1 GB -> ~350 MB)
+        shell: pwsh
+        run: |
+          python ci/trim_toolchain.py `
+            --toolchain "$env:USERPROFILE\.rustup\toolchains\1.97.1-x86_64-pc-windows-msvc" `
+            --out dist/toolchain-msvc
+
+      - name: read the engine identity
+        id: ident
+        shell: python
+        run: |
+          import json, os, pathlib
+          d = json.loads(pathlib.Path("dist/engine-identity.json").read_text(encoding="utf-8"))
+          eng = d.get("engine_online") or d.get("engine") or "unknown"
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"engine={eng}\n")
+          print(eng)
+
+      - name: pack the offline self-build dependencies
+        run: >-
+          python ci/make_deps.py --root . --toolchain dist/toolchain-msvc
+          --registry dist/cargo-home/registry --work engine-src/work --ci ci
+          --engine ${{ steps.ident.outputs.engine }} --out dist/wfclient-deps-${{ steps.ident.outputs.engine }}.zip
+
+      - name: publish the deps release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: deps-${{ steps.ident.outputs.engine }}
+          name: "wfclient self-build deps ${{ steps.ident.outputs.engine }}"
+          make_latest: "false"
+          body: |
+            自编译依赖包（**除 Visual Studio 以外全部自包含**），配合 `portable-${{ steps.ident.outputs.engine }}` 使用。
+
+            1. 解压便携包，双击 `run-portable.bat` 确认能跑；
+            2. 把本包解压到便携包目录（与 `run-portable.bat` 同层，覆盖合并）；
+            3. 双击 `build-engine.bat`，或在 TUI 设置页点 **编译本机最快引擎**。
+
+            包含：裁剪过的 rust `1.97.1-x86_64-pc-windows-msvc`（约 346 MB，含 `llvm-profdata`）、
+            离线 crate 缓存、本次 revision 的 PGO 剖面、四个源码补丁、已打补丁的上游源码。
+            编译**离线**完成，产物是 `engine/wfsim-core.native.exe`，**不覆盖**通用引擎；
+            两者 revision 一致时优先跑 native，对不上自动回落。
+
+            唯一要你自己装的是 **Visual Studio**（`cl.exe`/`link.exe` 与 SDK 导入库不允许再分发）：
+            装最新的 **VS 2026** 即可，2022 起都行，`winget install --id Microsoft.VisualStudio.BuildTools -e`
+            或 <https://visualstudio.microsoft.com/visual-cpp-build-tools/>，装完不用配环境变量。
+            详见包内 `build-deps/README-自编译依赖.md`。
+          files: dist/wfclient-deps-*.zip
+          overwrite_files: true
           fail_on_unmatched_files: true

@@ -1427,10 +1427,24 @@ class Fleet:
 
     def engine_exe(self) -> str:
         """ABSOLUTE OR RELATIVE TO THIS FOLDER. A portable copy names the engine
-        `engine\\wfsim-core.exe`, so the whole folder can be moved anywhere."""
+        `engine\\wfsim-core.exe`, so the whole folder can be moved anywhere.
+
+        ONE EXCEPTION, the local line: when this machine has built its own core
+        for exactly the revision the client is on (`sync_engine.native_active`),
+        that overlay is what runs.  `wfsim-core.exe` stays on disk untouched, so
+        an overlay that stops matching is simply ignored and the delivered core
+        takes over again -- the fallback cannot be lost to a local build.
+        """
         exe = str(self.cfg.get("engine_exe") or "")
         if os.path.isabs(exe):
             return exe
+        try:
+            import sync_engine
+            over = sync_engine.engine_exe_override(exe)
+        except Exception:                                      # noqa: BLE001
+            over = None
+        if over:
+            return over
         return os.path.join(paths.ROOT, exe)
 
     def idle_slots(self) -> list[int]:

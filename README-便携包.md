@@ -42,7 +42,13 @@
 2. 想马上拿到整包也可以：到本仓库 [Releases](../../releases) 下载最新的 `wfsim-portable-*.zip`，解压覆盖（`data\config.json` 可以保留，把里面的 `verifiers` / `claimed` 一并保留就能延续本机身份）。
 
 本包**不显示**"重建引擎 / 编译引擎"两个设置项：包里既没有 rust 工具链也没有源码树，本地编译这条路不存在。
-想自己编译（可以拿 `native` + 本机 MSVC，比通用发布包快约 12%），去下载源码包 `selfbuild-<id>`，依赖清单与官方安装渠道见 [`自构建说明.md`](自构建说明.md)。
+
+想要本机最快的引擎有两条路：
+
+- **推荐（不用装 rustup、不用拉源码）**：下载同一 engine id 的 `wfclient-deps-<id>.zip`，解压到本目录（与 `run-portable.bat` 同层，覆盖合并），然后双击 `build-engine.bat` 或在设置页点「编译本机最快引擎」。除 **VS** 以外全是自包含的（rust 工具链、离线 crate 缓存、PGO 剖面、补丁、已打补丁源码都在包里），编译**离线**完成，产物是 `engine/wfsim-core.native.exe`，**不覆盖**通用引擎；详见 [`ci/deps/README-自编译依赖.md`](ci/deps/README-自编译依赖.md)。
+- **从源码编译**：下载源码包 `selfbuild-<id>`，依赖清单与官方安装渠道见 [`自构建说明.md`](自构建说明.md)。
+
+两条路都装最新的 **VS 2026** 即可（2022 起都行）；native 一般比通用引擎快 **10%~15%**（通用引擎也是 PGO 构建，差别只在 CPU 目标指令集）。
 
 ## 文件夹里有什么
 

@@ -94,15 +94,16 @@ ci/requirements.txt     依赖清单（textual 等）
 ## 三个 CI 工作流
 
 1. **`build-engine.yml`** —— 定时（每 6 小时）+ 手动 + `ci/patches/**`、`ci/core-host-template/**` 变动时，**3 个 job**：`build`（拉**最新**上游源码 → 应用 `ci/patches/*.patch` → MSVC+PGO 构建 → 上传 `wfsim-core.exe` / `engine-identity.json`）、`gate-board`（100 board + 5 锚点）、`gate-riven`（3 条紫卡各一个 job，**并行**）。四路闸门彼此独立，所以墙钟是 `max(board+锚点, 最慢那条紫卡)` 而不是它们的和；任一路失败 ⇒ 工作流失败 ⇒ 不发版。改工具脚本、改文档、改工作流文件本身**都不触发重编**（脚本改动由 6 小时定时跑覆盖，要立刻验就手动 `Run workflow`）—— 一次冷跑 ≈ 9 分钟，这条界线每次推送都省下来。
-2. **`release.yml`**（工作流名 `release`）—— 上一个工作流成功后（或手动）**发布两条独立的 Release 线**：
+2. **`release.yml`**（工作流名 `release`）—— 上一个工作流成功后（或手动）**发布三条独立的 Release 线**：
 
    | 标签 | 内容 | 给谁 |
    |---|---|---|
    | `engine-<engine id>` | 只有 `wfsim-core.exe` + `engine-identity.json` | 已有包、只想换引擎的人；客户端更新器按 id 直取 |
    | `portable-<engine id>` | 完整便携包 zip（引擎 + src + 便携 Python + 依赖 + 说明 + 启动脚本） | 普通下载入口，标为 latest |
+   | `deps-<engine id>` | `wfclient-deps-<id>.zip` 自编译依赖包（裁剪到 ~350 MB 的 rust msvc 工具链 + 离线 crate 缓存 + 本次 PGO 剖面 + 补丁 + 已打补丁源码） | 想要本机 native 速度、又不想装 rustup / 拉源码的人：解压进便携包，装个 VS，就能在设置页点「编译本机最快引擎」 |
 
    标签就是 engine id ⇒ 同一个引擎重发是幂等的（覆盖同名资产），客户端也不需要遍历历史。
-   便携包那条线打包前再跑 5 个站点 WASM 锚点冒烟。
+   便携包那条线打包前再跑 5 个站点 WASM 锚点冒烟；依赖包那条线**不编译引擎**，只打包"编译引擎需要的东西"（除 Visual Studio 以外全自包含，`cl.exe`/`.lib` 不允许再分发）。
 3. **`repack.yml`**（工作流名 `repack`）—— 改客户端 `src/`、打包脚本或文档时触发（也可手动），**不重新编译引擎**：从已发布的 `engine-<id>` 取回引擎（校验 sha256 与身份 json 一致）→ 重打包 `portable-<id>` → 锚点冒烟 → 覆盖同名资产；同一个 job 图里还会发第三条线 **`selfbuild-<id>`**（源码 + 构建脚本 + 补丁 + [`自构建说明.md`](自构建说明.md)，339 KB 的 zip，几秒完成）—— 这条线给想**自己编译**的人，依赖清单与官方安装渠道都写在 Release 正文和那份说明里。
 
 CI 里引擎用 `-C target-cpu=x86-64-v3`（一档 AVX2 基线）而不是 `native`：那边是通用托管机，`native` 只能在构建机上跑。本地自建仍建议 `native`（本机 Zen 4 下比 v3 快 12.5%）。

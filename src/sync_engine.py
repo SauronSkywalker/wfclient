@@ -1288,6 +1288,455 @@ def download_core(engine: str) -> pathlib.Path:
     return STAGED_CORE
 
 
+# ---------------------------------------------------------------------------
+# THE LOCAL LINE, MSVC FLAVOUR: the optional self-build dependency pack
+# ---------------------------------------------------------------------------
+#: The pack the user unpacks into the portable folder (ci/deps/README-自编译依赖.md).
+#: It carries everything the MSVC build needs EXCEPT Visual Studio itself:
+#: cl.exe / link.exe and the CRT + SDK import libraries are not redistributable
+#: (Microsoft grants that for the runtime DLLs only), so the toolset is found on
+#: the machine through vswhere instead of being shipped.
+DEPS_MARKER = ROOT / "build-deps.json"
+DEPS_DIR = ROOT / "build-deps"
+DEPS_MSVC = ROOT / "toolchain-msvc"
+#: The CI-built x86-64-v3 core: what the download line installs, always present.
+GENERIC_CORE = ENGINE / "wfsim-core.exe"
+#: The core this machine built for itself.  An OVERLAY, never a replacement:
+#: `native_active()` decides whether it may be run at all.
+NATIVE_CORE = ENGINE / "wfsim-core.native.exe"
+DEFAULT_ENGINE_REL = "engine\\wfsim-core.exe"
+MSVC_TARGET = "x86_64-pc-windows-msvc"
+VS_BUILD_TOOLS_2022 = (r"C:\Program Files (x86)\Microsoft Visual Studio\2022"
+                       r"\BuildTools")
+
+
+def deps_pack() -> dict | None:
+    """The unpacked self-build dependency pack, or None.
+
+    The marker alone is not enough: a half-unpacked pack -- or one whose
+    `toolchain-msvc/` the user deleted -- must read as "no pack", because every
+    caller decides between "offer a build button" and "do not" on this.
+    """
+    try:
+        info = json.loads(DEPS_MARKER.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return None
+    if not isinstance(info, dict):
+        return None
+    if not (DEPS_MSVC / "bin" / "cargo.exe").exists():
+        return None
+    if not (DEPS_DIR / "cargo").is_dir():
+        return None
+    return info
+
+
+def ensure_patches() -> None:
+    """Make `engine-src/patches/` exist when the pack shipped them under `ci/`.
+
+    The dependency pack carries the patched source tree, so a build needs no
+    patch step -- but `patches_sha()` (and therefore the revision bookkeeping and
+    a later local-line sync) is computed from `engine-src/patches/`, which the
+    pack's `ci/patches/` is the master copy of.
+    """
+    master = ROOT / "ci" / "patches"
+    if not master.is_dir():
+        return
+    if any(PATCHES.glob("*.patch")):
+        return
+    PATCHES.mkdir(parents=True, exist_ok=True)
+    for p in sorted(master.glob("*.patch")):
+        shutil.copy2(p, PATCHES / p.name)
+    log(f"staged {len(list(PATCHES.glob('*.patch')))} patches into {PATCHES}")
+
+
+def vs_bin(prefer: str = "") -> pathlib.Path | None:
+    """`.../VC/Tools/MSVC/<ver>/bin/Hostx64/x64` of the newest toolset, or None.
+
+    Found with vswhere, so the user never sets an environment variable: any
+    Visual Studio 2026 (or 2022 and newer) with the C++ workload will do.
+    `WFSIM_VS_BIN` or the `vs_toolset` config key pins a specific one.
+    """
+    want = (str(prefer or "").strip()
+            or str(load_config().get("vs_toolset") or "").strip()
+            or str(os.environ.get("WFSIM_VS_BIN") or "").strip())
+    if want:
+        p = pathlib.Path(want)
+        if p.name.lower() == "x64" and (p / "link.exe").exists():
+            return p
+        hits = [h for h in sorted((p / "VC" / "Tools" / "MSVC").glob(
+            "*/bin/Hostx64/x64")) if (h / "link.exe").exists()]
+        return hits[-1] if hits else None
+    installs: list[pathlib.Path] = []
+    vswhere = (pathlib.Path(os.environ.get("ProgramFiles(x86)",
+                                           r"C:\Program Files (x86)"))
+               / "Microsoft Visual Studio" / "Installer" / "vswhere.exe")
+    if vswhere.exists():
+        try:
+            res = subprocess.run(
+                [str(vswhere), "-all", "-prerelease", "-products", "*",
+                 "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+                 "-property", "installationPath"],
+                capture_output=True, text=True, timeout=90)
+            installs = [pathlib.Path(l.strip())
+                        for l in res.stdout.splitlines() if l.strip()]
+        except Exception as e:                                  # noqa: BLE001
+            log(f"  vswhere failed: {type(e).__name__}: {e}")
+    installs.append(pathlib.Path(VS_BUILD_TOOLS_2022))
+    cands: list[tuple[tuple[int, ...], pathlib.Path]] = []
+    for inst in installs:
+        root = inst / "VC" / "Tools" / "MSVC"
+        if not root.is_dir():
+            continue
+        for d in root.iterdir():
+            b = d / "bin" / "Hostx64" / "x64"
+            if (b / "link.exe").exists():
+                key = tuple(int(x) if x.isdigit() else 0
+                            for x in d.name.split("."))
+                cands.append((key, b))
+    if not cands:
+        return None
+    cands.sort(key=lambda c: c[0])
+    return cands[-1][1]
+
+
+def ascii_scratch() -> pathlib.Path:
+    """A build scratch directory whose path is PLAIN ASCII.
+
+    WHY: `cl.exe` parses part of its command line with the ANSI code page, so a
+    `CARGO_HOME` under `D:\\工程\\...` makes every include lookup fail with
+    `C1083: cannot open include file`.  The engine tree itself may live
+    anywhere -- only these directories are staged out to `%PUBLIC%\\wfclient-build`.
+    """
+    for base in (os.environ.get("PUBLIC"), r"C:\Users\Public",
+                 os.environ.get("ProgramData"), r"C:\ProgramData"):
+        if not base:
+            continue
+        p = pathlib.Path(base) / "wfclient-build"
+        if all(ord(c) < 128 for c in str(p)):
+            return p
+    raise RuntimeError("no ASCII scratch directory: set PUBLIC to an ASCII path")
+
+
+def _native_profile(scratch: pathlib.Path) -> pathlib.Path | None:
+    """The PGO profile to compile with, or None (a plain native build).
+
+    The pack ships the profile of the revision it was built for.  A profile that
+    describes a DIFFERENT tree is worse than none -- the compiler would optimise
+    for the wrong workload -- so it is used only while the pack's `patches_sha`
+    still matches this tree's.
+    """
+    prof = DEPS_DIR / "pgo" / "default.profdata"
+    if not prof.exists():
+        return None
+    want = str((deps_pack() or {}).get("patches_sha") or "")
+    now = patches_sha()
+    if want and want != now:
+        log(f"PGO profile is for patches {want[:12]}, this tree is {now[:12]}:"
+            " not using it")
+        return None
+    return prof
+
+
+def _stage_ascii(scratch: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
+    """`CARGO_HOME` and `CARGO_TARGET_DIR` somewhere ASCII (see ascii_scratch).
+
+    The crate registry is copied once (25 MB); the target directory is kept, so
+    a rebuild after an upstream change still starts from the compiled deps.
+    """
+    cargo_home = scratch / "cargo"
+    src = DEPS_DIR / "cargo" / "registry"
+    if src.is_dir() and not (cargo_home / "registry").exists():
+        cargo_home.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(src, cargo_home / "registry")
+        log(f"staged the offline crate registry into {cargo_home}")
+    else:
+        cargo_home.mkdir(parents=True, exist_ok=True)
+    target = scratch / "target"
+    (scratch / "tmp").mkdir(parents=True, exist_ok=True)
+    (scratch / "home").mkdir(parents=True, exist_ok=True)
+    return cargo_home, target
+
+
+def _run_cargo_native(vs: pathlib.Path, scratch: pathlib.Path,
+                      profile: pathlib.Path | None,
+                      *, generate: str = "", features: str = "") -> pathlib.Path:
+    """One MSVC cargo build.  Streamed, because a failed build must say why."""
+    cargo = DEPS_MSVC / "bin" / "cargo.exe"
+    if not cargo.exists():
+        raise RuntimeError(f"missing the pack's cargo: {cargo}")
+    cargo_home, target = _stage_ascii(scratch)
+    flags = "-C target-cpu=native -C target-feature=+crt-static"
+    if generate:
+        flags += f" -Cprofile-generate={generate}"
+    elif profile is not None:
+        flags += f" -Cprofile-use={profile}"
+    env = dict(os.environ)
+    env.update({
+        "PATH": os.pathsep.join([str(vs), str(DEPS_MSVC / "bin"),
+                                 env.get("SystemRoot", r"C:\Windows") + r"\System32"]),
+        "CARGO_HOME": str(cargo_home),
+        "CARGO_TARGET_DIR": str(target),
+        "RUSTUP_HOME": str(DEPS_MSVC),
+        "TEMP": str(scratch / "tmp"), "TMP": str(scratch / "tmp"),
+        "HOME": str(scratch / "home"), "USERPROFILE": str(scratch / "home"),
+        "RUSTFLAGS": flags,
+        # The pack carries the crates; a build must never need crates.io.
+        "CARGO_NET_OFFLINE": "true",
+    })
+    cmd = [str(cargo), "build", "--profile", "maxperf", "--target", MSVC_TARGET,
+           "-p", "wfsim-core"]
+    if features:
+        cmd += ["--features", features]
+    log("building: " + " ".join(cmd))
+    proc = subprocess.Popen(cmd, cwd=WORK, env=env, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True,
+                            encoding="utf-8", errors="replace", bufsize=1)
+    lines: list[str] = []
+    assert proc.stdout is not None
+    for raw in proc.stdout:
+        line = raw.rstrip()
+        print(line, flush=True)
+        lines.append(line)
+    rc = proc.wait()
+    if rc != 0:
+        for line in lines[-25:]:
+            log("  cargo| " + line)
+        raise RuntimeError("cargo build failed with exit code {}:\n{}".format(
+            rc, "\n".join(lines[-25:])))
+    out = target / MSVC_TARGET / "maxperf" / "wfsim-core.exe"
+    if not out.exists():
+        raise RuntimeError(f"built binary not found at {out}")
+    return out
+
+
+def _train_profile(scratch: pathlib.Path, gen_exe: pathlib.Path) -> pathlib.Path | None:
+    """Sampling run: drive the frozen corpus with the instrumented core, merge.
+
+    Only used when the pack carries no profile for this tree -- the shipped one
+    saves this two-and-a-half minute detour.  Nothing here is required for a
+    correct build; a failure just means "compile without a profile".
+    """
+    trainer = ROOT / "ci" / "tools" / "pgo_train.py"
+    llvm_profdata = (DEPS_MSVC / "lib" / "rustlib" / MSVC_TARGET / "bin"
+                     / "llvm-profdata.exe")
+    if not trainer.exists() or not llvm_profdata.exists():
+        log("no PGO trainer or llvm-profdata in the pack: building without a profile")
+        return None
+    prof = scratch / "pgo-gen"
+    shutil.rmtree(prof, ignore_errors=True)
+    prof.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    cmd = [sys.executable, str(trainer), str(gen_exe), "--board", "40",
+           "--riven", "1", "--prof", str(prof), "--port", "9500"]
+    log("training a PGO profile on this machine (about two minutes)")
+    try:
+        run = subprocess.run(cmd, cwd=str(trainer.parent), env=env,
+                             capture_output=True, text=True, encoding="utf-8",
+                             errors="replace", timeout=3600)
+    except Exception as e:                                      # noqa: BLE001
+        log(f"PGO training failed to run: {type(e).__name__}: {e}")
+        return None
+    for line in (run.stdout or "").splitlines()[-6:]:
+        log("  pgo| " + line)
+    raw = sorted(prof.glob("*.profraw"))
+    if not raw:
+        log("PGO sampling produced no .profraw: building without a profile")
+        return None
+    out = scratch / "native.profdata"
+    merge = subprocess.run([str(llvm_profdata), "merge", "-o", str(out)]
+                           + [str(r) for r in raw],
+                           capture_output=True, text=True, encoding="utf-8",
+                           errors="replace")
+    if merge.returncode != 0 or not out.exists():
+        log("llvm-profdata merge failed: building without a profile")
+        return None
+    log(f"PGO profile trained on this machine ({len(raw)} run(s)): {out}")
+    return out
+
+
+def build_native_core(clean: bool = False,
+                      allow_train: bool = True) -> tuple[pathlib.Path, bool]:
+    """Build the fastest engine this machine can run, from the dependency pack.
+
+    Returns `(exe, used_pgo)`.  Nothing here touches the network and nothing here
+    replaces the live core: `install_native_core` adopts the result as the
+    overlay after `verify_native_core` has passed.
+    """
+    info = deps_pack()
+    if info is None:
+        raise RuntimeError("self-build dependency pack not found: unpack "
+                           "wfclient-deps-<engine>.zip into this folder first")
+    vs = vs_bin()
+    if vs is None:
+        raise RuntimeError("no MSVC toolset found: install Visual Studio 2026 "
+                           "(2022 or newer works too) with the C++ workload, or "
+                           "set WFSIM_VS_BIN to ...\\VC\\Tools\\MSVC\\<ver>\\bin\\Hostx64\\x64")
+    log(f"MSVC toolset: {vs}")
+    ensure_patches()
+    scratch = ascii_scratch()
+    scratch.mkdir(parents=True, exist_ok=True)
+    if clean:
+        shutil.rmtree(scratch / "target", ignore_errors=True)
+        log("cleaned the MSVC target directory for a fresh build")
+    profile = _native_profile(scratch)
+    if profile is None and allow_train:
+        gen = _run_cargo_native(vs, scratch, None,
+                                generate=str(scratch / "pgo-gen"),
+                                features="wfsim-core/fast-alloc,wfsim-core/pgo-exit")
+        profile = _train_profile(scratch, gen)
+        if profile is None:
+            return _run_cargo_native(vs, scratch, None,
+                                     features="wfsim-core/fast-alloc"), False
+    used_pgo = profile is not None
+    exe = _run_cargo_native(vs, scratch, profile, features="wfsim-core/fast-alloc")
+    log(f"native engine built: {exe} pgo={used_pgo}")
+    return exe, used_pgo
+
+
+def verify_native_core(exe: pathlib.Path) -> None:
+    """The five site anchors against the freshly built core, in seconds.
+
+    A locally built core is unchecked arithmetic until this passes: the same five
+    reference rows every release engine has to reproduce exactly (score + work,
+    computed by the site's own wasm).
+    """
+    tools = ROOT / "ci" / "tools"
+    runner = tools / "run_corpus.py"
+    if not runner.exists() or not (tools / "verify_pipeline.py").exists():
+        log("this pack carries no frozen corpus: skipping the local anchor check")
+        return
+    corpus = tools / "empty.json"
+    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    cmd = [sys.executable, "-B", str(runner), str(exe),
+           "--corpus", str(corpus), "--anchors", "--port", "9540"]
+    log("verifying the new core against the five site anchors")
+    run = subprocess.run(cmd, cwd=str(tools), env=env, capture_output=True,
+                         text=True, encoding="utf-8", errors="replace", timeout=900)
+    out = run.stdout or ""
+    for line in out.strip().splitlines()[-3:]:
+        log("  gate| " + line)
+    if run.returncode != 0 or "PASS" not in out:
+        raise RuntimeError("the freshly built core failed the bit-identity gate:\n"
+                           + "\n".join(out.strip().splitlines()[-12:]))
+
+
+def native_active() -> bool:
+    """May the locally built core be run INSTEAD of the generic one?
+
+    Only while it was built from the revision this client is on: the build
+    records the engine id it was made for, and the update line rewrites
+    `state['engine']` whenever it installs a new generic core.  A mismatch means
+    the sources this machine built from are not what the server serves any more,
+    so the overlay is ignored and the generic core runs -- the fallback can never
+    be lost to a local experiment.
+
+    Memoised on (mtime, size) of the overlay + state.json: this is called from
+    the fleet's engine path, and hashing 15 MB per call is not free.
+    """
+    global _NATIVE_MEMO
+    try:
+        st = NATIVE_CORE.stat()
+        state_m = STATE.stat().st_mtime_ns if STATE.exists() else 0
+    except OSError:
+        return False
+    stamp = (st.st_mtime_ns, st.st_size, state_m)
+    if _NATIVE_MEMO is not None and _NATIVE_MEMO[0] == stamp:
+        return _NATIVE_MEMO[1]
+    ok = False
+    state = load_state()
+    nat = state.get("native") or {}
+    if (isinstance(nat, dict) and nat.get("engine")
+            and str(nat.get("engine")) == str(state.get("engine") or "")
+            and str(nat.get("patches_sha") or "") == patches_sha()
+            and str(nat.get("sha256") or "").lower() == file_sha256(NATIVE_CORE)):
+        ok = True
+    _NATIVE_MEMO = (stamp, ok)
+    return ok
+
+
+_NATIVE_MEMO: tuple[tuple, bool] | None = None
+
+
+def engine_exe_override(configured: str) -> str | None:
+    """The local native core to run instead of the configured one, or None.
+
+    Only for the default engine name: a user who pointed `engine_exe` at their
+    own binary gets exactly that binary.
+    """
+    if str(configured or "").replace("/", "\\").strip() != DEFAULT_ENGINE_REL:
+        return None
+    if not native_active():
+        return None
+    return str(NATIVE_CORE)
+
+
+def engine_path() -> pathlib.Path:
+    """The core the fleet should start: the overlay when it still matches."""
+    return NATIVE_CORE if native_active() else GENERIC_CORE
+
+
+def engine_status() -> dict:
+    """What the settings page shows: which core, and why."""
+    state = load_state()
+    nat = state.get("native") or {}
+    ok = native_active()
+    if ok:
+        kind = "native"
+    elif core_source() == CORE_SOURCE_PREBUILT:
+        kind = "generic"
+    else:
+        kind = "gnu"
+    return {
+        "kind": kind,
+        "native_ok": ok,
+        "native_file": NATIVE_CORE.exists(),
+        "native": nat if isinstance(nat, dict) else {},
+        "engine": state.get("engine"),
+        "cpu": state.get("cpu"),
+        "deps": deps_pack() is not None,
+        "generic": GENERIC_CORE.exists(),
+    }
+
+
+def install_native_core(built: pathlib.Path, *, pgo: bool) -> pathlib.Path:
+    """Adopt a locally built core as the OVERLAY; the generic core stays put.
+
+    `engine/wfsim-core.exe` remains the CI-built core the download line installs,
+    so a native core that stops matching the served revision is simply ignored
+    (`native_active`) instead of leaving the machine on a stale binary.
+    """
+    built = pathlib.Path(built)
+    if not built.exists():
+        raise RuntimeError(f"built binary not found at {built}")
+    ENGINE.mkdir(parents=True, exist_ok=True)
+    tmp = ENGINE / "wfsim-core.native.new.exe"
+    shutil.copy2(built, tmp)
+    os.replace(tmp, NATIVE_CORE)
+    digest = file_sha256(NATIVE_CORE)
+    info = deps_pack() or {}
+    state = load_state()
+    engine = str(info.get("engine") or state.get("engine") or "")
+    state["native"] = {
+        "sha256": digest,
+        "engine": engine,
+        "release": str(info.get("release") or state.get("release") or ""),
+        "commit": str(info.get("commit") or state.get("server_commit") or ""),
+        "patches_sha": patches_sha(),
+        "pgo": bool(pgo),
+        "cpu": cores.cpu_model(),
+        "built_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+    }
+    save_state(state)
+    if not native_active():
+        # Should not happen (the fields just written are exactly what it checks),
+        # but a silent overlay would be the worst possible outcome.
+        raise RuntimeError("the freshly installed native core did not validate; "
+                           "the generic core will keep being used")
+    log(f"installed {NATIVE_CORE} engine={engine} pgo={bool(pgo)} "
+        f"sha256={digest[:12]}")
+    return NATIVE_CORE
+
+
 def install_staged() -> pathlib.Path:
     """Install the last staged core.  NO network, NO build, NO running engine."""
     if not PENDING.exists():
@@ -1373,6 +1822,13 @@ def _build_parser() -> argparse.ArgumentParser:
                     help="install the previously staged core with no network/build")
     ap.add_argument("--download-core", metavar="ENGINE", default="",
                     help="prebuilt line: fetch + stage the published core for this engine id")
+    ap.add_argument("--build-native", action="store_true",
+                    help="local line: build the fastest engine for THIS machine from the "
+                         "self-build dependency pack, check it, adopt it as the overlay")
+    ap.add_argument("--native-status", action="store_true",
+                    help="print which core would run right now, and why")
+    ap.add_argument("--no-train", action="store_true",
+                    help="with --build-native: never sample a PGO profile, just build")
     ap.add_argument("--clean", action="store_true",
                     help="build from an empty build-cache/target")
     return ap
@@ -1381,6 +1837,38 @@ def _build_parser() -> argparse.ArgumentParser:
 def _install_staged_cli() -> int:
     try:
         install_staged()
+        return 0
+    except Exception as e:
+        log(f"ERROR: {type(e).__name__}: {e}")
+        return 1
+
+
+def _native_status_cli() -> int:
+    st = engine_status()
+    labels = {"native": "native（本机编译，最快）",
+              "generic": "通用 x86-64-v3（AVX2）",
+              "gnu": "本地编译（GNU）"}
+    log(f"deps pack   : {'yes' if st['deps'] else 'no'}")
+    log(f"generic core: {'yes' if st['generic'] else 'no'}  {GENERIC_CORE}")
+    log(f"native core : {'yes' if st['native_file'] else 'no'}  {NATIVE_CORE}")
+    nat = st["native"] or {}
+    if st["native_ok"]:
+        log(f"native note : active, engine {nat.get('engine')} "
+            f"pgo={nat.get('pgo')} built {nat.get('built_at')}")
+    elif st["native_file"]:
+        log(f"native note : ignored (built for engine {nat.get('engine')}, "
+            f"this client is on {st.get('engine')})")
+    log(f"would run   : {labels.get(st['kind'], st['kind'])}")
+    return 0
+
+
+def _build_native_cli(clean: bool, allow_train: bool) -> int:
+    try:
+        built, pgo = build_native_core(clean=clean, allow_train=allow_train)
+        verify_native_core(built)
+        install_native_core(built, pgo=pgo)
+        log(f"OK: native engine is now the one this machine runs "
+            f"({'PGO' if pgo else 'no PGO profile'})")
         return 0
     except Exception as e:
         log(f"ERROR: {type(e).__name__}: {e}")
@@ -1482,6 +1970,12 @@ def main() -> int:
     args = _build_parser().parse_args()
     if args.install_staged:
         return _install_staged_cli()
+    if args.native_status:
+        return _native_status_cli()
+    if args.build_native:
+        # The local line: offline, self-contained, and it never replaces the
+        # generic core (see install_native_core).
+        return _build_native_cli(clean=args.clean, allow_train=not args.no_train)
     if args.download_core:
         try:
             download_core(args.download_core)

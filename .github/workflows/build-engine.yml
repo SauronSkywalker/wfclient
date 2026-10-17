@@ -114,6 +114,17 @@ jobs:
             dist/engine-identity.json
           retention-days: 30
 
+      # The trained profile is what makes the offline self-build pack (published by
+      # release.yml as `wfclient-deps-<id>.zip`) skip its ~4.5 minutes of instrumented
+      # build + sampling on the user's machine, so it rides along as its own artifact.
+      - name: upload the PGO profile
+        uses: actions/upload-artifact@v7
+        with:
+          name: pgo-profile
+          path: dist/pgo/default.profdata
+          if-no-files-found: warn
+          retention-days: 30
+
   # Two slices on one runner: they share the exe download and a runner, and each is
   # only ~1-2 minutes.  Splitting them too would save another minute, not worth a job.
   gate-board:

@@ -126,6 +126,34 @@ def core_source() -> str:
         return sync_engine.CORE_SOURCE_LOCAL
 
 
+#: The value column is 16 cells wide; these four fit whole.
+ENGINE_KIND_LABELS = {"native": "本机 native", "generic": "通用 v3",
+                      "gnu": "本地编译"}
+
+
+def engine_kind_text() -> tuple[str, str]:
+    """`(运行引擎 列, 编译行的状态列)` read straight from the engine state.
+
+    Which core runs is decided by `sync_engine.native_active()`, so the page asks
+    the same function instead of keeping a second copy of the rule.
+    """
+    try:
+        st = sync_engine.engine_status()
+    except Exception:
+        return "?", ""
+    kind = str(st.get("kind") or "?")
+    value = ENGINE_KIND_LABELS.get(kind, kind)
+    if kind == "native":
+        nat = st.get("native") or {}
+        note = "已启用 PGO" if nat.get("pgo") else "无 PGO"
+        return value, note
+    if st.get("native_file"):
+        # A native core exists but was built for another revision: it is being
+        # ignored on purpose, and saying so is better than a silent downgrade.
+        return value, "native 已过期"
+    return value, ("未编译" if st.get("deps") else "")
+
+
 class SettingsScreen(Screen):
     """A compact card of one-row settings."""
 
@@ -174,7 +202,8 @@ class SettingsScreen(Screen):
 
     def __init__(self, fleet, on_change=None, engine_state=None,
                  on_engine_shift=None, on_engine_rebuild=None, on_scale=None,
-                 on_engine_rebuild_fast=None, on_slots=None):
+                 on_engine_rebuild_fast=None, on_slots=None,
+                 on_engine_native=None):
         super().__init__()
         self.fleet = fleet
         self.on_change = on_change
@@ -184,12 +213,20 @@ class SettingsScreen(Screen):
         self.on_engine_rebuild_fast = on_engine_rebuild_fast
         self.on_scale = on_scale
         self.on_slots = on_slots
+        self.on_engine_native = on_engine_native
         self._refreshing = False
         #: A prebuilt ("通用引擎") package has no rust toolchain and no source
         #: tree, so the two build actions cannot ever run here.  They are
         #: HIDDEN rather than shown-disabled: an option that cannot be honoured
         #: is not an option to put in front of the user.
         self.prebuilt = core_source() == sync_engine.CORE_SOURCE_PREBUILT
+        #: The optional self-build dependency pack (`build-deps.json` at the root
+        #: of the folder).  It is what makes a prebuilt package able to compile a
+        #: native engine, so the third build action exists exactly when it does.
+        try:
+            self.deps = sync_engine.deps_pack() is not None
+        except Exception:
+            self.deps = False
 
     def compose(self):
         yield Header()
@@ -226,6 +263,13 @@ class SettingsScreen(Screen):
                 yield Static("Board协议", classes="setting-name")
                 yield Static("协议 8", id="board_proto_value",
                              classes="setting-value")
+            # WHICH ENGINE IS RUNNING.  A package can carry a downloaded generic
+            # core, a core this machine compiled for itself (`native`) or one
+            # built from source (`gnu`); the difference is 2-3x and invisible
+            # from the outside, so it is stated here and again at startup.
+            with Horizontal(classes="setting-row"):
+                yield Static("运行引擎", classes="setting-name")
+                yield Static("", id="engine_kind_value", classes="setting-value")
             # The two build actions exist only on the self-compiled line; on a
             # prebuilt package they are not yielded at all (see `self.prebuilt`).
             if not self.prebuilt:
@@ -237,6 +281,14 @@ class SettingsScreen(Screen):
                     yield Static("快速重新编译引擎", classes="setting-name")
                     yield Static("增量，不清理缓存", classes="setting-value")
                     yield Button("编译", id="rebuild_fast")
+            # The local line, both package kinds: needs only the dependency pack
+            # (everything except Visual Studio), and never replaces the generic
+            # core -- see `sync_engine.install_native_core`.
+            if self.deps:
+                with Horizontal(classes="setting-row action-row"):
+                    yield Static("编译本机最快引擎", classes="setting-name")
+                    yield Static("", id="native_value", classes="setting-value")
+                    yield Button("编译", id="build_native")
             with Horizontal(classes="setting-row"):
                 yield Static("界面缩放", classes="setting-name")
                 yield Static("", id="scale_value", classes="setting-value")
@@ -297,12 +349,18 @@ class SettingsScreen(Screen):
             paused = getattr(self.fleet, "_proto8_off", False)
             self.query_one("#board_proto_value", Static).update(
                 "协议 8 · 已暂停" if paused else "协议 8")
+            # which core the fleet would start right now, and why
+            busy = bool(getattr(self.fleet, "maintenance", False))
+            kind, kind_note = engine_kind_text()
+            self.query_one("#engine_kind_value", Static).update(kind)
+            if self.deps:
+                self.query_one("#native_value", Static).update(kind_note)
+                self.query_one("#build_native", Button).disabled = busy
             scale = int(self.fleet.cfg.get("ui_scale_percent") or 0)
             self.query_one("#scale_value", Static).update(ui_scale.label(scale))
             for pct in ui_scale.SCALE_CHOICES:
                 self.query_one(f"#scale{pct}", Button).set_class(
                     int(pct) == scale, "on")
-            busy = bool(getattr(self.fleet, "maintenance", False))
             if not self.prebuilt:
                 self.query_one("#rebuild_engine", Button).disabled = busy
                 self.query_one("#rebuild_fast", Button).disabled = busy
@@ -320,13 +378,25 @@ class SettingsScreen(Screen):
             # The two build actions are not on this screen when the package is
             # prebuilt, so neither is the paragraph that explains them; the
             # download line says what it does instead.
-            build_note = (
-                "[dim]本包是预编译包（随包发的是通用引擎，不含 rust 工具链与源码树）：\n"
-                "没有本地编译选项。服务器下发新引擎时会自动下载、校验 sha256 后安装，\n"
-                "下载期间照常计算，只在安装前短暂排空。[/dim]\n"
-                if self.prebuilt else
-                "[dim]清理重建会暂停接任务，按本机 CPU 从零编译引擎，耗时数分钟。\n"
-                "快速重编只走增量（保留 build-cache），把新的补丁编进引擎，通常快得多。\n")
+            if self.prebuilt:
+                build_note = (
+                    "[dim]本包是预编译包（随包发的是通用引擎，不含 rust 工具链"
+                    + ("）：\n" if not self.deps else "与源码树）：\n")
+                    + ("没有本地编译选项。"
+                       if not self.deps else
+                       "没有从源码编译的选项（源码树不随包发布）；\n"
+                       "有了右边的依赖包，可以直接编译本机最快的引擎。\n")
+                    + "服务器下发新引擎时会自动下载、校验 sha256 后安装，\n"
+                      "下载期间照常计算，只在安装前短暂排空。[/dim]\n")
+            else:
+                build_note = (
+                    "[dim]清理重建会暂停接任务，按本机 CPU 从零编译引擎，耗时数分钟。\n"
+                    "快速重编只走增量（保留 build-cache），把新的补丁编进引擎，通常快得多。\n")
+            if self.deps:
+                build_note += (
+                    "[dim]已放入自编译依赖包：可以编译本机最快引擎（native + PGO，每台\n"
+                    "机器不一样，一般比通用版快 10%~15%）。它按服务器版本自动生效，版本\n"
+                    "对不上时自动回落通用引擎，通用引擎不会被覆盖。编译期间照常计算。[/dim]\n")
             self.query_one("#settingsnote", Static).update(
                 (f"[dim]{engine_note}[/dim]\n" if engine_note else "") +
                 "[dim]小批量上传关闭：整包完成后上传。\n"
@@ -409,6 +479,7 @@ class SettingsScreen(Screen):
         "task_persist_toggle": "_on_task_persist",
         "rebuild_engine": "_on_rebuild_engine",
         "rebuild_fast": "_on_rebuild_fast",
+        "build_native": "_on_build_native",
         "engine_minus": "_on_engine_minus",
         "engine_plus": "_on_engine_plus",
         "active_minus": "_on_active_minus",
@@ -475,6 +546,12 @@ class SettingsScreen(Screen):
         # rebuilding the world.  It is what applies a new patch set to a machine
         # that is otherwise up to date.
         self._start_rebuild(event.button, self.on_engine_rebuild_fast, label="编译")
+
+    def _on_build_native(self, event) -> None:
+        # THE LOCAL LINE: builds with the toolset found on this machine, from the
+        # dependency pack.  It is the same action on both package kinds -- the
+        # pack is what it needs, not the source tree.
+        self._start_rebuild(event.button, self.on_engine_native, label="编译")
 
     def _on_engine_minus(self, event) -> None:
         self._start_engine_shift(-1)
@@ -914,6 +991,7 @@ class WfSimClient(App):
             except Exception:
                 pass
             self._event("boot", "就绪")
+            self._announce_engine()
             asyncio.create_task(self._check_pat_status())
             asyncio.create_task(self._check_updates())
         except Exception as e:
@@ -2213,6 +2291,64 @@ class WfSimClient(App):
                 await asyncio.gather(build_task, return_exceptions=True)
             raise
 
+    def _announce_engine(self) -> None:
+        """Say which core is running: the three are 2-3x apart and look alike.
+
+        The site sees a result, not a build; a user who compiled a native core
+        has to be told it is in force — and told when it silently fell back.
+        """
+        try:
+            st = sync_engine.engine_status()
+        except Exception:
+            return
+        nat = st.get("native") or {}
+        if st.get("kind") == "native":
+            extra = "PGO" if nat.get("pgo") else "无 PGO"
+            self._event("engine", f"运行引擎：本机 native（{extra}，一般比通用版快 10%~15%）")
+        elif st.get("kind") == "gnu":
+            self._event("engine", "运行引擎：本地编译（GNU）")
+        elif st.get("native_file"):
+            self._event("engine", "运行引擎：通用 v3（AVX2）；本机 native 引擎与服务器版本"
+                                 "不一致，已自动回落")
+        else:
+            self._event("engine", "运行引擎：通用 v3（AVX2）")
+
+    async def _native_build(self) -> None:
+        """Compile the fastest engine for THIS machine and adopt it as the overlay.
+
+        Everything except Visual Studio comes from the dependency pack, so this
+        works on a prebuilt package too.  Computing continues while it compiles:
+        `--build-native` only writes the overlay, and the one drain at the end
+        happens after the build AND the anchor check have passed -- a core that
+        fails either leaves the running engine untouched.
+        """
+        if self._engine_switch_lock.locked():
+            self._event("update", "已有版本切换或核心更新正在进行，请稍后再试")
+            return
+        async with self._engine_switch_lock:
+            if sync_engine.deps_pack() is None:
+                self._event("error", "没有找到自编译依赖包，无法编译本机引擎")
+                return
+            self._event("update", "开始编译本机最快引擎（native + PGO），期间照常计算")
+            rc = await self._run_sync_engine("--build-native")
+            if rc != 0:
+                self._event("error", f"本机引擎编译失败（退出码 {rc}）；继续用现有引擎")
+                return
+            self._event("update", "本机引擎已通过锚点校验；等计算进程空闲后启用")
+            if not await self._wait_update_idle():
+                self._event("error", "等待计算进程空闲超时；本机引擎下次启动时生效")
+                return
+            try:
+                await self.fleet.stop()
+            except Exception:
+                pass
+            if not await self._restart_fleet():
+                self._event("error", "启用本机引擎失败；请查看 error.log")
+                return
+            st = sync_engine.engine_status()
+            self._event("update", "本机引擎已启用" if st.get("kind") == "native"
+                        else "本机引擎未生效，仍在用通用引擎")
+
     async def _install_and_restart(self, rel: dict) -> None:
         slots = self.fleet.slot_count()
         self._event("update", f"新核心构建完成；等待 {slots} 个计算进程无任务")
@@ -2387,10 +2523,17 @@ class WfSimClient(App):
             return
         if await self._is_prebuilt():
             # Honest answer instead of a five-minute pause that cannot succeed:
-            # this package has a compiled core and no toolchain to compile with.
-            self._event("update", "本包是预编译包（不含 rust 工具链），只能下载官方核心，"
-                                  "无法本地编译；请下载带工具链的自编译包，"
-                                  "或等待服务器下发新引擎后自动下载")
+            # this package has a compiled core and no rust toolchain to compile
+            # with.  The LOCAL line is still available when the dependency pack
+            # is here -- that one needs a toolset, not this package's sources.
+            if sync_engine.deps_pack() is not None:
+                self._event("update", "本包没有源码树，无法从源码重建；"
+                                      "但已放入自编译依赖包，可用右边的"
+                                      "「编译本机最快引擎」编译 native 版本")
+            else:
+                self._event("update", "本包是预编译包（不含 rust 工具链与源码树），"
+                                      "只能下载官方核心；把自编译依赖包解压到本文件夹后，"
+                                      "可以编译本机最快引擎")
             return
         if (self._updating or self._engine_switch_lock.locked()
                 or (self._auto_update_task is not None
@@ -2648,7 +2791,8 @@ class WfSimClient(App):
                 on_engine_rebuild=self._manual_clean_rebuild,
                 on_engine_rebuild_fast=self._manual_fast_rebuild,
                 on_scale=self._set_ui_scale,
-                on_slots=self._change_slots))
+                on_slots=self._change_slots,
+                on_engine_native=self._native_build))
 
 
 def _cpu_rebuild_prompt() -> None:

@@ -8,8 +8,8 @@
 | 工作流 | 触发 | 做什么 |
 |---|---|---|
 | `build-engine.yml` | 定时（每 6 小时）/ 手动 / `ci/patches/**`、`ci/core-host-template/**` 变动 | **3 个 job**：`build`（拉最新上游源码 → 打补丁 → MSVC+PGO 构建 → 上传 exe+身份 json）、`gate-board`（100 board + 5 锚点）、`gate-riven`（矩阵 3 条紫卡各一个 job，并行） |
-| `release.yml`（工作流名 `release`） | 上一个工作流**全部 job 成功后** / 手动 | 发**两条独立 Release**：`engine-<id>`（只放引擎 exe + 身份 json）与 `portable-<id>`（完整便携包 zip，标 latest）；便携包那条打包前跑 5 个 WASM 锚点冒烟 |
-| `repack.yml`（工作流名 `repack`） | `src/**`、`ci/**`、说明文档 变动 / 手动 | **只重打包**，两个 job：`repack` 从已发布的 `engine-<id>` release 取回引擎（校验 sha256 与身份 json 一致）→ 重打包 zip → 锚点冒烟 → 覆盖同名 `portable-<id>` 资产；`selfbuild` 不打引擎，只发出 **`selfbuild-<id>`**（源码 + `ci/` + 补丁 + `自构建说明.md`，339 KB，几秒），给想自己编译的人。不编译引擎、不新建引擎标签、不 `git push` |
+| `release.yml`（工作流名 `release`） | 上一个工作流**全部 job 成功后** / 手动 | 发**三条独立 Release**：`engine-<id>`（只放引擎 exe + 身份 json）、`portable-<id>`（完整便携包 zip，标 latest；打包前跑 5 个 WASM 锚点冒烟）、`deps-<id>`（**离线自编译依赖包** `wfclient-deps-<id>.zip`：裁剪到 ~350 MB 的 rust msvc 工具链 + 离线 crate 缓存 + 本次 revision 的 PGO 剖面 + 补丁 + 已打补丁源码，用户解压进便携包即可点「编译本机最快引擎」，除 VS 外全自包含） |
+| `repack.yml`（工作流名 `repack`） | `src/**`、`ci/**`、说明文档 变动 / 手动 | **只重打包**，两个 job：`repack` 从已发布的 `engine-<id>` release 取回引擎（校验 sha256 与身份 json 一致）→ 重打包 zip → 锚点冒烟 → 覆盖同名 `portable-<id>` 资产；`selfbuild` 不打引擎，只发出 **`selfbuild-<id>`**（源码 + `ci/` + 补丁 + `自构建说明.md`，约 340 KB，几秒），给想自己编译的人。不编译引擎、不新建引擎标签、不 `git push` |
 
 `release.yml` 靠 `workflow_run: completed + conclusion == success` 触发 ⇒ 任一闸门 job 失败就**不会发版**（这就是"闸门串在发布前面"的实现方式，而不是靠脚本里的顺序）。
 
