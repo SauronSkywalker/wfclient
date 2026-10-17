@@ -63,7 +63,7 @@ ck("_refresh 给开关上黄底 .on",
    'manual_button.set_class(manual, "on")' in APP)
 ck("关着时 ± 一律灰掉",
    "if not manual:\n                can_prev = can_next = False" in APP)
-ck("开关有固定宽度（放得下“手动 关”）", "#wire_manual_toggle { width: 8" in APP)
+ck("开关有固定宽度（放得下“手动 开/关”）", "#wire_manual_toggle { width: 11" in APP)
 ck("打开设置页时把回调接上", "on_wire_manual=self._set_wire_manual" in APP)
 ck("App 实现 _set_wire_manual", "async def _set_wire_manual" in APP)
 shift = APP.split("def _start_engine_shift")[1].split("async def _run_engine_shift")[0]

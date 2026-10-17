@@ -192,10 +192,10 @@ class SettingsScreen(Screen):
     /* A full "跟随系统" is eight cells wide; fixed width keeps every label
        whole instead of letting the row squeeze it to one character. */
     .setting-row Button.scale-btn { width: 11; min-width: 11; }
-    /* The 手动 version switch: wide enough for "手动 关", amber (the .on class)
-       while it is on.  Off by default, and while it is off the engine id in
-       config.json is not read at all. */
-    #wire_manual_toggle { width: 8; min-width: 8; }
+    /* The 手动 version switch: amber (the .on class) while it is on, and wide
+       enough for "手动 开" — at 8 cells the state character was cut off, and a
+       switch that does not say which way it is set is not a switch. */
+    #wire_manual_toggle { width: 11; min-width: 11; }
     #settingsnote { padding: 1 2; height: auto; }
     #rebuild_engine, #rebuild_fast {
         height: 3; min-width: 11; text-style: bold;
