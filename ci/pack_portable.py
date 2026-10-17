@@ -7,13 +7,18 @@ Layout of the zip (identical to the hand-made portable packages):
     run-portable.bat          double-click launcher
     README-便携包.md           usage / how to update / what is inside
     src/                      client (protocol 8 only, batch + idle recycle included)
-    data/config.json          runtime knobs; github_pat is always blanked
     engine/wfsim-core.exe     the MSVC+PGO engine built by ci/build_engine.py
     engine/engine-identity.json
     engine-src/state.json     pins the engine revision so the client starts offline
     python/                   python-3.11.9-embed-amd64 + site-packages
 
-Nothing else: no toolchain/, no build-cache/, no engine-src/work, no logs.  Consequence:
+NOTHING ELSE.  In particular **no data/**: config.json is runtime state that belongs
+to the machine that runs the client, not to the machine that packed it.  The first
+launch creates a machine-specific one (config.load_or_create -> machine_default_config,
+so it cannot inherit the packer's engine_cores/work_lanes/free port), and an old
+data/ copied over a new package cannot resurrect a stale manual engine pin either.
+
+No toolchain/, no build-cache/, no engine-src/work, no logs.  Consequence:
 this package cannot rebuild an engine by itself (that needs MSVC + PGO), it runs the one
 that CI built; when upstream moves the board's engine id, download the next release zip.
 """
@@ -95,15 +100,12 @@ def main() -> int:
         "--no-warn-script-location", "--disable-pip-version-check", "--quiet"])
     shutil.rmtree(build / "python" / "Lib" / "site-packages" / "bin", ignore_errors=True)
 
-    # 2) client + config (never ship a token inside a release asset)
+    # 2) client source only.  NOT data/: the client writes a machine-specific
+    #    config.json on its first start (see the module docstring), and shipping
+    #    the packer's copy is how a user ends up with someone else's CPU list or a
+    #    stale manual engine pin.  Nothing in the zip needs data/ to exist: the
+    #    engine identity lives in engine-src/state.json.
     shutil.copytree(root / "src", build / "src")
-    (build / "data").mkdir()
-    cfg = json.loads((root / "data" / "config.json").read_text(encoding="utf-8"))
-    cfg["github_pat"] = ""
-    cfg["known_engine"] = engine_id
-    cfg["engine_exe"] = "engine\\wfsim-core.exe"
-    (build / "data" / "config.json").write_text(
-        json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     # 自构建说明.md 也要进包：README-便携包.md 里链到它，而且"想自己编译的人"
     # 正是从便携包这一页往下看的。它只有 8 KB，不影响包体。
     for name in ("run-portable.bat", "README.txt", "README-便携包.md", "自构建说明.md"):

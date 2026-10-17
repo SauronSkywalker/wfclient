@@ -192,6 +192,10 @@ class SettingsScreen(Screen):
     /* A full "跟随系统" is eight cells wide; fixed width keeps every label
        whole instead of letting the row squeeze it to one character. */
     .setting-row Button.scale-btn { width: 11; min-width: 11; }
+    /* The 手动 version switch: wide enough for "手动 关", amber (the .on class)
+       while it is on.  Off by default, and while it is off the engine id in
+       config.json is not read at all. */
+    #wire_manual_toggle { width: 8; min-width: 8; }
     #settingsnote { padding: 1 2; height: auto; }
     #rebuild_engine, #rebuild_fast {
         height: 3; min-width: 11; text-style: bold;
@@ -206,7 +210,7 @@ class SettingsScreen(Screen):
     def __init__(self, fleet, on_change=None, engine_state=None,
                  on_engine_shift=None, on_engine_rebuild=None, on_scale=None,
                  on_engine_rebuild_fast=None, on_slots=None,
-                 on_engine_native=None):
+                 on_engine_native=None, on_wire_manual=None):
         super().__init__()
         self.fleet = fleet
         self.on_change = on_change
@@ -217,6 +221,7 @@ class SettingsScreen(Screen):
         self.on_scale = on_scale
         self.on_slots = on_slots
         self.on_engine_native = on_engine_native
+        self.on_wire_manual = on_wire_manual
         self._refreshing = False
         #: A prebuilt ("通用引擎") package has no rust toolchain and no source
         #: tree, so the two build actions cannot ever run here.  They are
@@ -240,6 +245,7 @@ class SettingsScreen(Screen):
                 yield Static("", id="engine_value", classes="setting-value")
                 yield Button("−", id="engine_minus")
                 yield Button("+", id="engine_plus")
+                yield Button("手动 关", id="wire_manual_toggle")
             with Horizontal(classes="setting-row"):
                 yield Static("常驻验证器", classes="setting-name")
                 yield Static("", id="active_value", classes="setting-value")
@@ -320,8 +326,16 @@ class SettingsScreen(Screen):
                 self.engine_state() if self.engine_state else
                 (str(self.fleet.wire_engine or self.fleet.engine_id or "?"), "", False, False))
             self.query_one("#engine_value", Static).update(engine_text)
+            # The 手动 switch gates the whole row: while it is off, the stored
+            # engine id is not read and the ± buttons do nothing.
+            manual = bool(self.fleet.cfg.get("wire_manual"))
+            if not manual:
+                can_prev = can_next = False
             self.query_one("#engine_minus", Button).disabled = not can_prev
             self.query_one("#engine_plus", Button).disabled = not can_next
+            manual_button = self.query_one("#wire_manual_toggle", Button)
+            manual_button.label = "手动 开" if manual else "手动 关"
+            manual_button.set_class(manual, "on")
             self.query_one("#active_value", Static).update(f"{active} / {maximum}")
             self.query_one("#small_batch_value", Static).update("开" if enabled else "关")
             toggle = self.query_one("#small_batch_toggle", Button)
@@ -459,11 +473,27 @@ class SettingsScreen(Screen):
     def _start_engine_shift(self, delta: int) -> None:
         if not self.on_engine_shift:
             return
+        # While 手动 is off the stored id is not read, so moving it would only
+        # pretend to do something; the buttons are disabled too, this is the
+        # second gate for a click that slips through.
+        if not bool(self.fleet.cfg.get("wire_manual")):
+            return
         asyncio.create_task(self._run_engine_shift(delta))
 
     async def _run_engine_shift(self, delta: int) -> None:
         try:
             await self.on_engine_shift(delta)
+        finally:
+            self._refresh()
+
+    def _on_wire_manual(self, event) -> None:
+        if not self.on_wire_manual:
+            return
+        asyncio.create_task(self._run_wire_manual())
+
+    async def _run_wire_manual(self) -> None:
+        try:
+            await self.on_wire_manual(not bool(self.fleet.cfg.get("wire_manual")))
         finally:
             self._refresh()
 
@@ -485,6 +515,7 @@ class SettingsScreen(Screen):
         "build_native": "_on_build_native",
         "engine_minus": "_on_engine_minus",
         "engine_plus": "_on_engine_plus",
+        "wire_manual_toggle": "_on_wire_manual",
         "active_minus": "_on_active_minus",
         "active_plus": "_on_active_plus",
         "slots_minus": "_on_slots_minus",
@@ -2179,6 +2210,74 @@ class WfSimClient(App):
         if target:
             await self._switch_wire_engine(target, reason="manual")
 
+    async def _set_wire_manual(self, enable: bool) -> None:
+        """The 手动 switch beside the engine ± buttons.
+
+        OFF (the default) means `cfg["wire_engine"]` is not read at all: the
+        client reports the core it really installed.  ON means the id written in
+        config.json applies, even when it is older than the served one, and the
+        ± buttons become usable.  Flipping either way is a wire-id change, so it
+        drains through the same path a shift does.
+        """
+        if self.fleet is None or self._updating or self._engine_switch_lock.locked():
+            return
+        enable = bool(enable)
+        async with self._engine_switch_lock:
+            f = self.fleet
+            was_paused = bool(f.paused)
+            old = str(f.engine_id or f.wire_engine or "")
+            self.cfg["wire_manual"] = enable
+            f.wire_manual = enable
+            if enable:
+                pinned = str(self.cfg.get("wire_engine") or "").strip()
+                if not pinned:
+                    # Nothing pinned yet: keep following the installed core, and
+                    # leave the stored id empty so the ± buttons start from it.
+                    f.wire_engine = str(f.local_engine or f.served_engine or "")
+                    try:
+                        config.save(self.cfg)
+                    except Exception:
+                        pass
+                    self._event("engine", "手动版本上报：开；配置里还没有版本号，"
+                                          "用 +/− 选一个后才会生效")
+                    return
+                self._event("engine", f"手动版本上报：开；读取配置里的 {pinned}")
+                await self._apply_wire_switch(f, pinned, old)
+                return
+            # OFF: stop reading the file, report what is installed, drain if the
+            # effective id actually changes.
+            target = str(f.local_engine or f.served_engine or "")
+            self.cfg["wire_engine"] = ""
+            f.wire_engine = target
+            new_effective = str(f._effective_engine() or "")
+            try:
+                config.save(self.cfg)
+            except Exception:
+                pass
+            if new_effective == old or not new_effective:
+                self._event("engine", "手动版本上报：关；上报版本跟随本机已安装核心")
+                return
+            try:
+                f.maintenance = True
+                await f.pause_drain()
+                if not await self._wait_update_idle():
+                    raise TimeoutError("等待当前任务完成超时")
+                f.engine_id = new_effective
+                f.maintenance = False
+                if not was_paused:
+                    await f.resume_from_pause()
+                self._event("engine", f"手动版本上报：关；上报版本已切回 {new_effective}")
+            except Exception as e:
+                f.wire_engine = str(old or "")
+                f.engine_id = old
+                f.maintenance = False
+                if not was_paused and f.paused:
+                    try:
+                        await f.resume_from_pause()
+                    except Exception:
+                        pass
+                self._event("error", f"关闭手动版本失败，保留 {old}: {type(e).__name__}: {e}")
+
     async def _restart_fleet(self, engine_override: str | None = None) -> bool:
         """Bring the engines back up on whatever core is on disk right now."""
         try:
@@ -2888,7 +2987,8 @@ class WfSimClient(App):
                 on_engine_rebuild_fast=self._manual_fast_rebuild,
                 on_scale=self._set_ui_scale,
                 on_slots=self._change_slots,
-                on_engine_native=self._native_build))
+                on_engine_native=self._native_build,
+                on_wire_manual=self._set_wire_manual))
 
 
 def _cpu_rebuild_prompt() -> None:

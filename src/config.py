@@ -215,6 +215,12 @@ DEFAULTS = {
     #: A manually selected OLDER id stays explicit and is accepted only while
     #: release.json.accepted still lists it; switching always drains first.
     "wire_engine": "",
+    #: the 手动 switch beside the engine ± buttons, OFF by default.  The engine
+    #: id above is read ONLY while this is on: with it off the client always
+    #: reports the core it really installed, so a data/ folder copied from an
+    #: older package can no longer pin a stale id, and the header cannot
+    #: advertise a version this machine is not running.
+    "wire_manual": False,
     #: board wire: protocol 8, always.  There is no switch any more — one
     #: door, one writer.  The server can still force protocol 7 for a
     #: session (`fallback: 7`, docs/CLIENTS.md) and the client honours it.

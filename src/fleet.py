@@ -360,6 +360,10 @@ class Fleet:
         #: the id sent on the wire.  Normally the installed core's id; the user
         #: may select an older accepted id, but only after a full pause drain.
         self.wire_engine: str | None = None
+        #: the 手动 switch on the settings page (off by default).  While it is
+        #: off, `cfg["wire_engine"]` is not read at all: the wire id follows the
+        #: core actually installed on disk.
+        self.wire_manual: bool = False
         #: the latest GitHub catalog: current/accepted/CI-only engine ids.
         self.engine_catalog: dict | None = None
         #: the engine id recorded beside the core actually installed on disk.
@@ -807,7 +811,14 @@ class Fleet:
         # the server is actually told, and `_effective_engine` decides between
         # them: a pin is honoured only while the installed core is older than
         # the served one.
-        configured_wire = str(self.cfg.get("wire_engine") or "").strip()
+        # The pin is read ONLY while the 手动 switch is on (settings page, right
+        # of the ± buttons, off by default).  That switch is exactly what "the
+        # version written in config.json applies" means: with it off, a data/
+        # folder carried over from an older package cannot pin a stale id that
+        # the client would then advertise while running newer bits.
+        self.wire_manual = bool(self.cfg.get("wire_manual"))
+        configured_wire = (str(self.cfg.get("wire_engine") or "").strip()
+                           if self.wire_manual else "")
         self.wire_engine = configured_wire or self.local_engine or self.served_engine
         self.engine_id = self._effective_engine()
         self.release = rel.get("release")

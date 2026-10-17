@@ -5,12 +5,14 @@
 ## 怎么用
 
 1. 解压整个文件夹到目标电脑（Win10/11 x64）。**无需安装 Python，无需安装 VC++ 运行库**（引擎是静态 CRT，只依赖系统 DLL）。
-2. 打开 `data\config.json`，填写：
+2. 双击 `run-portable.bat`：**首次启动会按本机探测生成 `data\config.json` 后自动退出**（包里刻意不带 `data/`，所以不会继承打包机的 CPU 列表、端口，也不会继承别人手写的引擎号）。
+3. 打开生成好的 `data\config.json`，填写：
    - `account.email` / `account.password`：WFSim 网站账号（必填，邮箱为空会拒绝启动）。
    - `github_pat`：可选。GitHub fine-grained PAT，只给公开仓库读权限即可，用来提高自动检查更新时的 API 限额。
-3. 双击 `run-portable.bat`。
+4. 再次双击 `run-portable.bat` 即可开始计算。
 
 首次启动会自动生成设备 ID（`verifiers`），之后按 `active_verifiers` 启动若干计算槽位。
+**不要**从旧版包里直接拷 `data/` 过来（那会把旧机器的 `engine_cores`/`work_lanes`/端口和手写引擎号一起带进来）。
 
 ## 这一包与上游便携版的差别
 

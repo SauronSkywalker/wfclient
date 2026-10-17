@@ -95,12 +95,6 @@ jobs:
       - name: pack the portable zip
         run: python ci/pack_portable.py --build-dir dist/staging --keep-build
 
-      - name: smoke test the packed engine (5 WASM anchors)
-        # 冻结锚点会随上游 gas 计费表漂移（闸门的判定在 gate-engine 那条线），
-        # 这里只是"包里的引擎起码能跑起来"的冒烟，不能因此拦住便携包的发布。
-        continue-on-error: true
-        run: python ci/tools/run_corpus.py dist/staging/engine/wfsim-core.exe --anchors --port 9510
-
       - name: confirm the packed engine is on the prebuilt line
         shell: python
         run: |
@@ -125,7 +119,7 @@ jobs:
             | 字段 | 值 |
             |---|---|
             | engine id | `${{ steps.pick.outputs.engine }}` |
-            | 打包前冒烟 | 5 个站点 WASM 锚点逐位一致 |
+            | 发布后冒烟 | 5 个站点 WASM 锚点（漂移由 gate-engine 判定） |
             | 本次由 | `repack` 工作流，引擎字节取自已发布的 `engine-${{ steps.pick.outputs.engine }}` |
 
             只想替换引擎、不想重下整包的话，见 `engine-${{ steps.pick.outputs.engine }}`。
@@ -133,6 +127,12 @@ jobs:
           files: dist/wfsim-portable-*.zip
           overwrite_files: true      # the zip is named by engine id only, so each id keeps exactly one
           fail_on_unmatched_files: true
+
+      # 冒烟放在发布之后：先发布再验证。它红了只说明上游 gas 计费表漂移，
+      # 判定归 gate-engine；这里绝不能反过来影响用户能不能拿到包。
+      - name: smoke test the packed engine (5 WASM anchors) - after publishing
+        continue-on-error: true
+        run: python ci/tools/run_corpus.py dist/staging/engine/wfsim-core.exe --anchors --port 9510
 
   # 第三条发布线：源码 + 构建脚本（给别人自己编译用）。
   #
@@ -155,10 +155,11 @@ jobs:
           out.parent.mkdir(parents=True, exist_ok=True)
           # 只放"能自己编译"需要的东西：客户端 src、CI/构建脚本、补丁、文档、许可。
           # 不放 engine/（预编译那是在另一条线）、python/（那是运行用的 embed Python）、
-          # engine-src/（那是下载来的上游树，构建脚本会自己拉）。
+          # engine-src/（那是下载来的上游树，构建脚本会自己拉）、data/（那是运行期
+          # 按本机生成的配置，见 README.txt：缺文件时首次启动会自动生成一份）。
           files = ["README.md", "README-便携包.md", "SECOND-DEVELOPMENT.md", "NOTICE.md",
                    "自构建说明.md", "LICENSE", "LICENSE-DATA.md", "TRADEMARK.md",
-                   "run-portable.bat", ".gitattributes", "data/config.json"]
+                   "run-portable.bat", ".gitattributes"]
           dirs = ["src", "ci", ".github"]
           with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
               for name in files:
