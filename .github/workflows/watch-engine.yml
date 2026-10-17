@@ -41,23 +41,47 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          import json, os, urllib.error, urllib.request, pathlib
+          import json, os, time, urllib.error, urllib.request, pathlib
+
+          # 边缘会偶发 403（实测过一次：Cloudflare 直接 Forbidden），所以退避重试。
+          # 站点是第三方，它一时不应答不该让守望者红叉报假警 —— 重试后仍失败就跳过本轮，
+          # 5 分钟后下一轮自然会再试。
+          RETRY = (403, 408, 425, 429, 500, 502, 503, 504)
+
+          def fetch(url, headers=None, tries=5, timeout=30):
+              for i in range(tries):
+                  try:
+                      req = urllib.request.Request(url, headers=headers or {})
+                      with urllib.request.urlopen(req, timeout=timeout) as r:
+                          return r.status, r.read()
+                  except urllib.error.HTTPError as e:
+                      if e.code in RETRY and i < tries - 1:
+                          wait = 3 * (i + 1)
+                          print(f"  HTTP {e.code} from {url} -- 退避 {wait}s 后重试")
+                          time.sleep(wait)
+                          continue
+                      raise
 
           # 一：服务器现在服务哪个 engine（1 个 GET，约 0.2 秒）
-          rel = json.loads(urllib.request.urlopen("https://wfsim.app/release.json", timeout=30).read())
+          try:
+              _st, raw = fetch("https://wfsim.app/release.json",
+                               headers={"User-Agent": "wfsimpp-client/0.1"})
+          except Exception as e:
+              print(f"!! 站点没答上来（{type(e).__name__}: {e}）；跳过本轮，5 分钟后再试")
+              with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+                  f.write("needed=false\nengine=\n")
+              raise SystemExit(0)
+          rel = json.loads(raw)
           engine = str(rel.get("engine") or "")
           print(f"server serves: engine={engine} release={rel.get('release')} commit={rel.get('commit')}")
 
           # 二：本仓库有没有这条 release（1 个 GET；404 就是没有，不用列表整个 per_page=100）
           have = False
           if engine:
-              req = urllib.request.Request(
-                  f"https://api.github.com/repos/{os.environ['REPO']}/releases/tags/engine-{engine}",
-                  headers={"Authorization": f"Bearer {os.environ['GH_TOKEN']}",
-                           "Accept": "application/vnd.github+json"},
-              )
               try:
-                  urllib.request.urlopen(req, timeout=30).read()
+                  fetch(f"https://api.github.com/repos/{os.environ['REPO']}/releases/tags/engine-{engine}",
+                        headers={"Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                                 "Accept": "application/vnd.github+json"})
                   have = True
               except urllib.error.HTTPError as e:
                   if e.code != 404:
