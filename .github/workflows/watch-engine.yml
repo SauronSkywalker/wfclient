@@ -9,6 +9,11 @@ name: watch-engine
 # 为什么盯 engine id 就够了：引擎和二乘计算器（紫卡优化器）编译在同一个二进制里，
 # 服务器下发的 engine id 本身就是上游对"整套计算代码"算出来的标签，上游动了优化器
 # 也会让 id 变。自己去扫源码只会更慢更不准，而且扫描量远大于两次 HTTP 请求。
+#
+# 2026-10-17 补记（登记排查）：cron 上线后 1 小时 31 分，GitHub 侧 event=schedule 的次数是 0
+# （同一时间 push / workflow_run 触发都正常，workflow state=active，文件在 main 上）。
+# 按 GitHub 的说明，改动工作流文件会让调度器重新读一遍并登记 cron，所以这里改一行再 push，
+# 观察 schedule 是否开始出现；如果仍然不出现，就不能再依赖 GitHub cron，得换外部定时器。
 on:
   schedule:
     # 每 5 分钟。5 分钟是 GitHub cron 的下限；高峰时段官方会推迟（常见 5-20 分钟），
