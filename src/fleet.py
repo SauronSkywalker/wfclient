@@ -5216,14 +5216,25 @@ class Fleet:
                            reason=("retiring" if getattr(v, "retire_at", 0)
                                    else "off_duty"))
             return owed
-        lease = str(owed[0].get("lease") or "")
+        # THE LEASE AND THE QUESTION MUST COME FROM THE SAME ROW.  `owed[0]`
+        # is the OLDEST row and `owed[-1]` the newest; with two packs in hand
+        # (a queued one plus the one being drained) they need not share a pack
+        # lease.  Reading the lease off the oldest row and the question off the
+        # newest built a `(lease, question)` key that exists nowhere, so the
+        # `_answer_age_s` hold test below found no `kept_at` and read an age of
+        # 0.0 — the hold gate was skipped for a row that had in fact been
+        # waiting the full hour.  The anchor lives on the NEWEST row, so that is
+        # the row its lease comes from too.
+        anchor_row = owed[-1]
+        lease = str(anchor_row.get("lease") or "")
         st = self._anchor.get(v.vid)
         if st is None or st.get("lease") != lease:
             # A NEW PACK: anchor on the NEWEST answer.  Newest, not oldest —
             # it is the newest that has been exposed to the other holder for
             # the shortest time, so it is the one most likely to still be ours
             # when the queued pack arrives.
-            st = {"lease": lease, "question": str(owed[-1].get("question") or ""),
+            st = {"lease": lease,
+                  "question": str(anchor_row.get("question") or ""),
                   "released": False, "at": time.time()}
             self._anchor[v.vid] = st
         if st.get("released"):
@@ -5298,7 +5309,12 @@ class Fleet:
         return settled
 
     def _mark_answers_sent(self, results: list) -> int:
-        """Remember which answers have ACTUALLY left this machine.
+        """Remember which answers the server has ACKNOWLEDGED.
+
+        PUSH FIRST, THEN BELIEVE IT: a row is marked only once the sync that
+        carried it came back `ok`.  Marking before the request is how a 500'd
+        hand-in read as delivered, got polled under `states`, and was erased by
+        the reply's `gone`.
 
         The difference matters because of one word: `states` asks the server
         "where does this result stand", and the server answers from
@@ -5326,7 +5342,7 @@ class Fleet:
         return sent
 
     def _sync_answer_sent(self, vid: str, question: str) -> bool:
-        """Has this answer ever gone out in a sync's `results`?"""
+        """Has the server acknowledged this answer (see `_mark_answers_sent`)?"""
         for (_lease, q), e in self._board_kept.items():
             if q == question and e.get("vid") == vid:
                 return bool(e.get("sent"))
@@ -5899,7 +5915,6 @@ class Fleet:
         # policy: everything owed except the one anchor row.  The anchored row
         # stays named below, so its lease keeps being renewed while it waits.
         results = self._sync_results_with_anchor(v, held)
-        self._mark_answers_sent(results)
         refused = self._sync_refused.pop(v.vid, [])
         idle = board_sync.idle_payload(self._sync_idle, v.vid)
         # `states` ASKS ABOUT RESULTS THE SERVER HAS.  It is answered from
@@ -5955,6 +5970,15 @@ class Fleet:
         self._sync_backoff_until[v.vid] = 0.0
         self._sync_last[v.vid] = now
         self._sync_bad[v.vid] = 0.0
+        # PUSH FIRST, THEN BELIEVE IT.  The mark used to go on before the
+        # request, which made a 500'd hand-in read as delivered: those rows
+        # stayed named in `states` (built above), the server answered `gone` —
+        # truthfully, it held nothing — and the `gone` branch below erased them
+        # with no event and no retry.  Measured on the field log 2026-10-18
+        # 02:24:30: three rows handed in under one 500, one of them the anchor,
+        # answered `gone` 19 s later.  Now a failed hand-in simply stays owed
+        # and goes out again on the next sync.
+        self._mark_answers_sent(results)
         board_sync.idle_tick(
             self._sync_idle, v.vid, board_sync.utc_hour(now), asks=1,
             lanes=0 if (out.get("pack") or out.get("work")) else lanes)
@@ -6157,6 +6181,12 @@ class Fleet:
                     self.log.event("sync_state_gone_unsent", verifier=v.vid,
                                    question=q)
                     continue
+                # NOT SILENT ANY MORE.  This row DID leave this machine and
+                # the server still reports it holds nothing (the field case:
+                # the row itself was recycled server-side).  The reply settles
+                # it — that is the server's call — but the loss gets a line.
+                self.log.event("sync_state_gone_sent", verifier=v.vid,
+                               question=q)
                 self._sync_confirm_orders(vid, [], [q])
                 self._mark_sync_settled(v, [q])
                 self._drop_sync_answered(vid, [q])
@@ -6355,7 +6385,6 @@ class Fleet:
                 held = []
             pending = self._sync_pending_board_rows(v)
             results = self._sync_results_for(v.vid)
-            self._mark_answers_sent(results)
             refused = self._sync_refused.pop(v.vid, [])
             # A verifier that merely holds unstarted rows (no inflight, no
             # results, no refused) still needs to report/renew them on the
@@ -6378,6 +6407,10 @@ class Fleet:
                 self._sync_refused[v.vid] = (
                     refused + self._sync_refused.get(v.vid, []))
                 continue
+            # PUSH FIRST, THEN BELIEVE IT (same rule as the steady-state sync):
+            # a failed final round must leave the answers owed so the next
+            # round can carry them again.
+            self._mark_answers_sent(results)
             synced += 1
             await self._apply_sync_reply(v, out, 0)
         return synced
