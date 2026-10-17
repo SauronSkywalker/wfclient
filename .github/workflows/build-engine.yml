@@ -15,15 +15,17 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "23 */6 * * *"          # catch upstream moves even when nothing changed here
+  # Only the two inputs that can change the engine itself trigger a rebuild.
+  # Tooling, docs and this workflow do not: editing a script is not a new engine,
+  # and one cold run costs ~9 minutes of a Windows runner across four jobs
+  # (measured: run 38991005621, 09:28:29 -> 09:37:31).  Those edits are covered by
+  # the six-hourly cron below, or by pressing "Run workflow" when they need an
+  # immediate check -- and `[skip ci]` in a commit message skips the push event
+  # entirely when even the repack is not wanted.
   push:
     paths:
-      - "ci/patches/**"
-      - "ci/core-host-template/**"
-      - "ci/fetch_sources.py"
-      - "ci/build_engine.py"
-      - "ci/gate_engine.py"
-      - "ci/tools/**"
-      - ".github/workflows/build-engine.yml"
+      - "ci/patches/**"                # the four engine patches: real byte changes
+      - "ci/core-host-template/**"     # our own core-host crate: real byte changes
 
 permissions:
   contents: read

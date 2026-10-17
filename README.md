@@ -84,8 +84,8 @@ ci/build_engine.py      MSVC+PGO 构建（PGO 三轮；`--gates` 决定在这里
 ci/gate_engine.py       独立闸门 job：对已下载的 exe 跑 board+锚点，或一条紫卡（--riven-only）
 ci/pack_portable.py     打便携包（引擎 + src + 便携 Python + 依赖 + 文档 + 启动脚本）
 ci/requirements.txt     依赖清单（textual 等）
-.github/workflows/      build-engine.yml（补丁变→最新引擎）、release.yml（发 Release）、
-                        repack.yml（只重打包 + 发源码包）
+.github/workflows/      build-engine.yml（补丁/host 模板变→最新引擎）、release.yml（发 Release）、
+                        repack.yml（只重打包 + 发源码包；脚本与文档改动走它，不重编引擎）
 自构建说明.md            自己编译引擎要什么依赖、官方渠道（也在 selfbuild-<id> Release 里）
 ```
 
@@ -93,7 +93,7 @@ ci/requirements.txt     依赖清单（textual 等）
 
 ## 三个 CI 工作流
 
-1. **`build-engine.yml`** —— 定时（每 6 小时）+ 手动 + `ci/patches/**` 变动时，**3 个 job**：`build`（拉**最新**上游源码 → 应用 `ci/patches/*.patch` → MSVC+PGO 构建 → 上传 `wfsim-core.exe` / `engine-identity.json`）、`gate-board`（100 board + 5 锚点）、`gate-riven`（3 条紫卡各一个 job，**并行**）。四路闸门彼此独立，所以墙钟是 `max(board+锚点, 最慢那条紫卡)` 而不是它们的和；任一路失败 ⇒ 工作流失败 ⇒ 不发版。
+1. **`build-engine.yml`** —— 定时（每 6 小时）+ 手动 + `ci/patches/**`、`ci/core-host-template/**` 变动时，**3 个 job**：`build`（拉**最新**上游源码 → 应用 `ci/patches/*.patch` → MSVC+PGO 构建 → 上传 `wfsim-core.exe` / `engine-identity.json`）、`gate-board`（100 board + 5 锚点）、`gate-riven`（3 条紫卡各一个 job，**并行**）。四路闸门彼此独立，所以墙钟是 `max(board+锚点, 最慢那条紫卡)` 而不是它们的和；任一路失败 ⇒ 工作流失败 ⇒ 不发版。改工具脚本、改文档、改工作流文件本身**都不触发重编**（脚本改动由 6 小时定时跑覆盖，要立刻验就手动 `Run workflow`）—— 一次冷跑 ≈ 9 分钟，这条界线每次推送都省下来。
 2. **`release.yml`**（工作流名 `release`）—— 上一个工作流成功后（或手动）**发布两条独立的 Release 线**：
 
    | 标签 | 内容 | 给谁 |
