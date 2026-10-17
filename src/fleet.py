@@ -104,6 +104,14 @@ RIVEN_REFUSE_RETRY_S = 70.0
 #: before a spare stands down — a shorter breather (one 70 s riven cooldown,
 #: say) must not flap the spare on and off.
 SPARE_RETIRE_STABLE_S = 30.0
+#: A RESIDENT THAT HAS NOTHING LEFT BUT ITS ANCHOR must look that way for this
+#: long, continuously, before the spare staircase treats it as "out of work".
+#: One beat's ordering is not evidence: a resident that has just handed a row
+#: in and not yet received the next one is between packs, not short of work —
+#: waking a spare for that is how three spares came up together on 2026-10-16
+#: 07:13 (`residents_working: 0` for a second, `spare_activated` ×3, all three
+#: stood down 34 s later and paid three asks for nothing).
+ANCHOR_IDLE_STABLE_S = 3.0
 #: A ROW THAT HAS WAITED THIS LONG FOR AN ENGINE is put at the front of the
 #: pick order, at the manual pick's own level.  Renewals keep a row alive
 #: forever, so without this a pack that arrives faster than it drains can
@@ -401,6 +409,11 @@ class Fleet:
         #: when the residents FIRST covered every slot (spare retirement needs
         #: that state to hold for `SPARE_RETIRE_STABLE_S` before standing down)
         self._spare_covered_since: float = 0.0
+        #: verifier vid -> when this resident FIRST looked like "nothing left
+        #: but its anchor" (see `_anchor_only`).  Dropped the moment it does not
+        #: look like that any more, so `ANCHOR_IDLE_STABLE_S` measures one
+        #: continuous stretch rather than a count of sightings.
+        self._anchor_idle_since: dict[str, float] = {}
         #: riven leases lost recently (timestamps) and the cooldown that follows
         #: a run of them — a search that keeps coming back `held:false` costs
         #: minutes of a verifier for nothing, so the door is shut for a while.
@@ -437,6 +450,12 @@ class Fleet:
         self._sync_last: dict[str, float] = {}
         #: verifier id -> consecutive sync transport failures (backoff).
         self._sync_fails: dict[str, int] = {}
+        #: verifier id -> when the last sync FAILED (a transport error, or a
+        #: reply that did not carry `ok`); 0.0 once one succeeds.  Kept apart
+        #: from `_sync_fails` on purpose: `_anchor_only` needs the plain
+        #: question "was the last sync good?" and must not touch the 3/10/30 s
+        #: backoff ladder that `_sync_fails` drives.
+        self._sync_bad: dict[str, float] = {}
         #: verifier id -> hour -> {asks, failed, lanes} (memory only).
         self._sync_idle: dict = {}
         #: verifier id -> refused rows awaiting the next sync.
@@ -5620,16 +5639,100 @@ class Fleet:
             return True                   # board-only cooling
         return self._riven_work_alone(v, kept, refused)
 
+    def _anchor_only(self, v: Verifier, now: float) -> bool:
+        """True while this resident is HOLDING NOTHING BUT ITS ANCHOR.
+
+        BOARD-ONLY MODE KEEPS ONE FINISHED ANSWER BACK on purpose
+        (`_sync_results_with_anchor`: the anchor is what stops an id ever
+        holding nothing, which is the state the server hands a riven to).  The
+        verifier keeps its lease while it waits, so `_spare_evaluate`'s
+        `has_work` counted it as a working resident, and the staircase that
+        wakes a spare only ever asked about riven cool-down.  On an empty pool
+        that is every resident at once: each one sitting on its anchor, the
+        spares asleep, and the machine idle for up to `board_submit_hold_ms`.
+        This predicate is that missing signal.
+
+        "NOTHING BUT THE ANCHOR" IS THE WHOLE CLAIM, so each condition below
+        rules out a look-alike:
+
+          * a — the anchor is still OURS: it exists, was not released, is the
+            answer this id still owes, and has not reached `_submit_hold_s()`
+            (at which point it is handed in without help).
+          * b — this really is the branch that holds one: board-only, no
+            queued pack in hand, and an id the pool will ask again.  A retiring
+            or off-duty id hands everything in (`board_anchor_skipped`).
+          * c — exactly ONE answer is owed, and it is that anchor.  Two owed
+            rows means real work is waiting, not an anchor.
+          * d — every row has finished: `all_done()` is True only when nothing
+            is pending or in flight, and no fetch is still running.  A pack one
+            row short of done is NOT this state — that is precisely the case
+            the spare must not be woken for.
+          * e — the LAST SYNC WAS GOOD.  A resident that cannot reach the
+            server looks empty for the same reason but is not idle by choice;
+            waking a spare then only adds a second id hammering a door that is
+            already down.  Reads `_sync_bad`, never `_sync_fails`.
+          * f — all of the above held for `ANCHOR_IDLE_STABLE_S` straight, so
+            one beat's ordering cannot flap the staircase.
+        """
+        if not self._anchor_hold_only(v, now):
+            # NOT this state (or not any more): the stretch has to restart, or
+            # a resident flickering in and out would read as stable.
+            self._anchor_idle_since.pop(v.vid, None)
+            return False
+        since = float(self._anchor_idle_since.get(v.vid) or 0.0)
+        if not since:
+            self._anchor_idle_since[v.vid] = now
+            return False
+        return now - since >= ANCHOR_IDLE_STABLE_S
+
+    def _anchor_hold_only(self, v: Verifier, now: float) -> bool:
+        """Conditions a–e of `_anchor_only`: the state, without its clock."""
+        st = self._anchor.get(v.vid)
+        if not st or st.get("released"):
+            return False                          # a: no anchor, or given up
+        question = str(st.get("question") or "")
+        if not question:
+            return False
+        owed = self._sync_results_for(v.vid)
+        if len(owed) != 1:
+            return False                          # c: real work is owed too
+        if str(owed[0].get("question")) != question:
+            return False                          # a: the anchor was taken
+        age = self._answer_age_s(v, {"lease": str(st.get("lease") or ""),
+                                     "question": question})
+        if age >= self._submit_hold_s():
+            return False                          # a: about to go out anyway
+        if not self._board_only(v) or v.queued is not None:
+            return False                          # b: not the holding branch
+        if not self._will_ask_again(v):
+            return False                          # b: retiring / off duty
+        if self._sync_pending_board_rows(v):
+            return False                          # d: a row is still computing
+        for work, _role in v.works():
+            if work is not None and not work.all_done():
+                return False                      # d: not everything finished
+        task = self.fetch_tasks.get(v.vid)
+        if task is not None and not task.done():
+            return False                          # d: a fetch is in flight
+        last = float(self._sync_last.get(v.vid) or 0.0)
+        if last < float(st.get("at") or 0.0):
+            return False                          # e: no sync since the anchor
+        if last <= float(self._sync_bad.get(v.vid) or 0.0):
+            return False                          # e: the last sync failed
+        return True
+
     def _spare_evaluate(self, now: float) -> None:
         """Keep one spare verifier awake whenever the residents run short.
 
         The goal: as many WORKING verifiers as there are compute slots.  A
         verifier counts while it holds a pack or a riven; one sitting out its
-        riven cooldown does not (it cannot ask for 70 s).  The residents
-        covering every slot for `SPARE_RETIRE_STABLE_S` straight stands the
-        spare down — no time cap the other way: a spare works as long as the
-        residents stay short.  A retirement already under way is cancelled the
-        moment the residents fall short again, so the two states cannot flap.
+        riven cooldown does not (it cannot ask for 70 s), and neither does one
+        holding NOTHING BUT ITS ANCHOR (`_anchor_only` — that row is being kept
+        back on purpose, not worked).  The residents covering every slot for
+        `SPARE_RETIRE_STABLE_S` straight stands the spare down — no time cap the
+        other way: a spare works as long as the residents stay short.  A
+        retirement already under way is cancelled the moment the residents fall
+        short again, so the two states cannot flap.
         """
         if not self.running or self.paused or self.maintenance:
             return
@@ -5642,6 +5745,11 @@ class Fleet:
         def has_work(v: Verifier) -> bool:
             if v.riven_cooldown_until > now:
                 return False              # cooling: cannot ask for 70 s
+            if self._anchor_only(v, now):
+                # HOLDS ONE ROW AND NOTHING ELSE.  The anchor is deliberate,
+                # but a resident sitting on it is not working — counting it as
+                # "working" is what kept the spares asleep over an empty pool.
+                return False
             if v.lease is not None or v.queued is not None:
                 return True
             task = self.fetch_tasks.get(v.vid)
@@ -5683,6 +5791,12 @@ class Fleet:
         # cool-down too, so the spares arrive one at a time, each on the
         # server's own signal, and never more than the shortfall needs.
         #
+        # THE SAME GOES FOR A RESIDENT HOLDING NOTHING BUT ITS ANCHOR
+        # (`_anchor_only`).  In board-only mode that is the ORDINARY state of an
+        # empty pool — the anchor is deliberate, and every resident can be
+        # sitting on one at once — so a staircase that only knew cool-down kept
+        # the spares asleep through exactly the emptiness they exist for.
+        #
         # NOTHING IS HARD-CODED TO THREE (or any number): `residents` is
         # `active_count()` worth of verifiers and `spares` is the rest, so a
         # config with four residents and two spares, or one resident and nine,
@@ -5690,12 +5804,20 @@ class Fleet:
         def cooling(v: Verifier) -> bool:
             return v.riven_cooldown_until > now
 
+        def out_of_work(v: Verifier) -> bool:
+            # TWO WAYS A RESIDENT HAS NOTHING TO WORK WITH: the server's own
+            # riven cool-down, or holding nothing but its anchor.
+            return cooling(v) or self._anchor_only(v, now)
+
         active_spares = [v for v in spares if v.spare]
         residents_cooling = sum(1 for v in residents if cooling(v))
+        residents_anchor = sum(1 for v in residents if self._anchor_only(v, now))
         spares_cooling = sum(1 for v in active_spares if cooling(v))
         residents_all_cooling = bool(residents) and residents_cooling == len(residents)
+        residents_all_out = bool(residents) and all(
+            out_of_work(v) for v in residents)
         spares_all_cooling = spares_cooling == len(active_spares)
-        if not (residents_all_cooling and spares_all_cooling):
+        if not (residents_all_out and spares_all_cooling):
             # OBSERVABLE, BUT NOT PER BEAT: this runs every 0.25 s, and a line
             # per beat would be 4/s of log writing — the very CPU the lanes are
             # fighting for (see the 2026-10-16 utilisation work).
@@ -5703,10 +5825,14 @@ class Fleet:
                 self._spare_hold_at = now
                 self.log.event("spare_hold", residents=len(residents),
                                residents_cooling=residents_cooling,
+                               residents_anchor=residents_anchor,
                                spares_active=len(active_spares),
                                spares_cooling=spares_cooling,
                                slots=slots, working=working,
-                               reason="cooldown_gate")
+                               reason=("anchor_gate"
+                                       if residents_all_out
+                                       and not residents_all_cooling
+                                       else "cooldown_gate"))
             return
         for v in spares:
             if v.spare:
@@ -5715,12 +5841,19 @@ class Fleet:
             self.log.event("spare_activated", verifier=v.vid,
                            residents=len(residents),
                            residents_cooling=residents_cooling,
+                           residents_anchor=residents_anchor,
                            spares_active=len(active_spares) + 1,
                            slots=slots, working=working,
-                           reason="residents_all_cooling")
-            self.on_event("update",
-                          f"{v.label} 备胎上线：常驻 {len(residents)} 个已全部进入"
-                          f"冷却，阶梯启动一个")
+                           reason=("residents_all_cooling"
+                                   if residents_all_cooling
+                                   else "residents_all_anchor_only"))
+            if residents_all_cooling:
+                note = (f"{v.label} 备胎上线：常驻 {len(residents)} 个已全部进入"
+                        f"冷却，阶梯启动一个")
+            else:
+                note = (f"{v.label} 备胎上线：常驻 {len(residents)} 个都在攥着"
+                        f"最后一条不放，手头无其他任务")
+            self.on_event("update", note)
             break
 
     def _riven_work_alone(self, v: Verifier, kept: list, refused) -> bool:
@@ -5792,6 +5925,7 @@ class Fleet:
             self._sync_refused[v.vid] = refused + self._sync_refused.get(
                 v.vid, [])
             self._sync_fails[v.vid] = int(self._sync_fails.get(v.vid) or 0) + 1
+            self._sync_bad[v.vid] = now
             # THE PAGE'S OWN LADDER (69-board-work.js `SEND_AGAIN_MS`): 3, 10,
             # 30 seconds, then 30.  The old 30·2^n ladder topped out at five
             # minutes, and a short pack's lease is `pack_lease_ms` = five
@@ -5811,6 +5945,7 @@ class Fleet:
         if not isinstance(out, dict) or not out.get("ok"):
             self._sync_refused[v.vid] = refused + self._sync_refused.get(
                 v.vid, [])
+            self._sync_bad[v.vid] = now
             board_sync.idle_tick(self._sync_idle, v.vid,
                                  board_sync.utc_hour(now), asks=1, failed=1)
             self.log.event("sync_error", verifier=v.vid, reason=reason,
@@ -5819,6 +5954,7 @@ class Fleet:
         self._sync_fails[v.vid] = 0
         self._sync_backoff_until[v.vid] = 0.0
         self._sync_last[v.vid] = now
+        self._sync_bad[v.vid] = 0.0
         board_sync.idle_tick(
             self._sync_idle, v.vid, board_sync.utc_hour(now), asks=1,
             lanes=0 if (out.get("pack") or out.get("work")) else lanes)
