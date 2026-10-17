@@ -66,6 +66,24 @@ RECS = {
                       "riven_neg": "status_duration", "riven_pos": ["fire_rate", "reload_speed", "toxin"],
                       "riven_rolls": [1.1, 1.1, 1.1, 0.9], "weapon": "burston_prime"},
 }
+# The numbers above are a snapshot taken from the site's wasm at one revision.
+# Upstream changes the gas table from time to time (`#[metered]` counts source
+# statements, so a fair edit moves `work` without moving `score`); when that
+# happens the snapshot is stale and the gate would fail against an authority
+# that is itself out of date.  `ci/tools/anchors.json` — written by
+# `wasm_baseline.mjs --anchors` and refreshed by the refresh-baseline workflow —
+# carries the current numbers, and wins when it is present.  The records stay
+# here: they are the question, not the answer.
+_ANCHORS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "anchors.json")
+if os.path.exists(_ANCHORS):
+    try:
+        with open(_ANCHORS, encoding="utf-8") as _f:
+            _rows = (json.load(_f) or {}).get("rows") or {}
+        for _w, _o in _rows.items():
+            if _w in REF and isinstance(_o, dict) and "score" in _o and "work" in _o:
+                REF[_w] = (float(_o["score"]), int(_o["work"]), REF[_w][2], REF[_w][3])
+    except Exception as _e:  # a broken file must not silently change the gate
+        raise SystemExit("!! anchors.json is unreadable: %r" % (_e,))
 N_REAL = 12
 LANES = (1, 4, 6)
 

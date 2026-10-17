@@ -1,0 +1,179 @@
+name: refresh-baseline
+
+# 闸门红了以后，用**站点自己的 wasm** 把冻结基准表重新对齐。
+#
+# 为什么会红：上游时不时调整 gas 计费表（`#[metered]` 按源码表达式/语句计数，
+# 所以一次公平的改写会让 `work` 变化而 `score` 不动）。此时我们的冻结基准还是
+# 上一版的数，闸门"正确地失败"—— 但它失败的原因不是引擎错了，是基准过期了。
+#
+# 权威是谁：wfsim.app 页面里跑的 wasm（`site/pkg/wfsim_wasm_bg.<hash>.wasm`）。
+# 它是站点的标准答案，所以基准表应当由它重算，而不是由我们自己的引擎自证。
+#
+# 流程：probe（5 项抽样）→ 确认是整表漂移 → 8 片并发重算 → 合并写回 →
+# 提交推送 → 用刚编好的引擎重跑 gate-engine。
+# 注意：提交用的是 GITHUB_TOKEN，GitHub 不会因此再触发别的 workflow，
+# 所以最后一跳是显式 dispatch —— 这也避免了"重算→闸门→重算"的自激。
+#
+# 手动用法：Actions → refresh-baseline → Run workflow（force 可无视抽样直接重算）。
+on:
+  workflow_run:
+    workflows: ["gate-engine"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "抽样完全一致也重算（一般不用）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: refresh-baseline
+  cancel-in-progress: false
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  probe:
+    # 只有闸门真的红了才值得重算；闸门绿说明基准仍然是权威。
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    outputs:
+      drift: ${{ steps.read.outputs.drift }}
+      wasm: ${{ steps.read.outputs.wasm }}
+      engine: ${{ steps.read.outputs.engine }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 取站点自己的 wasm（一次 tarball，不逐个拉文件）
+        shell: bash
+        run: |
+          curl -sSL https://codeload.github.com/magenie33/wfsim/tar.gz/refs/heads/main -o up.tgz
+          mkdir -p upstream
+          tar -xzf up.tgz -C upstream --strip-components=1
+          python -c "import json;d=json.load(open('upstream/site/release.json',encoding='utf-8'));print('wasm',d['wasm'],'engine',d['engine'],'release',d['release'])"
+
+      - name: 五项抽样（3 条 board + 1 条紫卡 + 1 个锚点）
+        run: node ci/tools/wasm_baseline.mjs --probe --site upstream/site --out dist/probe.json
+
+      - id: read
+        name: 抽样结论
+        shell: python
+        run: |
+          import json, os, pathlib
+          d = json.loads(pathlib.Path("dist/probe.json").read_text(encoding="utf-8"))
+          out = os.environ["GITHUB_OUTPUT"]
+          with open(out, "a", encoding="utf-8") as f:
+              f.write("drift=%s\n" % ("true" if d["drift"] else "false"))
+              f.write("wasm=%s\n" % d["wasm"])
+              f.write("engine=%s\n" % d["engine"])
+          bad = [p["id"] for p in d["probes"] if not p["same"]]
+          print("drift =", d["drift"], "| differing:", ", ".join(bad) or "none")
+
+      - name: 留住抽样证据
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: probe
+          path: dist/probe.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  refresh:
+    needs: probe
+    if: >-
+      needs.probe.result == 'success' &&
+      (needs.probe.outputs.drift == 'true' ||
+       (github.event_name == 'workflow_dispatch' && inputs.force))
+    runs-on: windows-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: board-0, cmd: "--board --file ci/tools/corpus.json --shard 0/4" }
+          - { name: board-1, cmd: "--board --file ci/tools/corpus.json --shard 1/4" }
+          - { name: board-2, cmd: "--board --file ci/tools/corpus.json --shard 2/4" }
+          - { name: board-3, cmd: "--board --file ci/tools/corpus.json --shard 3/4" }
+          - { name: anchors, cmd: "--anchors" }
+          - { name: riven-0, cmd: "--riven --file ci/tools/riven3.json --shard 0/3" }
+          - { name: riven-1, cmd: "--riven --file ci/tools/riven3.json --shard 1/3" }
+          - { name: riven-2, cmd: "--riven --file ci/tools/riven3.json --shard 2/3" }
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 取站点自己的 wasm
+        shell: bash
+        run: |
+          curl -sSL https://codeload.github.com/magenie33/wfsim/tar.gz/refs/heads/main -o up.tgz
+          mkdir -p upstream
+          tar -xzf up.tgz -C upstream --strip-components=1
+
+      - name: 重算 ${{ matrix.name }}
+        run: node ci/tools/wasm_baseline.mjs ${{ matrix.cmd }} --site upstream/site --out dist/parts/${{ matrix.name }}.json
+
+      - name: 交回分片
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: baseline-${{ matrix.name }}
+          path: dist/parts/
+          if-no-files-found: warn
+          retention-days: 30
+
+  commit:
+    needs: [probe, refresh]
+    if: >-
+      always() && needs.probe.result == 'success' &&
+      needs.probe.outputs.drift == 'true' && needs.refresh.result == 'success'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 收齐分片
+        uses: actions/download-artifact@v8
+        with:
+          pattern: baseline-*
+          path: dist/parts
+          merge-multiple: true
+
+      - name: 合并写回冻结基准表
+        run: python ci/tools/apply_baseline.py --parts dist/parts --report dist/apply.json
+
+      - name: 提交（基准表是仓库资产，必须留痕）
+        shell: bash
+        run: |
+          git config user.name "wfclient-ci"
+          git config user.email "actions@github.com"
+          git add ci/tools/corpus.json ci/tools/riven3.json ci/tools/riven_corpus.json ci/tools/anchors.json
+          if git diff --cached --quiet; then
+            echo "基准表本来就没变（抽样红了但整表一致），不提交"
+          else
+            git commit -m "chore(baseline): re-align the frozen rows with the site wasm (${{ needs.probe.outputs.engine }}, wasm ${{ needs.probe.outputs.wasm }})"
+            git push
+          fi
+
+      - name: 留住合并报告
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: apply-report
+          path: dist/apply.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: 用刚编好的引擎重跑闸门
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          run=$(gh run list --workflow=build-engine --status=success --limit 1 --json databaseId -q ".[0].databaseId")
+          echo "重新验算 build-engine run=$run"
+          gh workflow run gate-engine.yml -f run_id="$run"

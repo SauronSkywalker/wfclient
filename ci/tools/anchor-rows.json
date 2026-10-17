@@ -1,0 +1,205 @@
+{
+ "note": "站点 wasm 的五个锚点行：record/ruler/mode 冻结，score/work 由 wasm 复算后写回。",
+ "anchors": {
+  "ocucor": {
+   "record": {
+    "arcanes": [
+     "secondary_fortifier"
+    ],
+    "evolutions": [],
+    "exilus": "eject_magazine",
+    "mods": [
+     "frostbite",
+     "riven",
+     "primed_heated_charge",
+     "pistol_acuity",
+     "galvanized_shot",
+     "anemic_agility",
+     "pistol_elementalist",
+     "augur_seeker"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "corrosive",
+     "electricity",
+     "projectile_speed"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "ocucor"
+   },
+   "ruler": "standard_single_target",
+   "mode": "base",
+   "score": 7.243395407715232,
+   "work": 3513660008
+  },
+  "dual_toxocyst": {
+   "record": {
+    "arcanes": [
+     "secondary_deadhead"
+    ],
+    "evolutions": [
+     "dual_toxocyst_evo1_incarnon_form",
+     "dual_toxocyst_fevered_frenzy",
+     "dual_toxocyst_ready_retaliation",
+     "dual_toxocyst_commodores_fortune"
+    ],
+    "exilus": "eject_magazine",
+    "mods": [
+     "primed_convulsion",
+     "galvanized_diffusion",
+     "primed_target_cracker",
+     "galvanized_crosshairs",
+     "galvanized_shot",
+     "lethal_torrent",
+     "anemic_agility",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "damage",
+     "puncture",
+     "weak_point_damage"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "dual_toxocyst"
+   },
+   "ruler": "standard_single_target",
+   "mode": "cycle",
+   "score": 162.83173857621276,
+   "work": 12175383036
+  },
+  "torid": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "torid_evo1_incarnon_form",
+     "torid_final_fusillade",
+     "torid_swift_deliverance",
+     "torid_commodores_fortune"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "riven",
+     "galvanized_chamber",
+     "galvanized_aptitude",
+     "galvanized_scope",
+     "vile_acceleration",
+     "vital_sense",
+     "hunter_track@4",
+     "magnetic_capacity"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "electricity",
+     "reload_speed",
+     "viral"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     1.1
+    ],
+    "weapon": "torid"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "score": 1.1397415477673707,
+   "work": 3680589703
+  },
+  "boar_prime": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "boar_prime_evo1_incarnon_form",
+     "boar_prime_reified_bane",
+     "boar_prime_ready_retaliation",
+     "boar_prime_critical_parallel"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_charged_shell",
+     "toxic_barrage",
+     "galvanized_hell",
+     "primed_ravage",
+     "critical_deceleration",
+     "hunter_track",
+     "magnetic_strafe",
+     "riven"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "fire_rate",
+     "gas",
+     "multishot"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "boar_prime"
+   },
+   "ruler": "standard_single_target",
+   "mode": "base",
+   "score": 40.3613402902623,
+   "work": 26508498797
+  },
+  "burston_prime": {
+   "record": {
+    "arcanes": [
+     "primary_deadhead"
+    ],
+    "evolutions": [
+     "burston_prime_evo1_incarnon_form",
+     "burston_prime_forceful_finality",
+     "burston_prime_extended_volley",
+     "burston_prime_absolute_valor"
+    ],
+    "exilus": "vigilante_supplies",
+    "mods": [
+     "primed_cryo_rounds",
+     "riven",
+     "primary_acuity",
+     "galvanized_scope",
+     "bladed_rounds",
+     "vital_sense",
+     "gilded_truth",
+     "continuous_misery@2"
+    ],
+    "riven_neg": "status_duration",
+    "riven_pos": [
+     "fire_rate",
+     "reload_speed",
+     "toxin"
+    ],
+    "riven_rolls": [
+     1.1,
+     1.1,
+     1.1,
+     0.9
+    ],
+    "weapon": "burston_prime"
+   },
+   "ruler": "heavy_gunner",
+   "mode": "base",
+   "score": 5.279499300241206,
+   "work": 3451569201
+  }
+ }
+}
