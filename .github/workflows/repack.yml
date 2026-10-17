@@ -186,8 +186,11 @@ jobs:
               raise SystemExit("自构建说明.md is missing")
           text = doc.read_text(encoding="utf-8")
           for must in ("rustup.rs", "visualstudio.microsoft.com/visual-cpp-build-tools",
+                       "visualstudio.microsoft.com/downloads",
+                       "Microsoft.VisualStudio.BuildTools",
                        "llvm-tools-preview", "winlibs.com", "msys2.org",
-                       "git-scm.com/download/win", "github.com/settings/tokens"):
+                       "git-scm.com/download/win", "github.com/settings/tokens",
+                       "14.51.36231", "14.44.35207"):
               if must not in text:
                   raise SystemExit("the build doc does not mention " + must)
           print("build doc:", len(text), "chars,", text.count("\n") + 1, "lines")
@@ -206,7 +209,7 @@ jobs:
             | 路径 | 要装什么 | 相对速度 |
             |---|---|---|
             | A. 便携 GNU 链（可完全离线） | 基本上什么都不用装；可选 MinGW-w64 gcc 以开启 mimalloc | 1.00× |
-            | B. MSVC + PGO（发布包口径） | rustup 锁版本工具链 + VS 2022 生成工具 + `llvm-tools-preview` | **3.4×** |
+            | B. MSVC + PGO（发布包口径） | rustup 锁版本工具链 + VS 生成工具（装最新的 VS 2026；2022 起都能用）+ `llvm-tools-preview` | **3.4×** |
 
             实测（8 核 16 线程，100 条 board）：A = 102.7 s，B = 29.9 s ⇒ 3.43×。
 
@@ -215,7 +218,7 @@ jobs:
             | 依赖 | 版本 | 官方渠道 |
             |---|---|---|
             | Rust 工具链 | `1.97.1-x86_64-pc-windows-msvc`（锁版本） | https://rustup.rs · https://www.rust-lang.org/tools/install |
-            | VS 2022 生成工具（`link.exe` + Windows SDK + `cl.exe`） | 任意 2022（实测 14.44.35207） | https://visualstudio.microsoft.com/visual-cpp-build-tools/ · `winget install --id Microsoft.VisualStudio.2022.BuildTools -e` |
+            | VS 生成工具（`link.exe` + Windows SDK + `cl.exe`） | **最新的 VS 2026**（实测工具集 14.51.36231）；2022 及以后都能用（14.44.35207） | https://visualstudio.microsoft.com/downloads/ · https://visualstudio.microsoft.com/visual-cpp-build-tools/ · `winget install --id Microsoft.VisualStudio.BuildTools -e`（默认最新 = 2026） |
             | `llvm-profdata`（PGO） | 随工具链（LLVM 22.1） | `rustup component add llvm-tools-preview` · https://doc.rust-lang.org/rustc/profile-guided-optimization.html |
             | crates.io 依赖 | 见 `engine-src/work/Cargo.lock` | https://crates.io |
             | MinGW-w64 gcc（可选，仅 mimalloc） | 任意 | https://www.msys2.org/ · https://winlibs.com/ |

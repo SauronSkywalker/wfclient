@@ -57,10 +57,14 @@
 ### 方式 C：自己编快速版
 
 ```powershell
-# 需要 VS2022 BuildTools（提供 link.exe）与 rustup 的 1.97.1-x86_64-pc-windows-msvc
+# 需要 VS 生成工具（提供 link.exe；装最新的 VS 2026，2022 起都能用）
+# 与 rustup 的 1.97.1-x86_64-pc-windows-msvc
 python ci/fetch_sources.py                 # 拉上游源码 + 打补丁
 python ci/build_engine.py --crt-static     # MSVC + PGO，跑完闸门才落盘
 ```
+
+工具集不用自己填：`ci/build_engine.py` 用 `vswhere` 找**最新**的 MSVC（2026 = 14.5x，2022 = 14.4x），
+也可用 `--vs-toolset 14.44.35207` 或环境变量 `WFSIM_VS_BIN` 指定。安装清单见 [自构建说明.md](自构建说明.md)。
 
 `ci/build_engine.py` 会自己完成 PGO 三轮（generate → 训练 → use），然后在 100 board + 5 锚点 + 20 紫卡三道逐位闸门全绿后，才把引擎写进 `dist/`。任一道闸门失败即**拒绝产出**。
 

@@ -36,6 +36,66 @@ TOOLCHAIN = "1.97.1-x86_64-pc-windows-msvc"
 FEATURES_TRAIN = "wfsim-core/fast-alloc,wfsim-core/pgo-exit"
 FEATURES_FINAL = "wfsim-core/fast-alloc"
 
+# The MSVC toolset is DISCOVERED, not hardcoded: Visual Studio 2022 ships 14.4x
+# and 2026 ships 14.5x, and whoever followed 自构建说明.md has whatever they just
+# installed.  vswhere lists every install carrying the C++ workload; the newest
+# toolset wins, and `--vs-toolset` / `WFSIM_VS_BIN` pin one on purpose.  Finding
+# nothing is not an error: a CI runner already has link.exe on PATH.
+VSWHERE = (pathlib.Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"))
+           / "Microsoft Visual Studio" / "Installer" / "vswhere.exe")
+VS_BUILD_TOOLS_2022 = (r"C:\Program Files (x86)\Microsoft Visual Studio\2022"
+                       r"\BuildTools")
+VS_BIN: pathlib.Path | None = None
+
+
+def _toolsets(install: pathlib.Path) -> list[tuple[tuple[int, ...], str, pathlib.Path]]:
+    """Every `VC/Tools/MSVC/<ver>/bin/Hostx64/x64` under one VS install."""
+    root = install / "VC" / "Tools" / "MSVC"
+    found = []
+    if not root.is_dir():
+        return found
+    for d in root.iterdir():
+        bin_dir = d / "bin" / "Hostx64" / "x64"
+        if (bin_dir / "link.exe").exists():
+            key = tuple(int(p) if p.isdigit() else 0 for p in d.name.split("."))
+            found.append((key, d.name, bin_dir))
+    return found
+
+
+def find_vs_bin(prefer: str | None = None) -> pathlib.Path | None:
+    """The newest installed MSVC toolset's x64 linker directory, or None."""
+    pins = [("--vs-toolset", prefer)] if prefer else []
+    env_pin = os.environ.get("WFSIM_VS_BIN")
+    if env_pin:
+        pins.append(("WFSIM_VS_BIN", env_pin))
+    installs: list[pathlib.Path] = []
+    if VSWHERE.exists():
+        try:
+            res = subprocess.run(
+                [str(VSWHERE), "-all", "-prerelease", "-products", "*",
+                 "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+                 "-property", "installationPath"],
+                capture_output=True, text=True, timeout=90)
+            installs = [pathlib.Path(l.strip())
+                        for l in res.stdout.splitlines() if l.strip()]
+        except Exception as exc:                                  # noqa: BLE001
+            print(f"note: vswhere failed ({exc}); leaving PATH alone")
+    installs.append(pathlib.Path(VS_BUILD_TOOLS_2022))
+    cands = [c for inst in installs for c in _toolsets(inst)]
+    for flag, want in pins:
+        hit = [c for c in cands if c[1] == want]
+        if not hit:
+            raise SystemExit(
+                f"{flag}={want}: no such MSVC toolset (have: "
+                + (", ".join(sorted(c[1] for c in cands)) or "none") + ")")
+        cands = hit
+    if not cands:
+        return None
+    cands.sort(key=lambda c: c[0])
+    _, ver, bin_dir = cands[-1]
+    print(f"MSVC toolset {ver} -> {bin_dir}")
+    return bin_dir
+
 
 def pgo_dir(out: pathlib.Path) -> pathlib.Path:
     """A profile directory the LLVM runtime can actually create.
@@ -84,6 +144,8 @@ def cargo_build(work: pathlib.Path, out: pathlib.Path, cpu: str, crt_static: boo
                CARGO_TARGET_DIR=str(out / "target"),
                TEMP=str(out / "tmp"), TMP=str(out / "tmp"),
                RUSTFLAGS=" ".join(flags))
+    if VS_BIN is not None:
+        env["PATH"] = os.pathsep.join([str(VS_BIN), env.get("PATH", "")])
     run(["cargo", "build", "--profile", "maxperf", "--target", "x86_64-pc-windows-msvc",
          "-p", "wfsim-core", "--features", features], cwd=work, env=env)
     exe = out / "target" / "x86_64-pc-windows-msvc" / "maxperf" / "wfsim-core.exe"
@@ -147,7 +209,13 @@ def main() -> int:
                     help="start from a cached training profile if one is present "
                          "(the cache restores it); trains from scratch if it is missing "
                          "or if the delivery build rejects it")
+    ap.add_argument("--vs-toolset", default=None,
+                    help="pin an MSVC toolset version, e.g. 14.44.35207; the default "
+                         "is the newest installed (2022 ships 14.4x, 2026 ships 14.5x)")
     a = ap.parse_args()
+
+    global VS_BIN
+    VS_BIN = find_vs_bin(prefer=a.vs_toolset)
 
     root = pathlib.Path(a.root).resolve()
     work = (root / a.work).resolve()

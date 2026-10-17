@@ -25,7 +25,7 @@ python ci/build_engine.py --crt-static --rivens-gate 3        # MSVC+PGO 构建 
 python ci/pack_portable.py --build-dir dist/staging --keep-build   # → dist/wfsim-portable-*.zip
 ```
 
-要求：Windows、VS2022 BuildTools（`link.exe`）、rustup `1.97.1-x86_64-pc-windows-msvc`（含 `llvm-tools-preview`，PGO 的 `llvm-profdata` 来自它）、Python 3.11。
+要求：Windows、VS 生成工具（`link.exe`；**装最新的 VS 2026**，2022 起都能用；`ci/build_engine.py` 用 `vswhere` 自动取最新工具集，可用 `--vs-toolset <ver>` / `WFSIM_VS_BIN` 指定）、rustup `1.97.1-x86_64-pc-windows-msvc`（含 `llvm-tools-preview`，PGO 的 `llvm-profdata` 来自它）、Python 3.11。
 
 ## 参数
 

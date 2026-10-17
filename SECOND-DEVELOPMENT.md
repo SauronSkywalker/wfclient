@@ -68,7 +68,8 @@
 ## 4. 怎么复现
 
 ```powershell
-# 0) 依赖：VS2022 BuildTools（link.exe）、rustup 1.97.1-x86_64-pc-windows-msvc（含 llvm-tools-preview）、Python 3.11
+# 0) 依赖：VS 生成工具（link.exe；装最新的 VS 2026，2022 起都能用，工具集自动发现）、
+#    rustup 1.97.1-x86_64-pc-windows-msvc（含 llvm-tools-preview）、Python 3.11
 # 1) 拉上游源码 + 打补丁（写入 build/ci-src/）
 python ci/fetch_sources.py
 # 2) 构建 MSVC + PGO 引擎，跑完三道逐位闸门才落盘
