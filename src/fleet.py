@@ -602,8 +602,15 @@ class Fleet:
         return _summary_holder(led.get("summary") or {})
 
     async def _verifier_ownership(self, vid: str, owned: set[str] | None,
-                                  since: str) -> bool | None:
-        """True = current/unowned, False = another account, None = unknown.
+                                  since: str) -> tuple[bool | None, bool]:
+        """`(state, unowned)`.
+
+        `state`: True = current/unowned, False = another account, None = unknown.
+        `unowned`: True only when the server explicitly says `claimed: false` —
+        that is the single case we may register the device to this account.
+        A verifier the server says is *already held* is never claimed, even when
+        the six-character prefix matches ours: that fallback can only say "it is
+        ours", not "it is nobody's".
 
         The full verifier is the primary key: `/api/board/points` says whether
         some account holds it, and `/api/board/ledger` labels its hours as
@@ -612,21 +619,21 @@ class Fleet:
         """
         r = await self._read_verifier_points(vid, since)
         if not isinstance(r, dict) or not r.get("ok"):
-            return None
+            return None, False
         if not r.get("claimed"):
-            return True
+            return True, True
         # Held by some account: ask the full-id ledger who held its hours.
         led = await self._read_verifier_ledger(vid, since)
         if isinstance(led, dict) and led.get("ok"):
             holder = self._ledger_holder(led)
             if holder is not None:
-                return holder
+                return holder, False
         # The server intentionally never returns a full device id in the
         # account list.  If the ledger has no hour yet, matching the six-char
         # prefix against this account's list is the only fallback available.
         if owned is not None:
-            return vid[:6] in owned
-        return None
+            return vid[:6] in owned, False
+        return None, False
 
     async def fresh_unclaimed_verifier(self) -> str:
         """Generate a new verifier id and validate that it is unowned."""
@@ -648,16 +655,17 @@ class Fleet:
 
     async def _validate_one_verifier(self, vid: str,
                                      owned: set[str] | None,
-                                     since: str) -> str | None:
-        state = await self._verifier_ownership(vid, owned, since)
+                                     since: str) -> tuple[str | None, bool | None, bool]:
+        """Return `(replacement or None, state, may-we-register-it)`."""
+        state, unowned = await self._verifier_ownership(vid, owned, since)
         if state is True:
-            return None
+            return None, True, unowned
         if state is None:
             self.on_event("verifiers", f"归属未知，保留 {vid[:10]}")
-            return None
+            return None, None, False
         new = await self.fresh_unclaimed_verifier()
         self.on_event("verifiers", f"{vid[:10]} 不属于当前账号，替换为 {new[:10]}")
-        return new
+        return new, True, True    # a freshly generated id is unowned by construction
 
     def _apply_verifier_replacements(self, ids: list[str],
                                      replace: dict[str, str]) -> None:
@@ -670,21 +678,43 @@ class Fleet:
         except Exception:
             pass
 
-    async def validate_verifier_ownership(self) -> None:
-        """Replace verifiers held by another account before work starts."""
+    async def validate_verifier_ownership(self, reason: str = "startup") -> int:
+        """One ownership pass: replace foreign verifiers, register the unowned ones.
+
+        Runs at startup and again whenever the verifier set changes
+        (`refresh_verifiers`).  Three outcomes per verifier:
+
+        * 有所属非当前账号 -> a brand new, unowned id takes its place (自动切换);
+        * 无所属（无主）   -> registered to this account right now (注册到名下);
+        * 属于当前账号     -> left alone.
+
+        Returns how many verifiers were registered in this pass.
+        """
         if not self.remote.cookie or not self.account_signed_in:
-            self.on_event("verifiers", "归属校验跳过：当前未登录")
-            return
+            self.on_event("verifiers", f"归属校验跳过（{reason}）：当前未登录")
+            return 0
         owned = await self._account_device_prefixes()
         since = self._local_midnight_utc_hour()
         ids = list(self.cfg.get("verifiers") or [])
         replace: dict[str, str] = {}
+        unowned_of: dict[str, bool] = {}
         for vid in ids:
-            new = await self._validate_one_verifier(vid, owned, since)
+            new, state, unowned = await self._validate_one_verifier(vid, owned, since)
+            unowned_of[new or vid] = bool(unowned)
             if new:
                 replace[vid] = new
         if replace:
             self._apply_verifier_replacements(ids, replace)
+        registered = 0
+        for v in self.verifiers:
+            if v.account_claimed or not unowned_of.get(v.vid):
+                continue
+            if await self._claim_unowned(v, reason):
+                registered += 1
+        if registered:
+            self.on_event("verifiers", f"归属校验（{reason}）：{registered} 个 verifier "
+                                       f"登记到当前账号")
+        return registered
 
     def ensure_verifiers(self) -> None:
         want = self.cfg["max_verifiers"]
@@ -990,7 +1020,7 @@ class Fleet:
         # FIRST, ALWAYS: without verifiers the whole loop has nothing to do.
         self.ensure_verifiers()
         await self._login_account()
-        await self.validate_verifier_ownership()
+        await self.validate_verifier_ownership("启动")
         rel = await self._io(self.remote.release_info)
         self._apply_engine_ids(rel)
         # DELAYED CLAIM.  Work verifiers start unclaimed so they can act as
@@ -1375,10 +1405,14 @@ class Fleet:
         except Exception as e:
             return {"transport_error": f"{type(e).__name__}: {e}"}
 
-    def _apply_claim_result(self, v: Verifier, r: dict, ok: bool) -> None:
+    def _apply_claim_result(self, v: Verifier, r: dict, ok: bool,
+                            when: str = "delayed") -> None:
         if not ok:
             v.last_error = str(r.get("error") or r.get("body") or r)
-            self.on_event("claim", f"{v.label} delayed claim failed: {v.last_error}")
+            if when == "delayed":
+                self.on_event("claim", f"{v.label} delayed claim failed: {v.last_error}")
+            else:
+                self.on_event("claim", f"{v.label} 归属登记失败（{when}）：{v.last_error}")
             return
         v.account_claimed = True
         # A device's lifetime total now includes work done before the account
@@ -1393,8 +1427,36 @@ class Fleet:
             self.on_config_changed()
         except Exception as e:
             self.on_event("error", f"could not persist claim: {e}")
-        self.on_event("claim", f"{v.label} claimed after current+ahead "
-                               f"(two tasks held)")
+        if when == "delayed":
+            self.on_event("claim", f"{v.label} claimed after current+ahead "
+                                   f"(two tasks held)")
+        else:
+            self.on_event("claim", f"{v.label} 无主，已登记到当前账号名下（{when}）")
+
+    async def _claim_unowned(self, v: Verifier, reason: str) -> bool:
+        """Register an unowned device to the current account, right now.
+
+        `_maybe_claim` is the *delayed* path: it waits for two leases so that a
+        copy of the client cannot steal the original machine's device identity
+        on its first start.  An explicit ownership pass (startup, verifier
+        refresh) is the opposite case — the id is verified unowned, so the user
+        asked for it to be registered to this account immediately.
+        """
+        if v.account_claimed or v.claim_pending:
+            return v.account_claimed
+        v.claim_pending = True
+        label = claim_label(v)
+        self.log.event("claim_begin", verifier=v.vid, label=label, tasks_held=0,
+                       reason=reason)
+        try:
+            r = await self._send_claim(v, label)
+        finally:
+            v.claim_pending = False
+        ok = bool(isinstance(r, dict) and r.get("ok"))
+        self.log.event("claim_result", verifier=v.vid, ok=ok, response=r,
+                       tasks_held=0, reason=reason)
+        self._apply_claim_result(v, r, ok, when=reason)
+        return ok
 
     async def _maybe_claim(self, v: Verifier) -> bool:
         """Delayed claim: only after the first and `ahead:true` tasks are held.
@@ -4395,6 +4457,11 @@ class Fleet:
             self._store_refreshed_verifiers(fresh)
             self.on_event("refresh", f"{len(fresh)} fresh verifier ids created "
                                      f"(delayed claim after current+ahead)")
+            # 换了 ver：立刻再校一次归属，无主的登记到当前账号名下（m06136）
+            try:
+                await self.validate_verifier_ownership("ver 刷新")
+            except Exception as e:
+                self.on_event("error", f"ver 刷新后的归属校验失败：{type(e).__name__}: {e}")
             return len(fresh)
         finally:
             self.maintenance = was_maintenance

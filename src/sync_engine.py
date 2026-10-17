@@ -46,6 +46,7 @@ import socket
 import subprocess
 import tarfile
 import time
+import zipfile
 from datetime import datetime, timezone
 import urllib.error
 import urllib.parse
@@ -1289,6 +1290,153 @@ def download_core(engine: str) -> pathlib.Path:
 
 
 # ---------------------------------------------------------------------------
+# THE WHOLE-PACKAGE UPDATE: the portable zip carries the client AND the core
+# ---------------------------------------------------------------------------
+#: The engine id moving is the server's signal, and the matching CLIENT may have
+#: moved with it.  The zip this fetches is byte-for-byte the one the release
+#: page publishes for manual download, so the automatic and the manual path
+#: exercise the same artifact instead of two that can drift apart.
+PORTABLE_ASSET = "wfsim-portable-{engine}.zip"
+
+#: Never overwritten by a package update: this machine's identity and its own
+#: build inputs.  data/config.json carries the account, the PAT and the verifier
+#: ids — losing it would sign the user out and drop their identities.
+PORTABLE_KEEP = ("data/config.json", "build-deps.json")
+PORTABLE_KEEP_PREFIX = (
+    "logs/",                          # this machine's own history
+    "build-deps/",                    # the self-build dependency pack
+    "toolchain-msvc/",                # the trimmed toolchain that pack carries
+    "build-cache/",                   # cargo caches and staged cores
+    "engine-src/work/",               # the synced upstream tree
+    "engine/wfsim-core.native.exe",   # the engine THIS machine built for itself
+    "engine/wfsim-core.exe.prev",
+)
+PORTABLE_UPDATE_DIR = BUILD / "update"
+
+
+def portable_asset_url(engine: str) -> str:
+    return (f"https://github.com/{update_repo()}/releases/download/"
+            f"portable-{engine}/wfsim-portable-{engine}.zip")
+
+
+def release_asset_sha256(tag: str, name: str) -> str:
+    """GitHub's own sha256 for one release asset, or "" when it is not there.
+
+    A first check only: after unpacking, the core is hashed again against the
+    sha256 the package's own engine-src/state.json names.
+    """
+    url = f"https://api.github.com/repos/{REPO}/releases/tags/{tag}"
+    try:
+        rel = json.loads(http_bytes(url).decode("utf-8"))
+    except Exception as e:                                       # noqa: BLE001
+        log(f"release {tag}: cannot read asset digests ({type(e).__name__}: {e})")
+        return ""
+    for asset in (rel.get("assets") or []):
+        if str(asset.get("name") or "") == name:
+            digest = str(asset.get("digest") or "")
+            if digest.startswith("sha256:"):
+                return digest.split(":", 1)[1].strip().lower()
+    return ""
+
+
+def download_portable(engine: str) -> pathlib.Path:
+    """Fetch the whole portable package for `engine`: client + core together."""
+    engine = str(engine or "").strip()
+    if not engine:
+        raise RuntimeError("download_portable needs an engine id")
+    name = PORTABLE_ASSET.format(engine=engine)
+    url = portable_asset_url(engine)
+    want = release_asset_sha256(f"portable-{engine}", name)
+    log(f"downloading {url}")
+    data = http_bytes(url)
+    got = sha256(data)
+    if want and got != want:
+        raise RuntimeError(f"downloaded portable sha256 mismatch: {got} != {want}")
+    if not want:
+        log("note: the release carried no asset digest; the contents decide")
+    PORTABLE_UPDATE_DIR.mkdir(parents=True, exist_ok=True)
+    dest = PORTABLE_UPDATE_DIR / name
+    tmp = dest.with_suffix(".zip.tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, dest)
+    log(f"downloaded portable {engine} sha256={got[:12]} bytes={len(data)}")
+    return dest
+
+
+def latest_portable() -> pathlib.Path | None:
+    """The newest downloaded package, for `--install-portable` with no path."""
+    if not PORTABLE_UPDATE_DIR.is_dir():
+        return None
+    hits = sorted(PORTABLE_UPDATE_DIR.glob("wfsim-portable-*.zip"),
+                  key=lambda p: p.stat().st_mtime, reverse=True)
+    return hits[0] if hits else None
+
+
+def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool, str]:
+    """Copy a downloaded package over this folder, in place.
+
+    In place, not by renaming folders: this process keeps running while the
+    files are replaced, and a rename would depend on it having exited first.
+    Python re-reads .py sources at import time, so the new client takes effect
+    on the relaunch that follows.  Locked binaries (the running python.exe, a
+    core in use) are skipped and reported instead of failing the whole update —
+    they are also the files that never change.
+    """
+    path = pathlib.Path(zip_path) if zip_path else latest_portable()
+    if path is None or not path.is_file():
+        return False, "没有已下载的便携包（先跑 --download-portable <engine>）"
+    stage = PORTABLE_UPDATE_DIR / "unpacked"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True, exist_ok=True)
+    root = stage.resolve()
+    with zipfile.ZipFile(path) as z:
+        for name in z.namelist():
+            if name.endswith("/"):
+                continue
+            target = (stage / name).resolve()
+            # zip-slip: an entry may never escape the staging folder
+            if target != root and root not in target.parents:
+                return False, f"压缩包里有越界路径：{name}"
+        z.extractall(stage)
+    for need in ("src/app.py", "engine/wfsim-core.exe", "engine-src/state.json"):
+        if not (stage / need).is_file():
+            return False, f"更新包不完整：缺少 {need}"
+    try:
+        pkg_state = json.loads((stage / "engine-src" / "state.json")
+                               .read_text(encoding="utf-8-sig"))
+    except Exception as e:                                       # noqa: BLE001
+        return False, f"更新包的 state.json 读不出来：{type(e).__name__}: {e}"
+    want = str(pkg_state.get("sha256") or "").strip().lower()
+    got = file_sha256(stage / "engine" / "wfsim-core.exe")
+    if want and got != want:
+        return False, (f"更新包里的引擎 sha256 对不上：{got[:12]} != {want[:12]}"
+                       "（下载不完整或被人改过）")
+    copied, skipped = 0, []
+    for src in sorted(stage.rglob("*")):
+        if not src.is_file():
+            continue
+        rel = src.relative_to(stage).as_posix()
+        if rel in PORTABLE_KEEP or rel.startswith(PORTABLE_KEEP_PREFIX):
+            continue
+        dest = ROOT / rel
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+            copied += 1
+        except PermissionError:
+            skipped.append(rel)                 # python.exe / 引擎 / dll 正在用
+        except OSError as e:                                     # noqa: PERF203
+            skipped.append(f"{rel}({type(e).__name__})")
+    shutil.rmtree(stage, ignore_errors=True)
+    msg = f"整包更新：替换 {copied} 个文件"
+    if skipped:
+        msg += f"，{len(skipped)} 个被占用保持原样（下次重开会再更新）"
+        log("skipped (in use): " + ", ".join(skipped[:8]))
+    log(msg)
+    return True, msg
+
+
+# ---------------------------------------------------------------------------
 # THE LOCAL LINE, MSVC FLAVOUR: the optional self-build dependency pack
 # ---------------------------------------------------------------------------
 #: The pack the user unpacks into the portable folder (ci/deps/README-自编译依赖.md).
@@ -1648,13 +1796,45 @@ def native_active() -> bool:
     if (isinstance(nat, dict) and nat.get("engine")
             and str(nat.get("engine")) == str(state.get("engine") or "")
             and str(nat.get("patches_sha") or "") == patches_sha()
-            and str(nat.get("sha256") or "").lower() == file_sha256(NATIVE_CORE)):
+            and str(nat.get("sha256") or "").lower() == file_sha256(NATIVE_CORE)
+            and str(nat.get("cpu") or "") in ("", cores.cpu_model())):
         ok = True
     _NATIVE_MEMO = (stamp, ok)
     return ok
 
 
 _NATIVE_MEMO: tuple[tuple, bool] | None = None
+
+
+def native_ignore_reason() -> str:
+    """Why the local native core is NOT in force: "", "missing", "revision", "cpu".
+
+    `-C target-cpu=native` produces a machine-specific binary, so the one thing
+    that must never happen is running it on another CPU: the build records the
+    CPU it was made on, and a recorded mismatch refuses the overlay exactly like
+    a revision mismatch does.  The whole portable folder can be copied to a
+    second PC, so this is checked wherever the engine path is taken, not only at
+    startup.
+
+    "" means it IS in force (or there is no overlay to talk about), so callers
+    can show a specific sentence: "the server moved on" and "this was built for
+    another CPU" need different advice.
+    """
+    try:
+        if not NATIVE_CORE.exists():
+            return "missing"
+        state = load_state()
+        nat = state.get("native") or {}
+        if not isinstance(nat, dict) or not nat.get("engine"):
+            return "missing"
+        if str(nat.get("engine")) != str(state.get("engine") or ""):
+            return "revision"
+        built_for = str(nat.get("cpu") or "")
+        if built_for and built_for != cores.cpu_model():
+            return "cpu"
+    except Exception:
+        return "missing"
+    return ""
 
 
 def engine_exe_override(configured: str) -> str | None:
@@ -1691,6 +1871,9 @@ def engine_status() -> dict:
         "native_ok": ok,
         "native_file": NATIVE_CORE.exists(),
         "native": nat if isinstance(nat, dict) else {},
+        "native_reason": native_ignore_reason(),
+        "native_cpu": str(nat.get("cpu") or "") if isinstance(nat, dict) else "",
+        "this_cpu": cores.cpu_model(),
         "engine": state.get("engine"),
         "cpu": state.get("cpu"),
         "deps": deps_pack() is not None,
@@ -1822,6 +2005,12 @@ def _build_parser() -> argparse.ArgumentParser:
                     help="install the previously staged core with no network/build")
     ap.add_argument("--download-core", metavar="ENGINE", default="",
                     help="prebuilt line: fetch + stage the published core for this engine id")
+    ap.add_argument("--download-portable", metavar="ENGINE", default="",
+                    help="prebuilt line: fetch the whole published package "
+                         "(client + core) for this engine id")
+    ap.add_argument("--install-portable", metavar="ZIP", nargs="?", const="", default=None,
+                    help="copy the downloaded package over this folder in place "
+                         "(no argument = the newest one already downloaded)")
     ap.add_argument("--build-native", action="store_true",
                     help="local line: build the fastest engine for THIS machine from the "
                          "self-build dependency pack, check it, adopt it as the overlay")
@@ -1983,6 +2172,17 @@ def main() -> int:
         except Exception as e:
             log(f"ERROR: {type(e).__name__}: {e}")
             return 1
+    if args.download_portable:
+        try:
+            download_portable(args.download_portable)
+            return 0
+        except Exception as e:
+            log(f"ERROR: {type(e).__name__}: {e}")
+            return 1
+    if args.install_portable is not None:
+        ok, msg = install_portable(args.install_portable or None)
+        log(msg)
+        return 0 if ok else 1
 
     try:
         rel = release_info()

@@ -148,8 +148,11 @@ def engine_kind_text() -> tuple[str, str]:
         note = "已启用 PGO" if nat.get("pgo") else "无 PGO"
         return value, note
     if st.get("native_file"):
-        # A native core exists but was built for another revision: it is being
-        # ignored on purpose, and saying so is better than a silent downgrade.
+        # A native core exists but is being ignored on purpose.  "another
+        # revision" and "another CPU" are different problems with different
+        # cures, so the row says which one it is instead of a silent downgrade.
+        if st.get("native_reason") == "cpu":
+            return value, "native 换机失效"
         return value, "native 已过期"
     return value, ("未编译" if st.get("deps") else "")
 
@@ -884,6 +887,9 @@ class WfSimClient(App):
         self.ready = False
         self._startup: asyncio.Task | None = None
         self._updating = False
+        #: True while a WHOLE-PACKAGE download is staged: it replaces src/ as
+        #: well as engine/, so finishing it means relaunching this client.
+        self._package_pending = False
         #: GitHub's switchable-engine catalog, refreshed on the same 10-minute
         #: timer as the source update check.
         self._engine_catalog: dict | None = None
@@ -2308,8 +2314,14 @@ class WfSimClient(App):
         elif st.get("kind") == "gnu":
             self._event("engine", "运行引擎：本地编译（GNU）")
         elif st.get("native_file"):
-            self._event("engine", "运行引擎：通用 v3（AVX2）；本机 native 引擎与服务器版本"
-                                 "不一致，已自动回落")
+            if st.get("native_reason") == "cpu":
+                # Copied to another machine: `-C target-cpu=native` binaries are
+                # not portable, so this one is refused rather than risked.
+                self._event("engine", "运行引擎：通用 v3（AVX2）；本机 native 引擎是为另一台"
+                                      "设备（CPU 不同）编译的，已自动忽略")
+            else:
+                self._event("engine", "运行引擎：通用 v3（AVX2）；本机 native 引擎与服务器版本"
+                                      "不一致，已自动回落")
         else:
             self._event("engine", "运行引擎：通用 v3（AVX2）")
 
@@ -2369,6 +2381,14 @@ class WfSimClient(App):
                 except Exception:
                     pass
                 e.proc = None
+        if self._package_pending:
+            rc = await self._run_sync_engine("--install-portable")
+            if rc != 0:
+                raise RuntimeError(f"整包替换退出码 {rc}")
+            self._package_pending = False
+            self._event("update", "整包已替换（客户端 + 引擎）；重启窗口以启用新版本")
+            await self._relaunch()
+            return
         rc = await self._run_sync_engine("--install-staged")
         if rc != 0:
             raise RuntimeError(f"安装 staged 核心退出码 {rc}")
@@ -2378,6 +2398,36 @@ class WfSimClient(App):
         self._event("update", f"核心替换完成；用新核心重启 {self.fleet.slot_count()} 个计算进程")
         if not await self._restart_fleet():
             raise RuntimeError("新核心无法启动")
+
+    async def _relaunch(self) -> None:
+        """Start a fresh client from this folder, then quit this one.
+
+        A whole-package update replaces src/*.py, which Python has already
+        imported — the new client can only run in a new process.  It gets its own
+        console (the same window the user would have opened by hand) and is then
+        checked once: if it died immediately, this window stays so the error in
+        logs/ is still visible.
+        """
+        bat = paths.ROOT / "run-portable.bat"
+        flags = (int(getattr(subprocess, "CREATE_NEW_CONSOLE", 0x10))
+                 | int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x200)))
+        try:
+            if bat.is_file():
+                proc = subprocess.Popen(["cmd", "/c", str(bat)],
+                                        cwd=str(paths.ROOT), creationflags=flags)
+            else:
+                proc = subprocess.Popen([sys.executable, "src/app.py"],
+                                        cwd=str(paths.ROOT), creationflags=flags)
+        except Exception as e:                                       # noqa: BLE001
+            self._event("error", f"自动重启失败（{type(e).__name__}: {e}）；请手动重开客户端")
+            return
+        await asyncio.sleep(3.0)
+        if proc.poll() is not None:
+            self._event("error", "新版本启动后立即退出（见 logs/error.log）；继续用当前窗口")
+            return
+        self._event("update", "新版本已在新窗口启动；这个窗口会自己关闭")
+        await asyncio.sleep(1.0)
+        self.exit()
 
     async def _resume_after_update(self, was_paused: bool, rel: dict) -> None:
         if was_paused:
@@ -2399,18 +2449,30 @@ class WfSimClient(App):
         await self._rollback_core(old_engine, old_state)
 
     async def _prepare_download(self, rel: dict, reason: str = "") -> None:
-        """Prebuilt line: fetch the published core FIRST, drain only to install.
+        """Prebuilt line: fetch the published package FIRST, drain only to install.
 
-        The order is the point for a volunteer machine.  A download needs no
-        idle slots, so the fleet keeps computing all the way through it, and the
-        pause-drain starts only once the bytes are staged — at which point the
-        swap is the only thing left.
+        Two shapes, in this order (the whole package is what the user asked for):
+          1. the whole portable package — it carries the client sources too, so a
+             server-side engine move brings the CLIENT forward as well;
+          2. the core binary alone — the fallback for a fresh engine tag whose
+             portable zip has not been published yet.
+
+        Either way a download needs no idle slot, so the fleet keeps computing
+        all the way through it and the pause-drain starts only once the bytes are
+        staged — at which point the swap is the only thing left.
         """
         engine = str(rel.get("engine") or "")
-        self._event("update", f"{reason or '服务器已下发新引擎'}：下载核心 {engine}")
-        rc = await self._run_sync_engine("--download-core", engine)
-        if rc != 0:
-            raise RuntimeError(f"下载核心退出码 {rc}")
+        why = reason or "服务器已下发新引擎"
+        self._event("update", f"{why}：下载整包 {engine}")
+        rc = await self._run_sync_engine("--download-portable", engine)
+        if rc == 0:
+            self._package_pending = True
+        else:
+            self._package_pending = False
+            self._event("update", f"整包暂不可用；改为只下载核心 {engine}")
+            rc = await self._run_sync_engine("--download-core", engine)
+            if rc != 0:
+                raise RuntimeError(f"下载核心退出码 {rc}")
         self._event("update", "下载完成；进入暂停排空流程")
         self.fleet.maintenance = True
         await self.fleet.pause_drain()
@@ -2796,16 +2858,31 @@ class WfSimClient(App):
 
 
 def _cpu_rebuild_prompt() -> None:
-    """If the installed core was built for another CPU, offer a clean rebuild.
+    """If a core on disk was built for another CPU, say so and offer a rebuild.
 
-    The engine is compiled with `-C target-cpu=native`, so an exe copied from
-    another machine may be slower there or, on a CPU missing an instruction it
-    used, refuse to start.  The state file records the CPU it was built on.
+    Two cores can be built for the wrong CPU, and they are not the same problem:
+      * the GENERIC core is built for x86-64-v3 in CI, so it runs everywhere; the
+        recorded CPU there is only a speed hint, and the record is refreshed;
+      * the LOCAL native core is built with `-C target-cpu=native`, so it is
+        machine-specific.  The whole portable folder can be copied to a second
+        PC, so `sync_engine.native_active()` refuses an overlay whose recorded
+        CPU is not this one, and this is where the user hears about it.
+
+    What is offered depends on the line the package is on: a prebuilt package
+    without a dependency pack has no toolchain and no sources, so a GNU rebuild
+    would fail before it started -- the honest answer there is "keep using the
+    generic core".  With a dependency pack the local line is `--build-native`,
+    which only writes the overlay and therefore cannot lose the fallback.
     """
     try:
         state = sync_engine.load_state() or {}
         recorded = str(state.get("cpu") or "").strip()
         current = cores.cpu_model().strip()
+        nat = state.get("native") or {}
+        nat_cpu = str(nat.get("cpu") or "").strip() if isinstance(nat, dict) else ""
+        has_native = sync_engine.NATIVE_CORE.exists()
+        prebuilt = sync_engine.core_source() == sync_engine.CORE_SOURCE_PREBUILT
+        pack = sync_engine.deps_pack() is not None
     except Exception:
         return
     if not current:
@@ -2816,14 +2893,42 @@ def _cpu_rebuild_prompt() -> None:
             sync_engine.save_state(state)
         except Exception:
             pass
-        return
-    if recorded == current:
+        recorded = current
+    stale_native = bool(has_native and nat_cpu and nat_cpu != current)
+    if recorded == current and not stale_native:
         return
     print()
-    print("检测到当前引擎不是为这台设备编译的：")
-    print(f"  引擎编译时的 CPU: {recorded}")
-    print(f"  当前设备的 CPU  : {current}")
-    print("直接用旧 exe 可能性能较低，极端情况下会因缺少指令集而无法运行。")
+    if stale_native:
+        print("本机 native 引擎不是为这台设备编译的，已自动忽略（回落通用引擎）：")
+        print(f"  native 编译时的 CPU: {nat_cpu}")
+        print(f"  当前设备的 CPU     : {current}")
+    if recorded != current:
+        print("检测到通用引擎不是为这台设备编译的：")
+        print(f"  引擎编译时的 CPU: {recorded}")
+        print(f"  当前设备的 CPU  : {current}")
+        print("通用引擎是 x86-64-v3（AVX2）产物，可以照常使用；"
+              "想要本机最快速度可以按当前 CPU 重新编译。")
+    if prebuilt and not pack:
+        print("本包是预编译包（不含工具链与源码）：继续使用通用引擎即可。"
+              "想在这台机器上编译最快引擎，请把自编译依赖包解压进本目录。")
+        return
+    script = os.path.join(paths.HERE, "sync_engine.py")
+    if pack:
+        print("本包带自编译依赖包：可以编译本机最快引擎（native + PGO）。")
+        try:
+            answer = input("是否现在编译本机最快引擎？[y/N] ").strip().lower()
+        except Exception:
+            answer = ""
+        if answer not in ("y", "yes"):
+            print("已选择否：直接进入主界面，之后可在设置页点“编译本机最快引擎”。")
+            return
+        print("开始编译，通常需要 2~4 分钟；期间照常计算，请不要关闭窗口。")
+        rc = subprocess.call([sys.executable, "-B", script, "--build-native"])
+        if rc != 0:
+            print(f"编译失败（退出码 {rc}），继续使用现有引擎。")
+            return
+        print("编译完成，本机最快引擎已启用。")
+        return
     try:
         answer = input("是否现在不用缓存、按当前 CPU 重新编译引擎？[y/N] ").strip().lower()
     except Exception:
@@ -2831,7 +2936,6 @@ def _cpu_rebuild_prompt() -> None:
     if answer not in ("y", "yes"):
         print("已选择否：直接进入主界面，继续使用现有引擎。")
         return
-    script = os.path.join(paths.HERE, "sync_engine.py")
     print("开始清理缓存并重新编译，通常需要几分钟；期间请不要关闭窗口。")
     for args in (["--force", "--build-only", "--clean"], ["--install-staged"]):
         rc = subprocess.call([sys.executable, "-B", script, *args])
