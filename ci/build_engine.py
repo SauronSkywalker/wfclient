@@ -17,6 +17,12 @@ Gates (must pass, otherwise nothing is published):
 
 ``--target-cpu native`` is deliberately NOT the default: a runner's CPU is not the user's,
 so pin a portable baseline (x86-64-v3 == Haswell 2013+, measured 12.5% slower than native).
+
+Editing this file does not rebuild anything by itself: only ``ci/patches/**`` and
+``ci/core-host-template/**`` trigger the workflow on push, because an edit to a script
+cannot move a byte of the engine.  A tooling change like this one rides along with the
+next patch change, the six-hourly cron, or a manual "Run workflow" press -- one cold run
+costs ~9 minutes of a Windows runner across four jobs (run 38991005621).
 """
 from __future__ import annotations
 
