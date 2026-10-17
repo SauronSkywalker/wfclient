@@ -314,7 +314,7 @@
     "failed_starts": [],
     "fights": 31838,
     "final_runs": 100,
-    "final_work": 384146538,
+    "final_work": 384254369,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -473,22 +473,6 @@
             ],
             "malus": null
            },
-           "2+1": {
-            "bonuses": [
-             {
-              "id": null,
-              "roll": 1
-             },
-             {
-              "id": null,
-              "roll": 1
-             }
-            ],
-            "malus": {
-             "id": null,
-             "roll": 1
-            }
-           },
            "3": {
             "bonuses": [
              {
@@ -505,6 +489,22 @@
              }
             ],
             "malus": null
+           },
+           "2+1": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": {
+             "id": null,
+             "roll": 1
+            }
            },
            "3+1": {
             "bonuses": [
@@ -669,14 +669,14 @@
         0,
         0.5
        ],
-       "threads": 6,
        "valence_bonus": 0,
        "valence_element": "",
        "weapon": "ocucor",
-       "wf_energy_pct": 1
+       "wf_energy_pct": 1,
+       "threads": 6
       },
       "valence": "",
-      "work": 384146538
+      "work": 384254369
      }
     ],
     "sampled": 1040.0,
@@ -691,8 +691,7 @@
      "level": 9999,
      "name": "Thrax Centurion",
      "steel_path": true
-    },
-    "work": 109619762120
+    }
    }
   },
   "note": {
@@ -7654,7 +7653,7 @@
     "failed_starts": [],
     "fights": 57050,
     "final_runs": 100,
-    "final_work": 692839077,
+    "final_work": 692978633,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 2,
@@ -7828,22 +7827,6 @@
             ],
             "malus": null
            },
-           "2+1": {
-            "bonuses": [
-             {
-              "id": null,
-              "roll": 1
-             },
-             {
-              "id": null,
-              "roll": 1
-             }
-            ],
-            "malus": {
-             "id": null,
-             "roll": 1
-            }
-           },
            "3": {
             "bonuses": [
              {
@@ -7860,6 +7843,22 @@
              }
             ],
             "malus": null
+           },
+           "2+1": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": {
+             "id": null,
+             "roll": 1
+            }
            },
            "3+1": {
             "bonuses": [
@@ -8024,14 +8023,14 @@
         0,
         0.5
        ],
-       "threads": 6,
        "valence_bonus": 0,
        "valence_element": "",
        "weapon": "ocucor",
-       "wf_energy_pct": 1
+       "wf_energy_pct": 1,
+       "threads": 6
       },
       "valence": "",
-      "work": 365645085
+      "work": 365718006
      }
     ],
     "sampled": 1719.0,
@@ -8046,8 +8045,7 @@
      "level": 9999,
      "name": "Thrax Centurion",
      "steel_path": true
-    },
-    "work": 181393536760
+    }
    }
   },
   "note": {
@@ -14277,7 +14275,7 @@
     "failed_starts": [],
     "fights": 48196,
     "final_runs": 100,
-    "final_work": 371141045,
+    "final_work": 371247380,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -14436,22 +14434,6 @@
             ],
             "malus": null
            },
-           "2+1": {
-            "bonuses": [
-             {
-              "id": null,
-              "roll": 1
-             },
-             {
-              "id": null,
-              "roll": 1
-             }
-            ],
-            "malus": {
-             "id": null,
-             "roll": 1
-            }
-           },
            "3": {
             "bonuses": [
              {
@@ -14468,6 +14450,22 @@
              }
             ],
             "malus": null
+           },
+           "2+1": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": {
+             "id": null,
+             "roll": 1
+            }
            },
            "3+1": {
             "bonuses": [
@@ -14632,14 +14630,14 @@
         0,
         0.5
        ],
-       "threads": 6,
        "valence_bonus": 0,
        "valence_element": "",
        "weapon": "ocucor",
-       "wf_energy_pct": 1
+       "wf_energy_pct": 1,
+       "threads": 6
       },
       "valence": "",
-      "work": 371141045
+      "work": 371247380
      }
     ],
     "sampled": 1593.0,
@@ -14654,8 +14652,7 @@
      "level": 9999,
      "name": "Thrax Centurion",
      "steel_path": true
-    },
-    "work": 163213756977
+    }
    }
   },
   "note": {

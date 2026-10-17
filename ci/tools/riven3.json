@@ -1,1 +1,2204 @@
-[{"id": "riven-SR2N0246", "kind": "riven", "lanes": 6, "payload": {"code": "SR2N0246", "request": {"__weapon": "ocucor", "abilities": [], "ability_strength": null, "aim_at": null, "aim_gliding": false, "aiming": true, "airborne": false, "also_acting": [], "ancient_protector_aura": false, "apl": [], "auras": [], "buff_triggers_off": [], "buffs": {}, "candidate_runs": 10, "channeling": false, "custom_enemies": [], "duration": 180, "enemy": "thrax_centurion", "every_rank": {"arcanes": [], "mods": ["hunter_track", "continuous_misery", "lingering_torment", "perpetual_agony", "augur_seeker", "lasting_sting"]}, "eximus": null, "extra_stats": {}, "finalists": 1, "formation": [], "frame": "", "guardian_aura": false, "headshot_pct": 100, "infinite_ammo": true, "invisible": false, "level": 9999, "limits": {"arcane_seats": [true], "exclude": {"arcanes": [], "evolutions": [], "modes": [], "mods": [], "valence": []}, "exilus": true, "mods": 8}, "melee_equipped": true, "metric": "kpm", "mode": "base", "overshields": false, "player_at": [0, 0], "rivens": [{"id": "rmv6g90dvax9", "name": "riven 1", "spec": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "multishot", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}], "drafts": {"2": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "3": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "2+1": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": {"id": null, "roll": 1}}, "3+1": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "multishot", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}], "malus": {"id": "status_duration", "roll": 0.9}}}, "malus": {"id": "status_duration", "roll": 0.9}, "polarity": "madurai", "rank": 8, "shape": "3+1"}}], "runs": 100, "seed": 12648430, "shards": [], "sliding": false, "solo_weapon": false, "spectral_form": false, "squad_size": 1, "stance": "", "starts": [{"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "scorch", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "frostbite", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "jolt", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "pistol_pestilence", null, null, null, null, null, null, null, null], "valence_element": null}], "steel_path": true, "strategy": "quick", "target_at": [0, 0.5], "valence_bonus": 0, "valence_element": "", "weapon": "ocucor", "wf_energy_pct": 1}}, "expected": {"result": {"builds": 5293, "cancelled": false, "candidates": 1, "coverage": 1.1087803756069862e-08, "cut": false, "duration": 180.0, "exhaustive": false, "failed_starts": [], "fights": 31838, "final_runs": 100, "final_work": 384146538, "finalists": 1, "headshot_pct": 100.0, "jobs": 1, "ok": true, "results": [{"arcane": ["secondary_fortifier"], "arcane_rank": [5], "dps": 6058282.416410564, "evolutions": [], "exilus": "eject_magazine", "forma": {"total_drain": 58, "used": 6}, "from_starts": [{"from": 21.1413481155729, "moves": 9, "start": 3}], "kill_progress": 40.37058876618983, "kill_progress_se": 0.1597470923891746, "kills": 39.84, "kills_max": 44, "kills_min": 35, "mode": "base", "mods": ["frostbite", "pistol_pestilence", "primed_heated_charge", "galvanized_diffusion", "lethal_torrent", "magnetic_might", "pistol_elementalist", "riven:rmv6g90dvax9"], "rank": 1, "replay": {"__weapon": "ocucor", "abilities": [], "ability_strength": null, "aim_at": null, "aim_gliding": false, "aiming": true, "airborne": false, "also_acting": [], "ancient_protector_aura": false, "apl": [], "arcane": ["secondary_fortifier"], "arcane_rank": [5], "auras": [], "buff_triggers_off": [], "buffs": {}, "build_min": 0, "build_size": 8, "candidate_runs": 10, "channeling": false, "custom_enemies": [], "duration": 180, "enemy": "thrax_centurion", "every_rank": {"arcanes": [], "mods": ["hunter_track", "continuous_misery", "lingering_torment", "perpetual_agony", "augur_seeker", "lasting_sting"]}, "evolutions": [], "eximus": null, "extra_stats": {}, "finalists": 1, "formation": [], "frame": "", "guardian_aura": false, "headshot_pct": 100, "infinite_ammo": true, "invisible": false, "level": 9999, "limits": {"arcane_seats": [true], "exclude": {"arcanes": [], "evolutions": [], "modes": [], "mods": [], "valence": []}, "exilus": true, "mods": 8}, "melee_equipped": true, "metric": "kpm", "mode": "base", "mods": ["frostbite", "pistol_pestilence", "primed_heated_charge", "galvanized_diffusion", "lethal_torrent", "magnetic_might", "pistol_elementalist", "riven:rmv6g90dvax9", "eject_magazine"], "overshields": false, "player_at": [0, 0], "rivens": [{"id": "rmv6g90dvax9", "name": "riven 1", "spec": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "multishot", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}], "drafts": {"2": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "2+1": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": {"id": null, "roll": 1}}, "3": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "3+1": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "multishot", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}], "malus": {"id": "status_duration", "roll": 0.9}}}, "malus": {"id": "status_duration", "roll": 0.9}, "polarity": "madurai", "rank": 8, "shape": "3+1"}}], "runs": 100, "seed": 12648430, "shards": [], "sliding": false, "solo_weapon": false, "spectral_form": false, "squad_size": 1, "stance": "", "starts": [{"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "scorch", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "frostbite", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "jolt", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g90dvax9", "pistol_pestilence", null, null, null, null, null, null, null, null], "valence_element": null}], "steel_path": true, "strategy": "quick", "target_at": [0, 0.5], "threads": 6, "valence_bonus": 0, "valence_element": "", "weapon": "ocucor", "wf_energy_pct": 1}, "valence": "", "work": 384146538}], "sampled": 1040.0, "search_work": 109235615582, "searched": 1040, "shard": 0, "shards": 1, "space": 93796753882.0, "starts": 4, "strategy": "descent", "target": {"level": 9999, "name": "Thrax Centurion", "steel_path": true}, "work": 109619762120}}, "note": {"weapon": "ocucor", "ruler": "standard_single_target", "build_s": 43.1, "result_keys": ["builds", "cancelled", "candidates", "coverage", "cut", "duration", "exhaustive", "failed_starts", "fights", "final_runs", "final_work", "finalists", "headshot_pct", "jobs", "ok", "results", "sampled", "search_work", "searched", "shard", "shards", "space", "starts", "strategy", "target", "work"]}}, {"id": "riven-SR2N024X", "kind": "riven", "lanes": 6, "payload": {"code": "SR2N024X", "request": {"__weapon": "ocucor", "abilities": [], "ability_strength": null, "aim_at": null, "aim_gliding": false, "aiming": true, "airborne": false, "also_acting": [], "ancient_protector_aura": false, "apl": [], "auras": [], "buff_triggers_off": [], "buffs": {}, "candidate_runs": 10, "channeling": false, "custom_enemies": [], "duration": 180, "enemy": "thrax_centurion", "every_rank": {"arcanes": [], "mods": ["hunter_track", "continuous_misery", "lingering_torment", "perpetual_agony", "augur_seeker", "lasting_sting"]}, "eximus": null, "extra_stats": {}, "finalists": 1, "formation": [], "frame": "", "guardian_aura": false, "headshot_pct": 100, "infinite_ammo": true, "invisible": false, "level": 9999, "limits": {"arcane_seats": [true], "exclude": {"arcanes": [], "evolutions": [], "modes": [], "mods": [], "valence": []}, "exilus": true, "mods": 8}, "melee_equipped": true, "metric": "kpm", "mode": "base", "overshields": false, "player_at": [0, 0], "rivens": [{"id": "rmv6g916cxyt", "name": "riven 1", "spec": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "projectile_speed", "roll": 1.1}, {"id": "toxin", "roll": 1.1}], "drafts": {"2": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "3": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "2+1": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": {"id": null, "roll": 1}}, "3+1": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "projectile_speed", "roll": 1.1}, {"id": "toxin", "roll": 1.1}], "malus": {"id": "status_duration", "roll": 1.1}}}, "malus": {"id": "status_duration", "roll": 1.1}, "polarity": "madurai", "rank": 8, "shape": "3+1"}}], "runs": 100, "seed": 12648430, "shards": [], "sliding": false, "solo_weapon": false, "spectral_form": false, "squad_size": 1, "stance": "", "starts": [{"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "scorch", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "frostbite", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "jolt", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "pistol_pestilence", null, null, null, null, null, null, null, null], "valence_element": null}], "steel_path": true, "strategy": "quick", "target_at": [0, 0.5], "valence_bonus": 0, "valence_element": "", "weapon": "ocucor", "wf_energy_pct": 1}}, "expected": {"result": {"builds": 7140, "cancelled": false, "candidates": 2, "coverage": 1.8326860246811628e-08, "cut": false, "duration": 180.0, "exhaustive": false, "failed_starts": [], "fights": 57050, "final_runs": 100, "final_work": 692839077, "finalists": 1, "headshot_pct": 100.0, "jobs": 2, "ok": true, "results": [{"arcane": ["secondary_fortifier"], "arcane_rank": [5], "dps": 4183404.3177442946, "evolutions": [], "exilus": "eject_magazine", "forma": {"total_drain": 60, "used": 5}, "from_starts": [{"from": 4.682237975907745, "moves": 15, "start": 0}, {"from": 8.805148723173847, "moves": 13, "start": 1}, {"from": 5.550068552182685, "moves": 12, "start": 2}, {"from": 3.88661602331398, "moves": 15, "start": 3}], "kill_progress": 26.244764566946273, "kill_progress_se": 0.0637219739251482, "kills": 25.65, "kills_max": 27, "kills_min": 24, "mode": "base", "mods": ["frostbite", "riven:rmv6g916cxyt", "primed_heated_charge", "anemic_agility", "augur_seeker", "galvanized_diffusion", "magnetic_might", "pistol_elementalist"], "rank": 1, "replay": {"__weapon": "ocucor", "abilities": [], "ability_strength": null, "aim_at": null, "aim_gliding": false, "aiming": true, "airborne": false, "also_acting": [], "ancient_protector_aura": false, "apl": [], "arcane": ["secondary_fortifier"], "arcane_rank": [5], "auras": [], "buff_triggers_off": [], "buffs": {}, "build_min": 0, "build_size": 8, "candidate_runs": 10, "channeling": false, "custom_enemies": [], "duration": 180, "enemy": "thrax_centurion", "every_rank": {"arcanes": [], "mods": ["hunter_track", "continuous_misery", "lingering_torment", "perpetual_agony", "augur_seeker", "lasting_sting"]}, "evolutions": [], "eximus": null, "extra_stats": {}, "finalists": 1, "formation": [], "frame": "", "guardian_aura": false, "headshot_pct": 100, "infinite_ammo": true, "invisible": false, "level": 9999, "limits": {"arcane_seats": [true], "exclude": {"arcanes": [], "evolutions": [], "modes": [], "mods": [], "valence": []}, "exilus": true, "mods": 8}, "melee_equipped": true, "metric": "kpm", "mode": "base", "mods": ["frostbite", "riven:rmv6g916cxyt", "primed_heated_charge", "anemic_agility", "augur_seeker", "galvanized_diffusion", "magnetic_might", "pistol_elementalist", "eject_magazine"], "overshields": false, "player_at": [0, 0], "rivens": [{"id": "rmv6g916cxyt", "name": "riven 1", "spec": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "projectile_speed", "roll": 1.1}, {"id": "toxin", "roll": 1.1}], "drafts": {"2": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "2+1": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": {"id": null, "roll": 1}}, "3": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "3+1": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "projectile_speed", "roll": 1.1}, {"id": "toxin", "roll": 1.1}], "malus": {"id": "status_duration", "roll": 1.1}}}, "malus": {"id": "status_duration", "roll": 1.1}, "polarity": "madurai", "rank": 8, "shape": "3+1"}}], "runs": 100, "seed": 12648430, "shards": [], "sliding": false, "solo_weapon": false, "spectral_form": false, "squad_size": 1, "stance": "", "starts": [{"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "scorch", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "frostbite", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "jolt", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g916cxyt", "pistol_pestilence", null, null, null, null, null, null, null, null], "valence_element": null}], "steel_path": true, "strategy": "quick", "target_at": [0, 0.5], "threads": 6, "valence_bonus": 0, "valence_element": "", "weapon": "ocucor", "wf_energy_pct": 1}, "valence": "", "work": 365645085}], "sampled": 1719.0, "search_work": 180700697683, "searched": 1719, "shard": 0, "shards": 1, "space": 93796753882.0, "starts": 4, "strategy": "descent", "target": {"level": 9999, "name": "Thrax Centurion", "steel_path": true}, "work": 181393536760}}, "note": {"weapon": "ocucor", "ruler": "standard_single_target", "build_s": 70.1, "result_keys": ["builds", "cancelled", "candidates", "coverage", "cut", "duration", "exhaustive", "failed_starts", "fights", "final_runs", "final_work", "finalists", "headshot_pct", "jobs", "ok", "results", "sampled", "search_work", "searched", "shard", "shards", "space", "starts", "strategy", "target", "work"]}}, {"id": "riven-SR2N0270", "kind": "riven", "lanes": 6, "payload": {"code": "SR2N0270", "request": {"__weapon": "ocucor", "abilities": [], "ability_strength": null, "aim_at": null, "aim_gliding": false, "aiming": true, "airborne": false, "also_acting": [], "ancient_protector_aura": false, "apl": [], "auras": [], "buff_triggers_off": [], "buffs": {}, "candidate_runs": 10, "channeling": false, "custom_enemies": [], "duration": 180, "enemy": "thrax_centurion", "every_rank": {"arcanes": [], "mods": ["hunter_track", "continuous_misery", "lingering_torment", "perpetual_agony", "augur_seeker", "lasting_sting"]}, "eximus": null, "extra_stats": {}, "finalists": 1, "formation": [], "frame": "", "guardian_aura": false, "headshot_pct": 100, "infinite_ammo": true, "invisible": false, "level": 9999, "limits": {"arcane_seats": [true], "exclude": {"arcanes": [], "evolutions": [], "modes": [], "mods": [], "valence": []}, "exilus": true, "mods": 8}, "melee_equipped": true, "metric": "kpm", "mode": "base", "overshields": false, "player_at": [0, 0], "rivens": [{"id": "rmv6g9319zrq", "name": "riven 1", "spec": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}, {"id": "weak_point_critical_chance", "roll": 1.1}], "drafts": {"2": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "3": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "2+1": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": {"id": null, "roll": 1}}, "3+1": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}, {"id": "weak_point_critical_chance", "roll": 1.1}], "malus": {"id": "status_duration", "roll": 0.9}}}, "malus": {"id": "status_duration", "roll": 0.9}, "polarity": "madurai", "rank": 8, "shape": "3+1"}}], "runs": 100, "seed": 12648430, "shards": [], "sliding": false, "solo_weapon": false, "spectral_form": false, "squad_size": 1, "stance": "", "starts": [{"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "scorch", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "frostbite", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "jolt", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "pistol_pestilence", null, null, null, null, null, null, null, null], "valence_element": null}], "steel_path": true, "strategy": "quick", "target_at": [0, 0.5], "valence_bonus": 0, "valence_element": "", "weapon": "ocucor", "wf_energy_pct": 1}}, "expected": {"result": {"builds": 8177, "cancelled": false, "candidates": 1, "coverage": 1.69835301763647e-08, "cut": false, "duration": 180.0, "exhaustive": false, "failed_starts": [], "fights": 48196, "final_runs": 100, "final_work": 371141045, "finalists": 1, "headshot_pct": 100.0, "jobs": 1, "ok": true, "results": [{"arcane": ["secondary_encumber"], "arcane_rank": [5], "dps": 3391707.290933135, "evolutions": [], "exilus": "eject_magazine", "forma": {"total_drain": 60, "used": 6}, "from_starts": [{"from": 9.699486561434561, "moves": 11, "start": 0}], "kill_progress": 23.15902167286422, "kill_progress_se": 0.06123676919258956, "kills": 22.58, "kills_max": 24, "kills_min": 21, "mode": "base", "mods": ["primed_heated_charge", "augur_seeker", "galvanized_diffusion", "galvanized_shot", "lethal_torrent", "magnetic_might", "pistol_elementalist", "riven:rmv6g9319zrq"], "rank": 1, "replay": {"__weapon": "ocucor", "abilities": [], "ability_strength": null, "aim_at": null, "aim_gliding": false, "aiming": true, "airborne": false, "also_acting": [], "ancient_protector_aura": false, "apl": [], "arcane": ["secondary_encumber"], "arcane_rank": [5], "auras": [], "buff_triggers_off": [], "buffs": {}, "build_min": 0, "build_size": 8, "candidate_runs": 10, "channeling": false, "custom_enemies": [], "duration": 180, "enemy": "thrax_centurion", "every_rank": {"arcanes": [], "mods": ["hunter_track", "continuous_misery", "lingering_torment", "perpetual_agony", "augur_seeker", "lasting_sting"]}, "evolutions": [], "eximus": null, "extra_stats": {}, "finalists": 1, "formation": [], "frame": "", "guardian_aura": false, "headshot_pct": 100, "infinite_ammo": true, "invisible": false, "level": 9999, "limits": {"arcane_seats": [true], "exclude": {"arcanes": [], "evolutions": [], "modes": [], "mods": [], "valence": []}, "exilus": true, "mods": 8}, "melee_equipped": true, "metric": "kpm", "mode": "base", "mods": ["primed_heated_charge", "augur_seeker", "galvanized_diffusion", "galvanized_shot", "lethal_torrent", "magnetic_might", "pistol_elementalist", "riven:rmv6g9319zrq", "eject_magazine"], "overshields": false, "player_at": [0, 0], "rivens": [{"id": "rmv6g9319zrq", "name": "riven 1", "spec": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}, {"id": "weak_point_critical_chance", "roll": 1.1}], "drafts": {"2": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "2+1": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": {"id": null, "roll": 1}}, "3": {"bonuses": [{"id": null, "roll": 1}, {"id": null, "roll": 1}, {"id": null, "roll": 1}], "malus": null}, "3+1": {"bonuses": [{"id": "damage", "roll": 1.1}, {"id": "status_chance", "roll": 1.1}, {"id": "weak_point_critical_chance", "roll": 1.1}], "malus": {"id": "status_duration", "roll": 0.9}}}, "malus": {"id": "status_duration", "roll": 0.9}, "polarity": "madurai", "rank": 8, "shape": "3+1"}}], "runs": 100, "seed": 12648430, "shards": [], "sliding": false, "solo_weapon": false, "spectral_form": false, "squad_size": 1, "stance": "", "starts": [{"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "scorch", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "frostbite", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "jolt", null, null, null, null, null, null, null, null], "valence_element": null}, {"arcane": ["none"], "arcane_rank": [null], "evolutions": [], "fixed": [{"idx": 0, "kind": "mods"}], "mode": null, "slots": ["riven:rmv6g9319zrq", "pistol_pestilence", null, null, null, null, null, null, null, null], "valence_element": null}], "steel_path": true, "strategy": "quick", "target_at": [0, 0.5], "threads": 6, "valence_bonus": 0, "valence_element": "", "weapon": "ocucor", "wf_energy_pct": 1}, "valence": "", "work": 371141045}], "sampled": 1593.0, "search_work": 162842615932, "searched": 1593, "shard": 0, "shards": 1, "space": 93796753882.0, "starts": 4, "strategy": "descent", "target": {"level": 9999, "name": "Thrax Centurion", "steel_path": true}, "work": 163213756977}}, "note": {"weapon": "ocucor", "ruler": "standard_single_target", "build_s": 85.6, "result_keys": ["builds", "cancelled", "candidates", "coverage", "cut", "duration", "exhaustive", "failed_starts", "fights", "final_runs", "final_work", "finalists", "headshot_pct", "jobs", "ok", "results", "sampled", "search_work", "searched", "shard", "shards", "space", "starts", "strategy", "target", "work"]}}]
+[
+ {
+  "id": "riven-SR2N0246",
+  "kind": "riven",
+  "lanes": 6,
+  "payload": {
+   "code": "SR2N0246",
+   "request": {
+    "__weapon": "ocucor",
+    "abilities": [],
+    "ability_strength": null,
+    "aim_at": null,
+    "aim_gliding": false,
+    "aiming": true,
+    "airborne": false,
+    "also_acting": [],
+    "ancient_protector_aura": false,
+    "apl": [],
+    "auras": [],
+    "buff_triggers_off": [],
+    "buffs": {},
+    "candidate_runs": 10,
+    "channeling": false,
+    "custom_enemies": [],
+    "duration": 180,
+    "enemy": "thrax_centurion",
+    "every_rank": {
+     "arcanes": [],
+     "mods": [
+      "hunter_track",
+      "continuous_misery",
+      "lingering_torment",
+      "perpetual_agony",
+      "augur_seeker",
+      "lasting_sting"
+     ]
+    },
+    "eximus": null,
+    "extra_stats": {},
+    "finalists": 1,
+    "formation": [],
+    "frame": "",
+    "guardian_aura": false,
+    "headshot_pct": 100,
+    "infinite_ammo": true,
+    "invisible": false,
+    "level": 9999,
+    "limits": {
+     "arcane_seats": [
+      true
+     ],
+     "exclude": {
+      "arcanes": [],
+      "evolutions": [],
+      "modes": [],
+      "mods": [],
+      "valence": []
+     },
+     "exilus": true,
+     "mods": 8
+    },
+    "melee_equipped": true,
+    "metric": "kpm",
+    "mode": "base",
+    "overshields": false,
+    "player_at": [
+     0,
+     0
+    ],
+    "rivens": [
+     {
+      "id": "rmv6g90dvax9",
+      "name": "riven 1",
+      "spec": {
+       "bonuses": [
+        {
+         "id": "damage",
+         "roll": 1.1
+        },
+        {
+         "id": "multishot",
+         "roll": 1.1
+        },
+        {
+         "id": "status_chance",
+         "roll": 1.1
+        }
+       ],
+       "drafts": {
+        "2": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": null
+        },
+        "3": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": null
+        },
+        "2+1": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": {
+          "id": null,
+          "roll": 1
+         }
+        },
+        "3+1": {
+         "bonuses": [
+          {
+           "id": "damage",
+           "roll": 1.1
+          },
+          {
+           "id": "multishot",
+           "roll": 1.1
+          },
+          {
+           "id": "status_chance",
+           "roll": 1.1
+          }
+         ],
+         "malus": {
+          "id": "status_duration",
+          "roll": 0.9
+         }
+        }
+       },
+       "malus": {
+        "id": "status_duration",
+        "roll": 0.9
+       },
+       "polarity": "madurai",
+       "rank": 8,
+       "shape": "3+1"
+      }
+     }
+    ],
+    "runs": 100,
+    "seed": 12648430,
+    "shards": [],
+    "sliding": false,
+    "solo_weapon": false,
+    "spectral_form": false,
+    "squad_size": 1,
+    "stance": "",
+    "starts": [
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g90dvax9",
+       "scorch",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g90dvax9",
+       "frostbite",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g90dvax9",
+       "jolt",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g90dvax9",
+       "pistol_pestilence",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     }
+    ],
+    "steel_path": true,
+    "strategy": "quick",
+    "target_at": [
+     0,
+     0.5
+    ],
+    "valence_bonus": 0,
+    "valence_element": "",
+    "weapon": "ocucor",
+    "wf_energy_pct": 1
+   }
+  },
+  "expected": {
+   "result": {
+    "builds": 5293,
+    "cancelled": false,
+    "candidates": 1,
+    "coverage": 1.1087803756069862e-08,
+    "cut": false,
+    "duration": 180.0,
+    "exhaustive": false,
+    "failed_starts": [],
+    "fights": 31838,
+    "final_runs": 100,
+    "final_work": 384254369,
+    "finalists": 1,
+    "headshot_pct": 100.0,
+    "jobs": 1,
+    "ok": true,
+    "results": [
+     {
+      "arcane": [
+       "secondary_fortifier"
+      ],
+      "arcane_rank": [
+       5
+      ],
+      "dps": 6058282.416410564,
+      "evolutions": [],
+      "exilus": "eject_magazine",
+      "forma": {
+       "total_drain": 58,
+       "used": 6
+      },
+      "from_starts": [
+       {
+        "from": 21.1413481155729,
+        "moves": 9,
+        "start": 3
+       }
+      ],
+      "kill_progress": 40.37058876618983,
+      "kill_progress_se": 0.1597470923891746,
+      "kills": 39.84,
+      "kills_max": 44,
+      "kills_min": 35,
+      "mode": "base",
+      "mods": [
+       "frostbite",
+       "pistol_pestilence",
+       "primed_heated_charge",
+       "galvanized_diffusion",
+       "lethal_torrent",
+       "magnetic_might",
+       "pistol_elementalist",
+       "riven:rmv6g90dvax9"
+      ],
+      "rank": 1,
+      "replay": {
+       "__weapon": "ocucor",
+       "abilities": [],
+       "ability_strength": null,
+       "aim_at": null,
+       "aim_gliding": false,
+       "aiming": true,
+       "airborne": false,
+       "also_acting": [],
+       "ancient_protector_aura": false,
+       "apl": [],
+       "arcane": [
+        "secondary_fortifier"
+       ],
+       "arcane_rank": [
+        5
+       ],
+       "auras": [],
+       "buff_triggers_off": [],
+       "buffs": {},
+       "build_min": 0,
+       "build_size": 8,
+       "candidate_runs": 10,
+       "channeling": false,
+       "custom_enemies": [],
+       "duration": 180,
+       "enemy": "thrax_centurion",
+       "every_rank": {
+        "arcanes": [],
+        "mods": [
+         "hunter_track",
+         "continuous_misery",
+         "lingering_torment",
+         "perpetual_agony",
+         "augur_seeker",
+         "lasting_sting"
+        ]
+       },
+       "evolutions": [],
+       "eximus": null,
+       "extra_stats": {},
+       "finalists": 1,
+       "formation": [],
+       "frame": "",
+       "guardian_aura": false,
+       "headshot_pct": 100,
+       "infinite_ammo": true,
+       "invisible": false,
+       "level": 9999,
+       "limits": {
+        "arcane_seats": [
+         true
+        ],
+        "exclude": {
+         "arcanes": [],
+         "evolutions": [],
+         "modes": [],
+         "mods": [],
+         "valence": []
+        },
+        "exilus": true,
+        "mods": 8
+       },
+       "melee_equipped": true,
+       "metric": "kpm",
+       "mode": "base",
+       "mods": [
+        "frostbite",
+        "pistol_pestilence",
+        "primed_heated_charge",
+        "galvanized_diffusion",
+        "lethal_torrent",
+        "magnetic_might",
+        "pistol_elementalist",
+        "riven:rmv6g90dvax9",
+        "eject_magazine"
+       ],
+       "overshields": false,
+       "player_at": [
+        0,
+        0
+       ],
+       "rivens": [
+        {
+         "id": "rmv6g90dvax9",
+         "name": "riven 1",
+         "spec": {
+          "bonuses": [
+           {
+            "id": "damage",
+            "roll": 1.1
+           },
+           {
+            "id": "multishot",
+            "roll": 1.1
+           },
+           {
+            "id": "status_chance",
+            "roll": 1.1
+           }
+          ],
+          "drafts": {
+           "2": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": null
+           },
+           "3": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": null
+           },
+           "2+1": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": {
+             "id": null,
+             "roll": 1
+            }
+           },
+           "3+1": {
+            "bonuses": [
+             {
+              "id": "damage",
+              "roll": 1.1
+             },
+             {
+              "id": "multishot",
+              "roll": 1.1
+             },
+             {
+              "id": "status_chance",
+              "roll": 1.1
+             }
+            ],
+            "malus": {
+             "id": "status_duration",
+             "roll": 0.9
+            }
+           }
+          },
+          "malus": {
+           "id": "status_duration",
+           "roll": 0.9
+          },
+          "polarity": "madurai",
+          "rank": 8,
+          "shape": "3+1"
+         }
+        }
+       ],
+       "runs": 100,
+       "seed": 12648430,
+       "shards": [],
+       "sliding": false,
+       "solo_weapon": false,
+       "spectral_form": false,
+       "squad_size": 1,
+       "stance": "",
+       "starts": [
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g90dvax9",
+          "scorch",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g90dvax9",
+          "frostbite",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g90dvax9",
+          "jolt",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g90dvax9",
+          "pistol_pestilence",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        }
+       ],
+       "steel_path": true,
+       "strategy": "quick",
+       "target_at": [
+        0,
+        0.5
+       ],
+       "valence_bonus": 0,
+       "valence_element": "",
+       "weapon": "ocucor",
+       "wf_energy_pct": 1,
+       "threads": 6
+      },
+      "valence": "",
+      "work": 384254369
+     }
+    ],
+    "sampled": 1040.0,
+    "search_work": 109235615582,
+    "searched": 1040,
+    "shard": 0,
+    "shards": 1,
+    "space": 93796753882.0,
+    "starts": 4,
+    "strategy": "descent",
+    "target": {
+     "level": 9999,
+     "name": "Thrax Centurion",
+     "steel_path": true
+    }
+   }
+  },
+  "note": {
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "build_s": 43.1,
+   "result_keys": [
+    "builds",
+    "cancelled",
+    "candidates",
+    "coverage",
+    "cut",
+    "duration",
+    "exhaustive",
+    "failed_starts",
+    "fights",
+    "final_runs",
+    "final_work",
+    "finalists",
+    "headshot_pct",
+    "jobs",
+    "ok",
+    "results",
+    "sampled",
+    "search_work",
+    "searched",
+    "shard",
+    "shards",
+    "space",
+    "starts",
+    "strategy",
+    "target",
+    "work"
+   ]
+  }
+ },
+ {
+  "id": "riven-SR2N024X",
+  "kind": "riven",
+  "lanes": 6,
+  "payload": {
+   "code": "SR2N024X",
+   "request": {
+    "__weapon": "ocucor",
+    "abilities": [],
+    "ability_strength": null,
+    "aim_at": null,
+    "aim_gliding": false,
+    "aiming": true,
+    "airborne": false,
+    "also_acting": [],
+    "ancient_protector_aura": false,
+    "apl": [],
+    "auras": [],
+    "buff_triggers_off": [],
+    "buffs": {},
+    "candidate_runs": 10,
+    "channeling": false,
+    "custom_enemies": [],
+    "duration": 180,
+    "enemy": "thrax_centurion",
+    "every_rank": {
+     "arcanes": [],
+     "mods": [
+      "hunter_track",
+      "continuous_misery",
+      "lingering_torment",
+      "perpetual_agony",
+      "augur_seeker",
+      "lasting_sting"
+     ]
+    },
+    "eximus": null,
+    "extra_stats": {},
+    "finalists": 1,
+    "formation": [],
+    "frame": "",
+    "guardian_aura": false,
+    "headshot_pct": 100,
+    "infinite_ammo": true,
+    "invisible": false,
+    "level": 9999,
+    "limits": {
+     "arcane_seats": [
+      true
+     ],
+     "exclude": {
+      "arcanes": [],
+      "evolutions": [],
+      "modes": [],
+      "mods": [],
+      "valence": []
+     },
+     "exilus": true,
+     "mods": 8
+    },
+    "melee_equipped": true,
+    "metric": "kpm",
+    "mode": "base",
+    "overshields": false,
+    "player_at": [
+     0,
+     0
+    ],
+    "rivens": [
+     {
+      "id": "rmv6g916cxyt",
+      "name": "riven 1",
+      "spec": {
+       "bonuses": [
+        {
+         "id": "damage",
+         "roll": 1.1
+        },
+        {
+         "id": "projectile_speed",
+         "roll": 1.1
+        },
+        {
+         "id": "toxin",
+         "roll": 1.1
+        }
+       ],
+       "drafts": {
+        "2": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": null
+        },
+        "3": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": null
+        },
+        "2+1": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": {
+          "id": null,
+          "roll": 1
+         }
+        },
+        "3+1": {
+         "bonuses": [
+          {
+           "id": "damage",
+           "roll": 1.1
+          },
+          {
+           "id": "projectile_speed",
+           "roll": 1.1
+          },
+          {
+           "id": "toxin",
+           "roll": 1.1
+          }
+         ],
+         "malus": {
+          "id": "status_duration",
+          "roll": 1.1
+         }
+        }
+       },
+       "malus": {
+        "id": "status_duration",
+        "roll": 1.1
+       },
+       "polarity": "madurai",
+       "rank": 8,
+       "shape": "3+1"
+      }
+     }
+    ],
+    "runs": 100,
+    "seed": 12648430,
+    "shards": [],
+    "sliding": false,
+    "solo_weapon": false,
+    "spectral_form": false,
+    "squad_size": 1,
+    "stance": "",
+    "starts": [
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g916cxyt",
+       "scorch",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g916cxyt",
+       "frostbite",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g916cxyt",
+       "jolt",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g916cxyt",
+       "pistol_pestilence",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     }
+    ],
+    "steel_path": true,
+    "strategy": "quick",
+    "target_at": [
+     0,
+     0.5
+    ],
+    "valence_bonus": 0,
+    "valence_element": "",
+    "weapon": "ocucor",
+    "wf_energy_pct": 1
+   }
+  },
+  "expected": {
+   "result": {
+    "builds": 7140,
+    "cancelled": false,
+    "candidates": 2,
+    "coverage": 1.8326860246811628e-08,
+    "cut": false,
+    "duration": 180.0,
+    "exhaustive": false,
+    "failed_starts": [],
+    "fights": 57050,
+    "final_runs": 100,
+    "final_work": 692978633,
+    "finalists": 1,
+    "headshot_pct": 100.0,
+    "jobs": 2,
+    "ok": true,
+    "results": [
+     {
+      "arcane": [
+       "secondary_fortifier"
+      ],
+      "arcane_rank": [
+       5
+      ],
+      "dps": 4183404.3177442946,
+      "evolutions": [],
+      "exilus": "eject_magazine",
+      "forma": {
+       "total_drain": 60,
+       "used": 5
+      },
+      "from_starts": [
+       {
+        "from": 4.682237975907745,
+        "moves": 15,
+        "start": 0
+       },
+       {
+        "from": 8.805148723173847,
+        "moves": 13,
+        "start": 1
+       },
+       {
+        "from": 5.550068552182685,
+        "moves": 12,
+        "start": 2
+       },
+       {
+        "from": 3.88661602331398,
+        "moves": 15,
+        "start": 3
+       }
+      ],
+      "kill_progress": 26.244764566946273,
+      "kill_progress_se": 0.0637219739251482,
+      "kills": 25.65,
+      "kills_max": 27,
+      "kills_min": 24,
+      "mode": "base",
+      "mods": [
+       "frostbite",
+       "riven:rmv6g916cxyt",
+       "primed_heated_charge",
+       "anemic_agility",
+       "augur_seeker",
+       "galvanized_diffusion",
+       "magnetic_might",
+       "pistol_elementalist"
+      ],
+      "rank": 1,
+      "replay": {
+       "__weapon": "ocucor",
+       "abilities": [],
+       "ability_strength": null,
+       "aim_at": null,
+       "aim_gliding": false,
+       "aiming": true,
+       "airborne": false,
+       "also_acting": [],
+       "ancient_protector_aura": false,
+       "apl": [],
+       "arcane": [
+        "secondary_fortifier"
+       ],
+       "arcane_rank": [
+        5
+       ],
+       "auras": [],
+       "buff_triggers_off": [],
+       "buffs": {},
+       "build_min": 0,
+       "build_size": 8,
+       "candidate_runs": 10,
+       "channeling": false,
+       "custom_enemies": [],
+       "duration": 180,
+       "enemy": "thrax_centurion",
+       "every_rank": {
+        "arcanes": [],
+        "mods": [
+         "hunter_track",
+         "continuous_misery",
+         "lingering_torment",
+         "perpetual_agony",
+         "augur_seeker",
+         "lasting_sting"
+        ]
+       },
+       "evolutions": [],
+       "eximus": null,
+       "extra_stats": {},
+       "finalists": 1,
+       "formation": [],
+       "frame": "",
+       "guardian_aura": false,
+       "headshot_pct": 100,
+       "infinite_ammo": true,
+       "invisible": false,
+       "level": 9999,
+       "limits": {
+        "arcane_seats": [
+         true
+        ],
+        "exclude": {
+         "arcanes": [],
+         "evolutions": [],
+         "modes": [],
+         "mods": [],
+         "valence": []
+        },
+        "exilus": true,
+        "mods": 8
+       },
+       "melee_equipped": true,
+       "metric": "kpm",
+       "mode": "base",
+       "mods": [
+        "frostbite",
+        "riven:rmv6g916cxyt",
+        "primed_heated_charge",
+        "anemic_agility",
+        "augur_seeker",
+        "galvanized_diffusion",
+        "magnetic_might",
+        "pistol_elementalist",
+        "eject_magazine"
+       ],
+       "overshields": false,
+       "player_at": [
+        0,
+        0
+       ],
+       "rivens": [
+        {
+         "id": "rmv6g916cxyt",
+         "name": "riven 1",
+         "spec": {
+          "bonuses": [
+           {
+            "id": "damage",
+            "roll": 1.1
+           },
+           {
+            "id": "projectile_speed",
+            "roll": 1.1
+           },
+           {
+            "id": "toxin",
+            "roll": 1.1
+           }
+          ],
+          "drafts": {
+           "2": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": null
+           },
+           "3": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": null
+           },
+           "2+1": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": {
+             "id": null,
+             "roll": 1
+            }
+           },
+           "3+1": {
+            "bonuses": [
+             {
+              "id": "damage",
+              "roll": 1.1
+             },
+             {
+              "id": "projectile_speed",
+              "roll": 1.1
+             },
+             {
+              "id": "toxin",
+              "roll": 1.1
+             }
+            ],
+            "malus": {
+             "id": "status_duration",
+             "roll": 1.1
+            }
+           }
+          },
+          "malus": {
+           "id": "status_duration",
+           "roll": 1.1
+          },
+          "polarity": "madurai",
+          "rank": 8,
+          "shape": "3+1"
+         }
+        }
+       ],
+       "runs": 100,
+       "seed": 12648430,
+       "shards": [],
+       "sliding": false,
+       "solo_weapon": false,
+       "spectral_form": false,
+       "squad_size": 1,
+       "stance": "",
+       "starts": [
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g916cxyt",
+          "scorch",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g916cxyt",
+          "frostbite",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g916cxyt",
+          "jolt",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g916cxyt",
+          "pistol_pestilence",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        }
+       ],
+       "steel_path": true,
+       "strategy": "quick",
+       "target_at": [
+        0,
+        0.5
+       ],
+       "valence_bonus": 0,
+       "valence_element": "",
+       "weapon": "ocucor",
+       "wf_energy_pct": 1,
+       "threads": 6
+      },
+      "valence": "",
+      "work": 365718006
+     }
+    ],
+    "sampled": 1719.0,
+    "search_work": 180700697683,
+    "searched": 1719,
+    "shard": 0,
+    "shards": 1,
+    "space": 93796753882.0,
+    "starts": 4,
+    "strategy": "descent",
+    "target": {
+     "level": 9999,
+     "name": "Thrax Centurion",
+     "steel_path": true
+    }
+   }
+  },
+  "note": {
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "build_s": 70.1,
+   "result_keys": [
+    "builds",
+    "cancelled",
+    "candidates",
+    "coverage",
+    "cut",
+    "duration",
+    "exhaustive",
+    "failed_starts",
+    "fights",
+    "final_runs",
+    "final_work",
+    "finalists",
+    "headshot_pct",
+    "jobs",
+    "ok",
+    "results",
+    "sampled",
+    "search_work",
+    "searched",
+    "shard",
+    "shards",
+    "space",
+    "starts",
+    "strategy",
+    "target",
+    "work"
+   ]
+  }
+ },
+ {
+  "id": "riven-SR2N0270",
+  "kind": "riven",
+  "lanes": 6,
+  "payload": {
+   "code": "SR2N0270",
+   "request": {
+    "__weapon": "ocucor",
+    "abilities": [],
+    "ability_strength": null,
+    "aim_at": null,
+    "aim_gliding": false,
+    "aiming": true,
+    "airborne": false,
+    "also_acting": [],
+    "ancient_protector_aura": false,
+    "apl": [],
+    "auras": [],
+    "buff_triggers_off": [],
+    "buffs": {},
+    "candidate_runs": 10,
+    "channeling": false,
+    "custom_enemies": [],
+    "duration": 180,
+    "enemy": "thrax_centurion",
+    "every_rank": {
+     "arcanes": [],
+     "mods": [
+      "hunter_track",
+      "continuous_misery",
+      "lingering_torment",
+      "perpetual_agony",
+      "augur_seeker",
+      "lasting_sting"
+     ]
+    },
+    "eximus": null,
+    "extra_stats": {},
+    "finalists": 1,
+    "formation": [],
+    "frame": "",
+    "guardian_aura": false,
+    "headshot_pct": 100,
+    "infinite_ammo": true,
+    "invisible": false,
+    "level": 9999,
+    "limits": {
+     "arcane_seats": [
+      true
+     ],
+     "exclude": {
+      "arcanes": [],
+      "evolutions": [],
+      "modes": [],
+      "mods": [],
+      "valence": []
+     },
+     "exilus": true,
+     "mods": 8
+    },
+    "melee_equipped": true,
+    "metric": "kpm",
+    "mode": "base",
+    "overshields": false,
+    "player_at": [
+     0,
+     0
+    ],
+    "rivens": [
+     {
+      "id": "rmv6g9319zrq",
+      "name": "riven 1",
+      "spec": {
+       "bonuses": [
+        {
+         "id": "damage",
+         "roll": 1.1
+        },
+        {
+         "id": "status_chance",
+         "roll": 1.1
+        },
+        {
+         "id": "weak_point_critical_chance",
+         "roll": 1.1
+        }
+       ],
+       "drafts": {
+        "2": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": null
+        },
+        "3": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": null
+        },
+        "2+1": {
+         "bonuses": [
+          {
+           "id": null,
+           "roll": 1
+          },
+          {
+           "id": null,
+           "roll": 1
+          }
+         ],
+         "malus": {
+          "id": null,
+          "roll": 1
+         }
+        },
+        "3+1": {
+         "bonuses": [
+          {
+           "id": "damage",
+           "roll": 1.1
+          },
+          {
+           "id": "status_chance",
+           "roll": 1.1
+          },
+          {
+           "id": "weak_point_critical_chance",
+           "roll": 1.1
+          }
+         ],
+         "malus": {
+          "id": "status_duration",
+          "roll": 0.9
+         }
+        }
+       },
+       "malus": {
+        "id": "status_duration",
+        "roll": 0.9
+       },
+       "polarity": "madurai",
+       "rank": 8,
+       "shape": "3+1"
+      }
+     }
+    ],
+    "runs": 100,
+    "seed": 12648430,
+    "shards": [],
+    "sliding": false,
+    "solo_weapon": false,
+    "spectral_form": false,
+    "squad_size": 1,
+    "stance": "",
+    "starts": [
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g9319zrq",
+       "scorch",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g9319zrq",
+       "frostbite",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g9319zrq",
+       "jolt",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     },
+     {
+      "arcane": [
+       "none"
+      ],
+      "arcane_rank": [
+       null
+      ],
+      "evolutions": [],
+      "fixed": [
+       {
+        "idx": 0,
+        "kind": "mods"
+       }
+      ],
+      "mode": null,
+      "slots": [
+       "riven:rmv6g9319zrq",
+       "pistol_pestilence",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "valence_element": null
+     }
+    ],
+    "steel_path": true,
+    "strategy": "quick",
+    "target_at": [
+     0,
+     0.5
+    ],
+    "valence_bonus": 0,
+    "valence_element": "",
+    "weapon": "ocucor",
+    "wf_energy_pct": 1
+   }
+  },
+  "expected": {
+   "result": {
+    "builds": 8177,
+    "cancelled": false,
+    "candidates": 1,
+    "coverage": 1.69835301763647e-08,
+    "cut": false,
+    "duration": 180.0,
+    "exhaustive": false,
+    "failed_starts": [],
+    "fights": 48196,
+    "final_runs": 100,
+    "final_work": 371247380,
+    "finalists": 1,
+    "headshot_pct": 100.0,
+    "jobs": 1,
+    "ok": true,
+    "results": [
+     {
+      "arcane": [
+       "secondary_encumber"
+      ],
+      "arcane_rank": [
+       5
+      ],
+      "dps": 3391707.290933135,
+      "evolutions": [],
+      "exilus": "eject_magazine",
+      "forma": {
+       "total_drain": 60,
+       "used": 6
+      },
+      "from_starts": [
+       {
+        "from": 9.699486561434561,
+        "moves": 11,
+        "start": 0
+       }
+      ],
+      "kill_progress": 23.15902167286422,
+      "kill_progress_se": 0.06123676919258956,
+      "kills": 22.58,
+      "kills_max": 24,
+      "kills_min": 21,
+      "mode": "base",
+      "mods": [
+       "primed_heated_charge",
+       "augur_seeker",
+       "galvanized_diffusion",
+       "galvanized_shot",
+       "lethal_torrent",
+       "magnetic_might",
+       "pistol_elementalist",
+       "riven:rmv6g9319zrq"
+      ],
+      "rank": 1,
+      "replay": {
+       "__weapon": "ocucor",
+       "abilities": [],
+       "ability_strength": null,
+       "aim_at": null,
+       "aim_gliding": false,
+       "aiming": true,
+       "airborne": false,
+       "also_acting": [],
+       "ancient_protector_aura": false,
+       "apl": [],
+       "arcane": [
+        "secondary_encumber"
+       ],
+       "arcane_rank": [
+        5
+       ],
+       "auras": [],
+       "buff_triggers_off": [],
+       "buffs": {},
+       "build_min": 0,
+       "build_size": 8,
+       "candidate_runs": 10,
+       "channeling": false,
+       "custom_enemies": [],
+       "duration": 180,
+       "enemy": "thrax_centurion",
+       "every_rank": {
+        "arcanes": [],
+        "mods": [
+         "hunter_track",
+         "continuous_misery",
+         "lingering_torment",
+         "perpetual_agony",
+         "augur_seeker",
+         "lasting_sting"
+        ]
+       },
+       "evolutions": [],
+       "eximus": null,
+       "extra_stats": {},
+       "finalists": 1,
+       "formation": [],
+       "frame": "",
+       "guardian_aura": false,
+       "headshot_pct": 100,
+       "infinite_ammo": true,
+       "invisible": false,
+       "level": 9999,
+       "limits": {
+        "arcane_seats": [
+         true
+        ],
+        "exclude": {
+         "arcanes": [],
+         "evolutions": [],
+         "modes": [],
+         "mods": [],
+         "valence": []
+        },
+        "exilus": true,
+        "mods": 8
+       },
+       "melee_equipped": true,
+       "metric": "kpm",
+       "mode": "base",
+       "mods": [
+        "primed_heated_charge",
+        "augur_seeker",
+        "galvanized_diffusion",
+        "galvanized_shot",
+        "lethal_torrent",
+        "magnetic_might",
+        "pistol_elementalist",
+        "riven:rmv6g9319zrq",
+        "eject_magazine"
+       ],
+       "overshields": false,
+       "player_at": [
+        0,
+        0
+       ],
+       "rivens": [
+        {
+         "id": "rmv6g9319zrq",
+         "name": "riven 1",
+         "spec": {
+          "bonuses": [
+           {
+            "id": "damage",
+            "roll": 1.1
+           },
+           {
+            "id": "status_chance",
+            "roll": 1.1
+           },
+           {
+            "id": "weak_point_critical_chance",
+            "roll": 1.1
+           }
+          ],
+          "drafts": {
+           "2": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": null
+           },
+           "3": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": null
+           },
+           "2+1": {
+            "bonuses": [
+             {
+              "id": null,
+              "roll": 1
+             },
+             {
+              "id": null,
+              "roll": 1
+             }
+            ],
+            "malus": {
+             "id": null,
+             "roll": 1
+            }
+           },
+           "3+1": {
+            "bonuses": [
+             {
+              "id": "damage",
+              "roll": 1.1
+             },
+             {
+              "id": "status_chance",
+              "roll": 1.1
+             },
+             {
+              "id": "weak_point_critical_chance",
+              "roll": 1.1
+             }
+            ],
+            "malus": {
+             "id": "status_duration",
+             "roll": 0.9
+            }
+           }
+          },
+          "malus": {
+           "id": "status_duration",
+           "roll": 0.9
+          },
+          "polarity": "madurai",
+          "rank": 8,
+          "shape": "3+1"
+         }
+        }
+       ],
+       "runs": 100,
+       "seed": 12648430,
+       "shards": [],
+       "sliding": false,
+       "solo_weapon": false,
+       "spectral_form": false,
+       "squad_size": 1,
+       "stance": "",
+       "starts": [
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g9319zrq",
+          "scorch",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g9319zrq",
+          "frostbite",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g9319zrq",
+          "jolt",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        },
+        {
+         "arcane": [
+          "none"
+         ],
+         "arcane_rank": [
+          null
+         ],
+         "evolutions": [],
+         "fixed": [
+          {
+           "idx": 0,
+           "kind": "mods"
+          }
+         ],
+         "mode": null,
+         "slots": [
+          "riven:rmv6g9319zrq",
+          "pistol_pestilence",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+         ],
+         "valence_element": null
+        }
+       ],
+       "steel_path": true,
+       "strategy": "quick",
+       "target_at": [
+        0,
+        0.5
+       ],
+       "valence_bonus": 0,
+       "valence_element": "",
+       "weapon": "ocucor",
+       "wf_energy_pct": 1,
+       "threads": 6
+      },
+      "valence": "",
+      "work": 371247380
+     }
+    ],
+    "sampled": 1593.0,
+    "search_work": 162842615932,
+    "searched": 1593,
+    "shard": 0,
+    "shards": 1,
+    "space": 93796753882.0,
+    "starts": 4,
+    "strategy": "descent",
+    "target": {
+     "level": 9999,
+     "name": "Thrax Centurion",
+     "steel_path": true
+    }
+   }
+  },
+  "note": {
+   "weapon": "ocucor",
+   "ruler": "standard_single_target",
+   "build_s": 85.6,
+   "result_keys": [
+    "builds",
+    "cancelled",
+    "candidates",
+    "coverage",
+    "cut",
+    "duration",
+    "exhaustive",
+    "failed_starts",
+    "fights",
+    "final_runs",
+    "final_work",
+    "finalists",
+    "headshot_pct",
+    "jobs",
+    "ok",
+    "results",
+    "sampled",
+    "search_work",
+    "searched",
+    "shard",
+    "shards",
+    "space",
+    "starts",
+    "strategy",
+    "target",
+    "work"
+   ]
+  }
+ }
+]
