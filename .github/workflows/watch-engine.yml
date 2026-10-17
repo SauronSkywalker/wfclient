@@ -5,17 +5,22 @@ name: watch-engine
 # 而且上游每次 push 大多是站点页面/文案，engine id 才是与计算强相关的信号。
 # 所以这里定时问服务器"你现在服务的是哪个 engine"，只要本仓库还没有 engine-<id> 这条
 # release，就 dispatch 一次 build-engine。
+#
+# 为什么盯 engine id 就够了：引擎和二乘计算器（紫卡优化器）编译在同一个二进制里，
+# 服务器下发的 engine id 本身就是上游对"整套计算代码"算出来的标签，上游动了优化器
+# 也会让 id 变。自己去扫源码只会更慢更不准，而且扫描量远大于两次 HTTP 请求。
 on:
   schedule:
-    # 每 30 分钟一次（错开整点，避开 GitHub 的定时任务拥堵）
-    - cron: "7,37 * * * *"
+    # 每 5 分钟。5 分钟是 GitHub cron 的下限；高峰时段官方会推迟（常见 5-20 分钟），
+    # 所以这是"尽快"，不是"准时"。构建本身不依赖这一点：客户端自己也会看伺服端 id。
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write        # 需要 dispatch build-engine
 
-# 守望者自己串行跑就够了
+# 守望者自己串行跑就够了（单次约 20 秒，即便某次被推迟也不会堆积）
 concurrency:
   group: watch-engine
   cancel-in-progress: false
@@ -36,22 +41,28 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          import json, os, urllib.request, pathlib
+          import json, os, urllib.error, urllib.request, pathlib
 
+          # 一：服务器现在服务哪个 engine（1 个 GET，约 0.2 秒）
           rel = json.loads(urllib.request.urlopen("https://wfsim.app/release.json", timeout=30).read())
           engine = str(rel.get("engine") or "")
           print(f"server serves: engine={engine} release={rel.get('release')} commit={rel.get('commit')}")
 
-          req = urllib.request.Request(
-              f"https://api.github.com/repos/{os.environ['REPO']}/releases?per_page=100",
-              headers={"Authorization": f"Bearer {os.environ['GH_TOKEN']}",
-                       "Accept": "application/vnd.github+json"},
-          )
-          tags = {r["tag_name"] for r in json.loads(urllib.request.urlopen(req, timeout=30).read())}
-          published = sorted(t for t in tags if t.startswith("engine-"))
-          print("we published:", published)
-
-          have = bool(engine) and f"engine-{engine}" in tags
+          # 二：本仓库有没有这条 release（1 个 GET；404 就是没有，不用列表整个 per_page=100）
+          have = False
+          if engine:
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{os.environ['REPO']}/releases/tags/engine-{engine}",
+                  headers={"Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                           "Accept": "application/vnd.github+json"},
+              )
+              try:
+                  urllib.request.urlopen(req, timeout=30).read()
+                  have = True
+              except urllib.error.HTTPError as e:
+                  if e.code != 404:
+                      raise
+          print("already published:", have)
           print("needed:", not have)
           with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
               f.write(f"needed={'false' if have else 'true'}\n")
