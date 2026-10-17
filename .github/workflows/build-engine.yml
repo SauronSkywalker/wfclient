@@ -1,12 +1,21 @@
 name: build-engine
 
-# Workflow 1/4 -- 产物线：把"上游当前 revision + 我们的补丁"编成交付引擎。
-# 只负责构建与产物，不负责判定：四道逐位闸门搬到了 gate-engine.yml。
-#   定稿规则：**构建成功就发布**；验算不一致只让 gate-engine 红叉（+失败邮件），不挡发布。
-#   这样上游一改计算、服务器换 engine id 时，我们能第一时间把新引擎发出去，
-#   而不是被"旧冻结基准对不上"卡死（用户端就会 404）。
+# Workflow 1/5 -- 产物线：把"上游当前 revision + 我们的补丁"编成交付引擎。
+#
+# 定稿链路（m06739）：build -> publish -> verify -> refresh，**全部在同一次 run 里**
+# 按顺序跑完，谁也不等谁的"完成事件"：
+#   current  build    编出 wfsim-core.exe + engine-identity.json
+#   -> publish        四条块先发出去（engine-<id> / portable-<id> / deps-<id>）
+#   -> verify         发布完成之后才跑四道逐位闸门（跑多久、红不红都挡不住发布）
+#   -> refresh        闸门红了才用站点 wasm 把冻结基准表重算对齐
+#
+# 为什么必须是"同一次 run + 调用可复用工作流"，而不是"工作流完成事件"：
+#   由 GITHUB_TOKEN 触发的事件不会再触发新工作流。实测：watch-engine 自动派发的
+#   那次构建（run 39007927680 / commit 532a3cb2）编成功了，`release` 却一次都没跑，
+#   用户端因此继续 404。调用可复用工作流是在同一次 run 内执行的，没有这个限制。
+#
 # 触发：
-#   * watch-engine 每隔 30 分钟比对"服务器 engine id vs 本仓库 engine-<id> release"，
+#   * watch-engine 每 5 分钟比对"服务器 engine id vs 本仓库 engine-<id> release"，
 #     一旦发现没发布过就 dispatch 这里（上游是别人的仓库，拿不到 webhook）；
 #   * ci/patches/** 或 ci/core-host-template/** 变更（只有这两类才真的会改变引擎）；
 #   * 手动（可指定上游 ref）。
@@ -22,8 +31,11 @@ on:
       - "ci/patches/**"
       - "ci/core-host-template/**"
 
+# 被调用的三个工作流只能用调用者给的权限，所以这里必须是 write：
+# release.yml 要建 release，gate-engine.yml 要下载产物，refresh-baseline.yml 还要提交回仓库。
 permissions:
-  contents: read
+  contents: write
+  actions: write
 
 # 同一时间只跑一个引擎构建：并发构建只会互相抢缓存、白烧时间
 concurrency:
@@ -104,7 +116,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python ci/fetch_sources.py --ref "${{ steps.ref.outputs.ref }}"
 
-      - name: build the MSVC + PGO engine (gates live in gate-engine.yml)
+      - name: build the MSVC + PGO engine (gates run later, after publishing)
         run: python ci/build_engine.py --crt-static --target-cpu x86-64-v3 --gates none --reuse-profdata
 
       - name: upload the engine + its identity
@@ -124,3 +136,25 @@ jobs:
           path: dist/pgo/default.profdata
           if-no-files-found: warn
           retention-days: 30
+
+  # 一：编完立刻发布。不发出去，用户端的更新器就只能 404。
+  publish:
+    needs: build
+    uses: ./.github/workflows/release.yml
+    with:
+      run_id: ${{ github.run_id }}
+
+  # 二：发布完成之后才验算。闸门跑 5 分钟也好、红叉也好，用户已经能下到引擎了。
+  verify:
+    needs: publish
+    uses: ./.github/workflows/gate-engine.yml
+    with:
+      run_id: ${{ github.run_id }}
+
+  # 三：闸门红了＝冻结基准过期了，用站点 wasm 重算基准表（green 就什么都不做）。
+  refresh:
+    needs: verify
+    if: ${{ needs.verify.result == 'failure' }}
+    uses: ./.github/workflows/refresh-baseline.yml
+    with:
+      run_id: ${{ github.run_id }}

@@ -1,6 +1,7 @@
 name: release
 
-# Workflow 2 of 2 -- 编译成功后自动发布，三条独立的 release 线：
+# Workflow 2/5 -- 发布线：编完先发出去（由 build-engine 在同一次 run 里调用，也可手动）。
+# 三条独立的 release 线：
 #
 #   engine-<id>     只放引擎本体（wfsim-core.exe + engine-identity.json）
 #                   给"只想换引擎"的人和客户端更新器用；标签就是 engine id，客户端
@@ -14,10 +15,18 @@ name: release
 #                   10%~15%）。给想要最快本体、又不想装 rustup / 拉源码的用户。
 #
 # 三条线各自发布，互不覆盖：只想换引擎的人不必再下一整个包，反之亦然。
+# 由 build-engine.yml 在**同一次 run** 里调用它 —— 这是唯一可靠的串法：
+# 由 GITHUB_TOKEN 触发的事件不会再触发新工作流，watch-engine 自动派发的那次构建
+# （run 39007927680）编成功了却没有发布，用户端就一直 404。
+# 手动 dispatch 仍然保留，用于重发最近一次成功产物。
 on:
-  workflow_run:
-    workflows: ["build-engine"]
-    types: [completed]
+  workflow_call:
+    inputs:
+      run_id:
+        description: "产物所在的那次 build-engine run id（调用方传自己的 run id）"
+        type: string
+        required: false
+        default: ""
   workflow_dispatch:
     inputs:
       run_id:
@@ -40,7 +49,6 @@ env:
 
 jobs:
   engine:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -51,7 +59,7 @@ jobs:
         with:
           name: wfsim-core-and-identity
           path: dist
-          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          run-id: ${{ inputs.run_id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: read the engine identity
@@ -96,7 +104,6 @@ jobs:
           fail_on_unmatched_files: true
 
   portable:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
@@ -111,7 +118,7 @@ jobs:
         with:
           name: wfsim-core-and-identity
           path: dist
-          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          run-id: ${{ inputs.run_id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: read the engine identity
@@ -156,7 +163,6 @@ jobs:
   # 裁剪过的 rust msvc 工具链（346 MB）、离线 crate 缓存、本次 revision 的 PGO 剖面、补丁与
   # 已打补丁的上游源码。除 Visual Studio 以外全部自包含（.lib 不允许再分发，见 自构建说明.md §3.1）。
   deps:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
@@ -171,7 +177,7 @@ jobs:
         with:
           name: wfsim-core-and-identity
           path: dist
-          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          run-id: ${{ inputs.run_id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # The profile is optional by design (the client trains one locally when it is
@@ -183,7 +189,7 @@ jobs:
         with:
           name: pgo-profile
           path: dist/pgo
-          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          run-id: ${{ inputs.run_id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: rust toolchain (the same pinned 1.97.1 the engine is built with)
@@ -254,20 +260,5 @@ jobs:
           overwrite_files: true
           fail_on_unmatched_files: true
 
-  # 发布完了再叫验证：构建/发布与验算彻底脱钩 —— 构建成功就自动发布（上面三个 job），
-  # 验算在这之后才开始，跑多久、红不红都不影响用户已经能下到引擎。
-  verify:
-    needs: [engine, portable, deps]
-    if: ${{ always() && (needs.engine.result == 'success' || needs.portable.result == 'success') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      actions: write
-    steps:
-      - name: trigger gate-engine on the build that was just published
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run gate-engine.yml \
-            --repo "${{ github.repository }}" --ref main \
-            -f run_id=${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+  # 发布到这一步就结束。验算**不由这里派发**：build-engine 在发布完成后直接调用
+  # gate-engine.yml（同一次 run），因为 GITHUB_TOKEN 派发的事件唤不醒下游 workflow_run。

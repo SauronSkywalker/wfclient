@@ -1,14 +1,21 @@
 name: gate-engine
 
-# Workflow 2/4 -- 逐位判定：引擎编好后，单独跑"结果与站点一致"的四道闸门。
+# Workflow 3/5 -- 逐位判定：引擎发布之后，单独跑"结果与站点一致"的四道闸门。
 # 为什么从 build-engine 里搬出来：
 #   上游一改计算，服务器就换 engine id；此时旧引擎的冻结基准必然对不上，
 #   如果验算挂在发布路径上，就会像现在这样"永远发不出新引擎，用户端 404"。
 #   定稿规则：**构建成功就发布**，验算不一致只让这条工作流红叉（GitHub 会给
 #   仓库主人发失败邮件）+ 日志留证，不挡发布。
-# 触发方式：由 release.yml 在**发布完成之后**派发（保证先让用户拿到引擎，
+# 触发方式：build-engine 的 verify job 在**发布完成之后**调用（同一次 run，不靠完成事件），
 # 验算排在后面，谁也挡不住谁）；也可以手动派发。
 on:
+  workflow_call:
+    inputs:
+      run_id:
+        description: "产物所在的那次 build-engine run id（调用方传自己的 run id）"
+        type: string
+        required: false
+        default: ""
   workflow_dispatch:
     inputs:
       run_id:
@@ -31,7 +38,7 @@ env:
 jobs:
   gate-board:
     # 只有构建真的成功了才值得验算（也包括手动触发）
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
     runs-on: windows-latest
     timeout-minutes: 40
     outputs:
@@ -47,7 +54,7 @@ jobs:
         with:
           name: wfsim-core-and-identity
           path: dist
-          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          run-id: ${{ inputs.run_id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: read the engine identity
@@ -74,7 +81,7 @@ jobs:
           retention-days: 30
 
   gate-riven:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
     runs-on: windows-latest
     timeout-minutes: 90
     strategy:
@@ -92,7 +99,7 @@ jobs:
         with:
           name: wfsim-core-and-identity
           path: dist
-          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id || github.run_id }}
+          run-id: ${{ inputs.run_id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ${{ matrix.riven }}

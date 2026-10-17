@@ -1,6 +1,6 @@
 name: watch-engine
 
-# Workflow 4/4 -- 上游漂移守望者：上游一改"计算方式"，服务器就换 engine id。
+# Workflow 5/5 -- 上游漂移守望者：上游一改"计算方式"，服务器就换 engine id。
 # 用上游仓库的 push 事件是没用的：那是别人的仓库，我们收不到 webhook；
 # 而且上游每次 push 大多是站点页面/文案，engine id 才是与计算强相关的信号。
 # 所以这里定时问服务器"你现在服务的是哪个 engine"，只要本仓库还没有 engine-<id> 这条

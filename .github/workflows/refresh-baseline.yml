@@ -1,6 +1,6 @@
 name: refresh-baseline
 
-# 闸门红了以后，用**站点自己的 wasm** 把冻结基准表重新对齐。
+# Workflow 4/5 -- 闸门红了以后，用**站点自己的 wasm** 把冻结基准表重新对齐。
 #
 # 为什么会红：上游时不时调整 gas 计费表（`#[metered]` 按源码表达式/语句计数，
 # 所以一次公平的改写会让 `work` 变化而 `score` 不动）。此时我们的冻结基准还是
@@ -16,9 +16,18 @@ name: refresh-baseline
 #
 # 手动用法：Actions → refresh-baseline → Run workflow（force 可无视抽样直接重算）。
 on:
-  workflow_run:
-    workflows: ["gate-engine"]
-    types: [completed]
+  workflow_call:
+    inputs:
+      run_id:
+        description: "刚跑完的那次 build-engine run id（最后用它重跑闸门）"
+        type: string
+        required: false
+        default: ""
+      force:
+        description: "抽样完全一致也重算（一般不用）"
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       force:
@@ -40,8 +49,8 @@ env:
 
 jobs:
   probe:
-    # 只有闸门真的红了才值得重算；闸门绿说明基准仍然是权威。
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+    # 由 build-engine 的 refresh job 在闸门红叉之后调用（同一次 run，不靠完成事件）；
+    # 手动 dispatch 时也总是跑一遍抽样。
     runs-on: windows-latest
     timeout-minutes: 60
     outputs:
@@ -89,8 +98,7 @@ jobs:
     needs: probe
     if: >-
       needs.probe.result == 'success' &&
-      (needs.probe.outputs.drift == 'true' ||
-       (github.event_name == 'workflow_dispatch' && inputs.force))
+      (needs.probe.outputs.drift == 'true' || inputs.force)
     runs-on: windows-latest
     timeout-minutes: 120
     strategy:
@@ -170,10 +178,11 @@ jobs:
           retention-days: 30
 
       - name: 用刚编好的引擎重跑闸门
+        # 只有被 build-engine 调用时才知道那次 run 的 id；手动触发时留给人自己去看
+        if: ${{ github.event_name == 'workflow_call' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          run=$(gh run list --workflow=build-engine --status=success --limit 1 --json databaseId -q ".[0].databaseId")
-          echo "重新验算 build-engine run=$run"
-          gh workflow run gate-engine.yml -f run_id="$run"
+          echo "重新验算 build-engine run=${{ inputs.run_id }}"
+          gh workflow run gate-engine.yml -f run_id="${{ inputs.run_id }}"
