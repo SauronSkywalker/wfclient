@@ -93,7 +93,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: engine-${{ steps.ident.outputs.engine }}
-          name: "wfclient engine ${{ steps.ident.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
+          name: "wfclient engine · ${{ steps.when.outputs.cn }} (UTC+8) · ${{ steps.ident.outputs.engine }}"
           make_latest: "false"
           prerelease: true           # 附带产物：不占 Latest，网页折叠在 Pre-releases 里
           body: |
@@ -177,7 +177,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: portable-${{ steps.ident.outputs.engine }}
-          name: "wfclient portable ${{ steps.ident.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
+          name: "wfclient portable · ${{ steps.when.outputs.cn }} (UTC+8) · ${{ steps.ident.outputs.engine }}"
           make_latest: "true"
           body: |
             构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
@@ -291,7 +291,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: deps-${{ steps.ident.outputs.engine }}
-          name: "wfclient self-build deps ${{ steps.ident.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
+          name: "wfclient self-build deps · ${{ steps.when.outputs.cn }} (UTC+8) · ${{ steps.ident.outputs.engine }}"
           make_latest: "false"
           prerelease: true           # 附带产物：不占 Latest，网页折叠在 Pre-releases 里
           body: |

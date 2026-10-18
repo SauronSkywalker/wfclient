@@ -132,7 +132,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: portable-${{ steps.pick.outputs.engine }}
-          name: "wfclient portable ${{ steps.pick.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
+          name: "wfclient portable · ${{ steps.when.outputs.cn }} (UTC+8) · ${{ steps.pick.outputs.engine }}"
           make_latest: "true"
           body: |
             构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
@@ -240,7 +240,7 @@ jobs:
       - uses: softprops/action-gh-release@v3
         with:
           tag_name: selfbuild-${{ needs.repack.outputs.engine }}
-          name: "wfclient self-build sources ${{ needs.repack.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
+          name: "wfclient self-build sources · ${{ steps.when.outputs.cn }} (UTC+8) · ${{ needs.repack.outputs.engine }}"
           make_latest: "false"      # 便携包那条线才是 latest
           prerelease: true          # 附带产物：不占 Latest
           body: |
