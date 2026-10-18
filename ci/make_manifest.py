@@ -29,11 +29,12 @@ import pathlib
 import subprocess
 import sys
 
-#: Keep in step with `src/sync_engine.py` CLIENT_MANIFEST_SOURCES: the files the
-#: zip ships and the only ones the manifest speaks about.
-SOURCES = ("src/app.py", "src/api.py", "src/config.py", "src/cores.py",
-           "src/fleet.py", "src/paths.py", "src/sync_engine.py",
-           "src/task_log.py", "src/ui_scale.py", "src/work_model.py")
+#: Every Python source the release ships.  DERIVED, not listed: a new
+#: `src/*.py` enters the manifest with no edit here, and a file that never
+#: ships can never be mentioned.  The client compares whatever the manifest
+#: names, so the two sides cannot drift apart.
+def source_names(root: pathlib.Path) -> tuple[str, ...]:
+    return tuple(f"src/{p.name}" for p in sorted((root / "src").glob("*.py")))
 
 
 def sha256_of(path: pathlib.Path) -> str:
@@ -72,7 +73,7 @@ def main() -> int:
 
     root = pathlib.Path(a.repo_root).resolve()
     src: dict[str, str] = {}
-    for name in SOURCES:
+    for name in source_names(root):
         p = root / name
         if not p.is_file():
             raise SystemExit(f"missing source for the manifest: {name}")

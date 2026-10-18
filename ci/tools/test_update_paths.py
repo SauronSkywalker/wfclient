@@ -31,6 +31,8 @@ SRC = ROOT / "src"
 APP = (SRC / "app.py").read_text(encoding="utf-8")
 FLEET = (SRC / "fleet.py").read_text(encoding="utf-8")
 SYNC = (SRC / "sync_engine.py").read_text(encoding="utf-8")
+MANIFEST = ((ROOT / "ci" / "make_manifest.py").read_text(encoding="utf-8")
+            if (ROOT / "ci" / "make_manifest.py").is_file() else "")
 WF = ROOT / ".github" / "workflows"
 HAS_CI = WF.is_dir()
 
@@ -126,8 +128,12 @@ check("清单地址用 update_repo()（不是写死的上游 REPO）",
       "update_repo()" in _url and "magenie33" not in _url)
 check("清单资产名 = client-manifest.json",
       'CLIENT_MANIFEST_ASSET = "client-manifest.json"' in SYNC)
-check("清单覆盖十个 src 文件", 'CLIENT_MANIFEST_SOURCES' in SYNC
-      and SYNC.split("CLIENT_MANIFEST_SOURCES", 1)[1].split(")", 1)[0].count('"src/') == 10)
+check("清单覆盖 src/ 下全部 py（客户端照着清单比，双方不会各留一份表）",
+      "for name, sha in sorted(want.items())" in SYNC
+      and "CLIENT_MANIFEST_SOURCES" not in SYNC)
+check("清单脚本现算 src/*.py，不再手写十个名字",
+      "source_names(root)" in MANIFEST
+      and '(root / "src").glob("*.py")' in MANIFEST)
 check("client_manifest_drift 用 sha256 逐文件比",
       "def client_manifest_drift" in SYNC and "file_sha256(path) != str(sha)" in SYNC)
 check("清单取不到时不算落后（None 不是 up to date）",

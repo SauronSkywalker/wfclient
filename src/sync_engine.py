@@ -1327,11 +1327,10 @@ def portable_asset_url(engine: str) -> str:
 #: shipped that morning reached only the copies whose user replaced them by
 #: hand).
 CLIENT_MANIFEST_ASSET = "client-manifest.json"
-#: The sources the manifest describes, and the only ones that ship in the zip.
-CLIENT_MANIFEST_SOURCES = ("src/app.py", "src/api.py", "src/config.py",
-                           "src/cores.py", "src/fleet.py", "src/paths.py",
-                           "src/sync_engine.py", "src/task_log.py",
-                           "src/ui_scale.py", "src/work_model.py")
+#: There is deliberately NO list of sources here.  `client_manifest_drift`
+#: compares whatever the manifest names -- every `src/*.py` the release
+#: shipped -- so a file added to `src/` needs no edit on this side, and the
+#: published manifest stays the single source of truth about what shipped.
 #: Where the fetched manifest is remembered between checks.
 CLIENT_MANIFEST_CACHE = pathlib.Path(paths.ENGINE_SRC) / "client-manifest.json"
 #: A detected-but-unapplied update, so a restart still knows about it.
