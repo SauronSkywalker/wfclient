@@ -1319,13 +1319,161 @@ def portable_asset_url(engine: str) -> str:
             f"portable-{engine}/wfsim-portable-{engine}.zip")
 
 
+#: The CLIENT-side manifest the repack job publishes beside the portable zip.
+#:
+#: The zip says which core it carries; this says which `src/*.py` it carries.
+#: Without it, a copy can only notice a new ENGINE -- `src/` moving on a fixed
+#: engine id is invisible to every update check (measured 2026-10-18: the fixes
+#: shipped that morning reached only the copies whose user replaced them by
+#: hand).
+CLIENT_MANIFEST_ASSET = "client-manifest.json"
+#: The sources the manifest describes, and the only ones that ship in the zip.
+CLIENT_MANIFEST_SOURCES = ("src/app.py", "src/api.py", "src/config.py",
+                           "src/cores.py", "src/fleet.py", "src/paths.py",
+                           "src/sync_engine.py", "src/task_log.py",
+                           "src/ui_scale.py", "src/work_model.py")
+#: Where the fetched manifest is remembered between checks.
+CLIENT_MANIFEST_CACHE = pathlib.Path(paths.ENGINE_SRC) / "client-manifest.json"
+#: A detected-but-unapplied update, so a restart still knows about it.
+PENDING_UPDATE = pathlib.Path(paths.ENGINE_SRC) / "pending-update.json"
+
+
+def client_manifest_url(engine: str) -> str:
+    """`releases/download/portable-<engine>/client-manifest.json`.
+
+    A plain asset download on purpose: the tag is known here, so this needs no
+    API call and no "latest" guess -- and every repack overwrites that tag's
+    assets in place, so the file describes the newest client for this engine
+    family.
+    """
+    return (f"https://github.com/{update_repo()}/releases/download/"
+            f"portable-{engine}/{CLIENT_MANIFEST_ASSET}")
+
+
+def client_manifest(engine: str | None = None, force: bool = False) -> dict | None:
+    """The manifest for `engine` (default: the installed one), or None.
+
+    Cached under `engine-src/` so a check every ten minutes does not fetch it
+    every time.  None means "no manifest" -- an older release does not carry
+    one -- and callers must read that as "no signal", never as "up to date".
+    """
+    engine = str(engine or load_state().get("engine") or "").strip()
+    if not engine:
+        return None
+    if CLIENT_MANIFEST_CACHE.exists() and not force:
+        try:
+            cached = json.loads(
+                CLIENT_MANIFEST_CACHE.read_text(encoding="utf-8-sig"))
+        except Exception:
+            cached = None
+        if isinstance(cached, dict) and cached.get("engine") == engine:
+            return cached
+    try:
+        info = json.loads(http_bytes(client_manifest_url(engine))
+                          .decode("utf-8-sig"))
+    except Exception as e:                                       # noqa: BLE001
+        log(f"client manifest {engine}: not available "
+            f"({type(e).__name__}: {e})")
+        return None
+    if not isinstance(info, dict):
+        return None
+    info.setdefault("engine", engine)
+    try:
+        CLIENT_MANIFEST_CACHE.write_text(
+            json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception:
+        pass
+    return info
+
+
+def client_manifest_drift(info: dict | None) -> dict:
+    """Which of THIS copy's sources differ from the manifest's.
+
+    A file we do not have, or have different bytes for, is drift.  Files we
+    have that the manifest does not mention are the user's own and do not
+    count: the manifest speaks only about what it ships.
+    """
+    out = {"have_manifest": isinstance(info, dict), "checked": 0,
+           "changed": [], "missing_local": [], "commit": "", "built_at": "",
+           "engine": "", "asset": "", "asset_sha256": "", "behind": False}
+    if not isinstance(info, dict):
+        return out
+    out["commit"] = str(info.get("commit") or "")
+    out["built_at"] = str(info.get("built_at") or "")
+    out["engine"] = str(info.get("engine") or "")
+    out["asset"] = str(info.get("asset") or "")
+    out["asset_sha256"] = str(info.get("asset_sha256") or "")
+    want = info.get("src")
+    if not isinstance(want, dict):
+        return out
+    for name, sha in sorted(want.items()):
+        path = ROOT / str(name)
+        if not path.is_file():
+            out["missing_local"].append(str(name))
+            continue
+        out["checked"] += 1
+        if file_sha256(path) != str(sha):
+            out["changed"].append(str(name))
+    out["behind"] = bool(out["changed"] or out["missing_local"])
+    return out
+
+
+def client_status(engine: str | None = None, force: bool = False) -> dict:
+    """Is this CLIENT copy behind the repo?  Everything the panel needs."""
+    return client_manifest_drift(client_manifest(engine, force=force))
+
+
+def latest_portable_tag() -> str:
+    """The tag `releases/latest` points at, or "".
+
+    A redirect the updater can read for free -- no API call and no token: the
+    release page answers with `Location: .../releases/tag/portable-<engine>`.
+    """
+    url = f"https://github.com/{update_repo()}/releases/latest"
+    try:
+        req = urllib.request.Request(url, method="HEAD",
+                                     headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:       # noqa: S310
+            final = r.geturl() or ""
+    except Exception as e:                                       # noqa: BLE001
+        log(f"latest release: cannot read the redirect "
+            f"({type(e).__name__}: {e})")
+        return ""
+    return final.rstrip("/").rsplit("/", 1)[-1]
+
+
+def save_pending_update(info: dict) -> None:
+    """Remember a detected-but-unapplied update, so a restart still knows."""
+    try:
+        PENDING_UPDATE.parent.mkdir(parents=True, exist_ok=True)
+        PENDING_UPDATE.write_text(json.dumps(info, ensure_ascii=False, indent=1),
+                                  encoding="utf-8")
+    except Exception as e:                                       # noqa: BLE001
+        log(f"pending update: cannot write ({type(e).__name__}: {e})")
+
+
+def load_pending_update() -> dict | None:
+    try:
+        info = json.loads(PENDING_UPDATE.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return None
+    return info if isinstance(info, dict) else None
+
+
+def clear_pending_update() -> None:
+    try:
+        PENDING_UPDATE.unlink()
+    except Exception:
+        pass
+
+
 def release_asset_sha256(tag: str, name: str) -> str:
     """GitHub's own sha256 for one release asset, or "" when it is not there.
 
     A first check only: after unpacking, the core is hashed again against the
     sha256 the package's own engine-src/state.json names.
     """
-    url = f"https://api.github.com/repos/{REPO}/releases/tags/{tag}"
+    url = f"https://api.github.com/repos/{update_repo()}/releases/tags/{tag}"
     try:
         rel = json.loads(http_bytes(url).decode("utf-8"))
     except Exception as e:                                       # noqa: BLE001

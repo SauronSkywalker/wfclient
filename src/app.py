@@ -158,6 +158,20 @@ def engine_kind_text() -> tuple[str, str]:
     return value, ("未编译" if st.get("deps") else "")
 
 
+def update_mode_of(cfg: dict, core_source: str) -> str:
+    """`auto` replaces by itself; `notify` only says what it found.
+
+    An unset value follows the package: a self-compiled copy defaults to
+    `notify` -- replacing sources and the core under a user who built their own
+    is a decision, not a service -- and a prebuilt zip to `auto`.
+    """
+    mode = str((cfg or {}).get("update_mode") or "").strip().lower()
+    if mode in ("auto", "notify"):
+        return mode
+    return ("notify" if core_source == sync_engine.CORE_SOURCE_LOCAL
+            else "auto")
+
+
 class SettingsScreen(Screen):
     """A compact card of one-row settings."""
 
@@ -198,13 +212,13 @@ class SettingsScreen(Screen):
        switch that does not say which way it is set is not a switch. */
     #wire_manual_toggle { width: 11; min-width: 11; }
     #settingsnote { padding: 1 2; height: auto; }
-    #rebuild_engine, #rebuild_fast {
+    #rebuild_engine, #rebuild_fast, #update_now, #update_later {
         height: 3; min-width: 11; text-style: bold;
         background: #d9770640; color: #fbbf24;
     }
-    #rebuild_engine:hover, #rebuild_fast:hover {
+    #rebuild_engine:hover, #rebuild_fast:hover, #update_now:hover, #update_later:hover {
         background: #d9770666; color: #fde68a; }
-    #rebuild_engine:disabled, #rebuild_fast:disabled {
+    #rebuild_engine:disabled, #rebuild_fast:disabled, #update_now:disabled, #update_later:disabled {
         background: #ffffff0f; color: #4a4a4a; }
     """
 
@@ -236,6 +250,14 @@ class SettingsScreen(Screen):
             self.deps = sync_engine.deps_pack() is not None
         except Exception:
             self.deps = False
+        #: The update the app detected but did NOT apply (notify mode).  It is
+        #: persisted, so a restart -- or simply opening this page -- still sees
+        #: the offer; the two buttons below are enabled exactly when it exists.
+        try:
+            notice = sync_engine.load_pending_update()
+        except Exception:
+            notice = None
+        self._update_notice = notice if isinstance(notice, dict) else None
 
     def compose(self):
         yield Header()
@@ -311,6 +333,17 @@ class SettingsScreen(Screen):
                 for pct in ui_scale.SCALE_CHOICES[4:]:
                     yield Button(ui_scale.label(pct), id=f"scale{pct}",
                                  classes="scale-btn")
+        # UPDATE MODE + WHAT A CHECK FOUND.  Detection always runs; on the
+        # self-compiled line the replacement waits for the click below.
+        with Horizontal(classes="setting-row"):
+            yield Static("更新方式", classes="setting-name")
+            yield Static("", id="update_mode_value", classes="setting-value")
+            yield Button("切换", id="update_mode_toggle")
+        with Horizontal(classes="setting-row action-row"):
+            yield Static("检测到的更新", classes="setting-name")
+            yield Static("", id="update_notice_value", classes="setting-value")
+            yield Button("立即更新", id="update_now")
+            yield Button("稍后", id="update_later")
         yield Static("", id="settingsnote")
         yield Footer()
 
@@ -368,6 +401,23 @@ class SettingsScreen(Screen):
             busy = bool(getattr(self.fleet, "maintenance", False))
             kind, kind_note = engine_kind_text()
             self.query_one("#engine_kind_value", Static).update(kind)
+            # update mode + the pending notice (values only; the row exists on
+            # both package kinds, unlike the build actions)
+            mode = self._update_mode()
+            self.query_one("#update_mode_value", Static).update(
+                "自动替换" if mode == "auto" else "只提醒")
+            mode_button = self.query_one("#update_mode_toggle", Button)
+            mode_button.label = "切换"
+            mode_button.set_class(mode == "notify", "on")
+            notice = self._update_notice or {}
+            has_notice = bool(notice.get("reason"))
+            self.query_one("#update_notice_value", Static).update(
+                ("待确认 " + str(notice.get("reason"))[:20]) if has_notice
+                else "无")
+            now_button = self.query_one("#update_now", Button)
+            now_button.disabled = (not has_notice) or busy
+            later_button = self.query_one("#update_later", Button)
+            later_button.disabled = not has_notice
             if self.deps:
                 self.query_one("#native_value", Static).update(kind_note)
                 self.query_one("#build_native", Button).disabled = busy
@@ -412,13 +462,22 @@ class SettingsScreen(Screen):
                     "[dim]已放入自编译依赖包：可以编译本机最快引擎（native + PGO，每台\n"
                     "机器不一样，一般比通用版快 10%~15%）。它按服务器版本自动生效，版本\n"
                     "对不上时自动回落通用引擎，通用引擎不会被覆盖。编译期间照常计算。[/dim]\n")
+            notice_note = ""
+            if has_notice:
+                where = (f"（仓库提交 {str(notice.get('commit') or '')[:9]}）"
+                         if notice.get("commit") else "")
+                notice_note = (
+                    f"[dim]检测到更新：{notice.get('reason')}{where}。"
+                    f"当前是「{'只提醒' if mode == 'notify' else '自动替换'}」，"
+                    + ("点「立即更新」才会替换。[/dim]\n" if mode == "notify"
+                       else "会自动进行。[/dim]\n"))
             self.query_one("#settingsnote", Static).update(
                 (f"[dim]{engine_note}[/dim]\n" if engine_note else "") +
                 "[dim]小批量上传关闭：整包完成后上传。\n"
                 "小批量上传开启：每 2 条上传一次，最后不足 2 条在包结束时上传。[/dim]\n"
                 "[dim]Board 协议固定为 8，一扇门、无切换；服务端哪天回 fallback 7，\n"
                 "本客户端会暂停领取任务，不会退回旧协议。[/dim]\n"
-                + build_note +
+                + notice_note + build_note +
                 "[dim]计算进程的 −/+ 会先暂停接任务、等正在算的行上传完，再按新数量重启引擎\n"
                 "并重新给每个进程分配线程（默认 3，最少 1，最多 10）。\n"
                 "界面缩放改的是当前 Windows Terminal 配置档的字号（50%~200%），\n"
@@ -518,6 +577,9 @@ class SettingsScreen(Screen):
         "active_plus": "_on_active_plus",
         "slots_minus": "_on_slots_minus",
         "slots_plus": "_on_slots_plus",
+        "update_mode_toggle": "_on_update_mode",
+        "update_now": "_on_update_now",
+        "update_later": "_on_update_later",
         **{f"scale{pct}": "_on_scale" for pct in ui_scale.SCALE_CHOICES},
     }
 
@@ -578,6 +640,61 @@ class SettingsScreen(Screen):
         # dependency pack.  It is the same action on both package kinds -- the
         # pack is what it needs, not the source tree.
         self._start_rebuild(event.button, self.on_engine_native, label="编译")
+
+    def _update_mode(self) -> str:
+        """This package's update mode (the settings row and the toggle)."""
+        return update_mode_of(
+            self.fleet.cfg,
+            sync_engine.CORE_SOURCE_PREBUILT if self.prebuilt
+            else sync_engine.CORE_SOURCE_LOCAL)
+
+    def _on_update_mode(self, event) -> None:
+        #: 自动替换 <-> 只提醒.  The package decides the DEFAULT, the user the
+        #: value, so the stored key is explicit once touched.
+        value = "auto" if self._update_mode() == "notify" else "notify"
+        self.fleet.cfg["update_mode"] = value
+        self._save(f"更新方式 -> {'自动替换' if value == 'auto' else '只提醒'}")
+
+    def _on_update_now(self, event) -> None:
+        self._start_pending_update(event.button)
+
+    def _on_update_later(self, event) -> None:
+        self._update_notice = None
+        try:
+            sync_engine.clear_pending_update()
+        except Exception:
+            pass
+        self._event("update", "已忽略本轮更新提醒；下一轮检查若仍有更新会再提")
+        self._refresh()
+
+    def _start_pending_update(self, button: Button) -> None:
+        if self._updating:
+            self._event("update", "已有更新正在进行，请稍等")
+            return
+        button.disabled = True
+        button.label = "更新中"
+        asyncio.create_task(self._run_pending_update(button))
+
+    async def _run_pending_update(self, button: Button) -> None:
+        """The settings page's confirmation: same flow, chosen by the user."""
+        self._update_notice = None
+        try:
+            sync_engine.clear_pending_update()
+        except Exception:
+            pass
+        try:
+            rel = await self._read_release()
+            if rel is None:
+                self._event("error", "更新失败：读不到 release.json")
+                return
+            await self._auto_update(rel, reason="设置页确认的更新")
+        finally:
+            try:
+                button.label = "立即更新"
+                button.disabled = False
+                self._refresh()
+            except Exception:
+                pass
 
     def _on_engine_minus(self, event) -> None:
         self._start_engine_shift(-1)
@@ -927,6 +1044,13 @@ class WfSimClient(App):
         #: ONE timer, TEN minutes, TWO signals: `engine` and `optimizer/src`
         self._update_check_at = 0.0
         self._update_check_interval = 600.0
+        #: What the last check found and did NOT apply (notify mode / pre-set).
+        self._update_notice: dict | None = None
+        #: The client-side manifest comparison (see `_read_client_drift`).
+        self._client_drift: dict = {}
+        #: Set when `src/` moved but the engine did not: only the whole package
+        #: carries sources, so that -- not a rebuild -- is the shape to apply.
+        self._pending_client_package = False
         #: WHICH UPDATE LINE THIS COPY IS — "prebuilt" (the CI zip: a compiled
         #: core, no toolchain) or "local" (carries the rust toolchain and builds
         #: from sources).  Read once from the package's own state and cached:
@@ -999,6 +1123,16 @@ class WfSimClient(App):
         self.set_interval(0.5, self._paint)
         self.set_interval(self._update_check_interval, self._check_updates)
         self.set_interval(self._update_check_interval, self._check_pat_status)
+        # A notice survives a restart: a user who closed the console before
+        # reading it is told again, and the settings page shows it as pending.
+        try:
+            notice = sync_engine.load_pending_update()
+        except Exception:
+            notice = None
+        if isinstance(notice, dict) and notice.get("reason"):
+            self._update_notice = notice
+            self._event("update", f"上次检测到的更新还没处理：{notice['reason']}"
+                                  f" · 到设置页点「立即更新」")
         self._startup = asyncio.create_task(self._startup_task())
 
     async def _startup_task(self) -> None:
@@ -1201,6 +1335,8 @@ class WfSimClient(App):
             label += f" [yellow]手动 {pin} 已忽略[/yellow]"
         if served and served != local_engine:
             label += f" [dim]在线 {served} 待更新[/dim]"
+        if getattr(self, "_update_notice", None):
+            label += " [yellow]有更新待确认[/yellow]"
         return label
 
     def _paint_header(self, s: dict, st: dict, paused: bool) -> None:
@@ -1791,6 +1927,58 @@ class WfSimClient(App):
         self._update_check_at = now
         return True
 
+    def _update_mode(self) -> str:
+        """This package's update mode (one rule, see `update_mode_of`)."""
+        return update_mode_of(self.cfg, self._core_source)
+
+    async def _read_client_drift(self, engine: str) -> dict:
+        """Is THIS copy's `src/` behind the repo?  Cached, never fatal."""
+        try:
+            info = await self.fleet._io(sync_engine.client_status, engine)
+        except Exception as e:                                   # noqa: BLE001
+            self._event("update", f"客户端清单读取失败"
+                                  f"（{type(e).__name__}: {e}）")
+            info = {}
+        self._client_drift = info if isinstance(info, dict) else {}
+        return self._client_drift
+
+    def _note_pending_update(self, rel: dict, engine_moved: bool,
+                             opt_moved: bool, patches_moved: bool,
+                             client_moved: bool) -> None:
+        """NOTIFY MODE: say what moved, replace nothing.
+
+        Detection keeps running -- a check that stopped detecting would tell
+        nobody anything -- and only the replacement waits for the settings page.
+        """
+        drift = self._client_drift or {}
+        why: list[str] = []
+        if engine_moved:
+            why.append(f"引擎 {rel.get('engine')}")
+        if opt_moved:
+            why.append("optimizer")
+        if patches_moved:
+            why.append("本地补丁")
+        if client_moved:
+            n = (len(drift.get("changed") or [])
+                 + len(drift.get("missing_local") or []))
+            why.append(f"客户端代码 {n} 个文件")
+        reason = "、".join(why) or "有更新"
+        notice = {"reason": reason, "at": time.time(),
+                  "engine": str(rel.get("engine") or ""),
+                  "commit": str(drift.get("commit") or ""),
+                  "built_at": str(drift.get("built_at") or ""),
+                  "files": list(drift.get("changed") or [])
+                  + list(drift.get("missing_local") or [])}
+        self._update_notice = notice
+        try:
+            sync_engine.save_pending_update(notice)
+        except Exception:
+            pass
+        tail = f" · 仓库提交 {notice['commit'][:9]}" if notice["commit"] else ""
+        self._event("update", f"发现更新（提醒模式，不自动替换）：{reason}{tail}"
+                              " · 到设置页点「立即更新」")
+        self._paint()
+
     @staticmethod
     def _catalog_ids(catalog: dict) -> tuple[list[str], list[str]]:
         reportable = [str(x.get("engine") or "")
@@ -1965,18 +2153,26 @@ class WfSimClient(App):
 
     def _start_core_update(self, rel: dict, online: str, local_engine: str | None,
                            known_opt, opt_sha: str | None, known_patches,
-                           cur_patches, force: bool) -> None:
+                           cur_patches, force: bool, client_moved: bool = False) -> None:
         engine_moved, opt_moved = self._core_moved(online, local_engine,
                                                    known_opt, opt_sha)
         patches_moved = bool(cur_patches) and known_patches != cur_patches
         wire = str(self.fleet.wire_engine or self.fleet.engine_id
                    or local_engine or "")
-        if not engine_moved and not opt_moved and not patches_moved:
+        if not engine_moved and not opt_moved and not patches_moved and not client_moved:
             if force:
                 self._event("update", f"本地核心 {local_engine or '?'} = 在线 {online}，"
                                       f"上报 {wire or '?'}，optimizer = "
                                       f"{str(known_opt)[:12]}，补丁 = "
                                       f"{str(known_patches)[:12]}，已是最新")
+            return
+        if client_moved and not engine_moved:
+            # Sources moved, the engine did not: only the whole package carries
+            # `src/`, so a package download -- not a rebuild -- applies this.
+            self._pending_client_package = True
+        if self._update_mode() == "notify":
+            self._note_pending_update(rel, engine_moved, opt_moved,
+                                      patches_moved, client_moved)
             return
         if patches_moved and not engine_moved and not opt_moved:
             self._event("update", f"本地补丁已更新（{str(known_patches)[:12]} -> "
@@ -1988,7 +2184,7 @@ class WfSimClient(App):
             self._event("update", f"engine 更新: 本地 {local_engine or '?'} -> "
                                   f"服务器 {online}")
             self._event("update", "服务器已下发新引擎；后台下载中（计算不中断）")
-            if not engine_moved:
+            if not engine_moved and not client_moved:
                 return
         else:
             self._announce_core_moves(engine_moved, opt_moved, online,
@@ -2051,8 +2247,10 @@ class WfSimClient(App):
          cur_patches) = await self._read_local_update_state()
         if self._handle_wire_version(catalog, online, local_engine):
             return
+        drift = await self._read_client_drift(local_engine or str(online or ""))
         self._start_core_update(rel, online, local_engine, known_opt, opt_sha,
-                                known_patches, cur_patches, force)
+                                known_patches, cur_patches, force,
+                                client_moved=bool(drift.get("behind")))
 
     async def _check_updates_prebuilt(self, force: bool) -> None:
         """The prebuilt line's whole periodic check: the served engine id.
@@ -2075,9 +2273,18 @@ class WfSimClient(App):
         local_engine = (state.get("engine")
                         or self.fleet.cfg.get("known_engine") or None)
         self.fleet.local_engine = local_engine
+        drift = await self._read_client_drift(local_engine or online)
         if online and online != local_engine:
             self._start_core_update(rel, online, local_engine, None, None,
-                                    None, None, force)
+                                    None, None, force,
+                                    client_moved=bool(drift.get("behind")))
+            return
+        if drift.get("behind"):
+            # The engine has not moved; the SOURCES have.  That is the whole
+            # reason this signal exists -- the served engine id cannot see it.
+            self._start_core_update(rel, online or local_engine, local_engine,
+                                    None, None, None, None, force,
+                                    client_moved=True)
             return
         if force:
             self._event("update", f"本地核心 {local_engine or '?'} = "
@@ -2603,6 +2810,12 @@ class WfSimClient(App):
         await self._install_and_restart(rel)
         self._update_backoff = 300.0
         self._update_retry_at = 0.0
+        self._pending_client_package = False
+        self._update_notice = None
+        try:
+            sync_engine.clear_pending_update()
+        except Exception:
+            pass
 
     async def _auto_update_locked(self, rel: dict, clean: bool = False,
                                   reason: str = "") -> None:
@@ -2623,7 +2836,8 @@ class WfSimClient(App):
         was_paused = bool(self.fleet.paused)
         succeeded = False
         try:
-            if self._core_source == sync_engine.CORE_SOURCE_PREBUILT:
+            if (self._pending_client_package
+                    or self._core_source == sync_engine.CORE_SOURCE_PREBUILT):
                 await self._prepare_download(rel, reason)
             else:
                 await self._prepare_update(clean, reason)

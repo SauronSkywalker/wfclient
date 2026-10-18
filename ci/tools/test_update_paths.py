@@ -117,6 +117,91 @@ if HAS_CI:
               "mkdirSync(path.dirname(path.resolve(out)), { recursive: true })"
               in wb.read_text(encoding="utf-8"))
 
+# --- ⑤ 客户端清单：固定 engine id 下改了 src/ 也必须能被发现 ---------------
+# 现场事实（2026-10-18）：两条修复只动了 src/，engine id 没变，于是只有手工
+# 换过文件的副本拿到了它们。清单就是这个缺口的补丁。
+check("sync_engine 有 client_manifest_url", "def client_manifest_url" in SYNC)
+_url = SYNC.split("def client_manifest_url", 1)[1].split("\ndef ", 1)[0] if "def client_manifest_url" in SYNC else ""
+check("清单地址用 update_repo()（不是写死的上游 REPO）",
+      "update_repo()" in _url and "magenie33" not in _url)
+check("清单资产名 = client-manifest.json",
+      'CLIENT_MANIFEST_ASSET = "client-manifest.json"' in SYNC)
+check("清单覆盖十个 src 文件", 'CLIENT_MANIFEST_SOURCES' in SYNC
+      and SYNC.split("CLIENT_MANIFEST_SOURCES", 1)[1].split(")", 1)[0].count('"src/') == 10)
+check("client_manifest_drift 用 sha256 逐文件比",
+      "def client_manifest_drift" in SYNC and "file_sha256(path) != str(sha)" in SYNC)
+check("清单取不到时不算落后（None 不是 up to date）",
+      "if not isinstance(info, dict):\n        return out" in SYNC)
+check("release_asset_sha256 不再拿上游 REPO 拼标签",
+      "api.github.com/repos/{REPO}/releases/tags/{tag}" not in SYNC)
+check("pending-update 存/读/清三件套",
+      all(s in SYNC for s in ("def save_pending_update", "def load_pending_update",
+                              "def clear_pending_update")))
+check("有 latest 标签直读（不花 API 额度）", "def latest_portable_tag" in SYNC
+      and "releases/latest" in SYNC)
+check("app 有 _update_mode()", "def _update_mode" in APP)
+check("自编译包默认 notify、预编译包默认 auto（判定只有一份）",
+      "def update_mode_of(cfg: dict, core_source: str) -> str:" in APP
+      and 'return ("notify" if core_source == sync_engine.CORE_SOURCE_LOCAL' in APP)
+check("设置页与主程序共用同一份判定", APP.count("update_mode_of(") >= 2)
+check("设置页能读回待确认的更新（重启也不丢）",
+      "sync_engine.load_pending_update()" in APP)
+check("notify 模式只提醒不替换（_note_pending_update）",
+      "def _note_pending_update" in APP and "提醒模式，不自动替换" in APP)
+check("设置页有更新方式开关与两个按钮",
+      all(s in APP for s in ('id="update_mode_toggle"', 'id="update_now"', 'id="update_later"')))
+check("config 有 update_mode 键（空 = 跟随包类型）",
+      '"update_mode": ""' in (SRC / "config.py").read_text(encoding="utf-8"))
+check("ci/make_manifest.py 存在", (ROOT / "ci" / "make_manifest.py").is_file())
+if HAS_CI:
+    _rp = (WF / "repack.yml").read_text(encoding="utf-8")
+    _rl = (WF / "release.yml").read_text(encoding="utf-8")
+    for _name, _txt in (("repack", _rp), ("release", _rl)):
+        check(f"{_name} 生成客户端清单", "make_manifest" in _txt)
+        check(f"{_name} 把清单列进发布资产", "dist/client-manifest.json" in _txt)
+    check("repack 发布步用 steps.pick 的 engine",
+          '--engine", "${{ steps.pick.outputs.engine }}"' in _rp)
+    check("release 发布步用 steps.ident 的 engine",
+          '--engine", "${{ steps.ident.outputs.engine }}"' in _rl)
+
+
+# 功能性：清单漂移判定 + pending-update 存取（不联网，只碰临时目录）
+import importlib.util as _iu  # noqa: E402
+import json as _json  # noqa: E402
+import tempfile as _tmp  # noqa: E402
+
+sys.path.insert(0, str(SRC))
+try:
+    _spec = _iu.spec_from_file_location("sync_engine_t", str(SRC / "sync_engine.py"))
+    _se = _iu.module_from_spec(_spec)
+    _spec.loader.exec_module(_se)
+    with _tmp.TemporaryDirectory() as _d:
+        _root = pathlib.Path(_d)
+        (_root / "src").mkdir()
+        (_root / "src" / "app.py").write_text("print('x')\n", encoding="utf-8")
+        _se.ROOT = _root
+        _se.PENDING_UPDATE = _root / "engine-src" / "pending-update.json"
+        _good = _se.file_sha256(_root / "src" / "app.py")
+        _drift = _se.client_manifest_drift({"engine": "e", "commit": "c",
+                                            "src": {"src/app.py": _good}})
+        check("清单一致 -> 不落后", _drift["behind"] is False and _drift["checked"] == 1)
+        _drift = _se.client_manifest_drift({"src": {"src/app.py": "0" * 64}})
+        check("内容不同 -> 落后且点名文件",
+              _drift["behind"] is True and _drift["changed"] == ["src/app.py"])
+        _drift = _se.client_manifest_drift({"src": {"src/gone.py": _good}})
+        check("本地缺文件 -> 落后且点名文件",
+              _drift["behind"] is True and _drift["missing_local"] == ["src/gone.py"])
+        check("没有清单 -> 不落后（无信号，不是最新）",
+              _se.client_manifest_drift(None)["behind"] is False
+              and _se.client_manifest_drift(None)["have_manifest"] is False)
+        _se.save_pending_update({"reason": "客户端代码 1 个文件", "engine": "e"})
+        check("pending-update 写进去读得出",
+              (_se.load_pending_update() or {}).get("reason") == "客户端代码 1 个文件")
+        _se.clear_pending_update()
+        check("pending-update 清得掉", _se.load_pending_update() is None)
+except Exception as _e:                                          # noqa: BLE001
+    check(f"清单功能性自检可跑（{type(_e).__name__}: {_e}）", False)
+
 ok_n = sum(1 for _, v in checks if v)
 bad_n = len(checks) - ok_n
 for name, v in checks:

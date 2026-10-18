@@ -176,6 +176,10 @@ DEFAULTS = {
     #: levels ("standard"/"verbose"/"summary", or a bare true) all read as
     #: "full" — they all meant "write something".
     "task_logging": "off",
+    # "" = let the package decide: the self-compiled line defaults to "notify"
+    # (detect and say so, replace nothing until asked), a prebuilt zip to
+    # "auto".  The settings page stores an explicit "auto" / "notify".
+    "update_mode": "",
     #: persist board/riven task answers & results to disk between runs.
     #: Default false: answers stay in memory only (see requirements).
     "task_persist": False,
