@@ -112,6 +112,22 @@ SPARE_RETIRE_STABLE_S = 30.0
 #: 07:13 (`residents_working: 0` for a second, `spare_activated` ×3, all three
 #: stood down 34 s later and paid three asks for nothing).
 ANCHOR_IDLE_STABLE_S = 3.0
+#: THE SPEED READOUT LOOKS THIS FAR BACK, and weights what it finds by age:
+#: an interval counts as `0.5 ** (age / POINTS_HALF_LIFE_S)`.  The old readout
+#: was whichever two samples sat at the ends of a fixed five minute window, so
+#: one long batch near either end swung it by a factor of two; a wider window
+#: with the ends weighted down is the same number minus the swing.
+POINTS_WINDOW_S = 600.0
+#: HOW FAST THE WEIGHT FADES: two minutes old counts half, four minutes a
+#: quarter.  Two minutes is about one pack, so the readout still answers "how
+#: fast am I going now" instead of averaging the evening away.
+POINTS_HALF_LIFE_S = 120.0
+#: ONE INTERVAL MAY NOT COUNT FOR MORE THAN THIS MANY TIMES THE MEDIAN.  A
+#: points reading that jumps because the account probe finally answered, or
+#: because a duplicate was credited, is an artefact rather than speed, and on
+#: its own it would carry the whole average; a real sprint lasts several
+#: intervals, so capping one of them costs nothing.
+POINTS_WINSOR = 2.0
 #: A ROW THAT HAS WAITED THIS LONG FOR AN ENGINE is put at the front of the
 #: pick order, at the manual pick's own level.  Renewals keep a row alive
 #: forever, so without this a pack that arrives faster than it drains can
@@ -537,7 +553,8 @@ class Fleet:
         #: Memory only (see RIVEN_* above): the retry loop re-sends until the
         #: server takes them; a restart drops whatever is still waiting.
         self._riven_kept: dict[str, dict] = {}
-        #: (time, confirmed points) samples, for the points-per-minute readout
+        #: (time, confirmed points, computing?) samples, for the points-per-minute
+        #: readout — the flag is how a genuine idle wait stays out of the average.
         self.points_history: collections.deque = collections.deque(maxlen=600)
         self.points_at: float = 0.0
         #: observed board-row wall time; the server uses this as pace_ms.
@@ -4975,16 +4992,51 @@ class Fleet:
         dt = (t1 - t0) / 60.0
         return ((p1 - p0) / dt) if dt > 0.05 else None
 
-    def points_per_minute(self, window_s: float = 300.0) -> float | None:
-        """CONFIRMED points per minute over the recent past. Confirmed only —
-        pending points are a hope, and a rate built on them would be a lie."""
+    def points_per_minute(self, window_s: float = POINTS_WINDOW_S) -> float | None:
+        """CONFIRMED points per minute, weighted towards the recent past.
+
+        Confirmed only — pending points are a hope, and a rate built on them
+        would be a lie.  Instead of dividing two samples that happen to sit at
+        the ends of the window, this averages the per-interval rates with
+        weights that fade by age::
+
+            sum(w_i * r_i) / sum(w_i),  w_i = 0.5 ** (age_i / POINTS_HALF_LIFE_S)
+
+        `age_i` counts back from now to the end of interval i and `r_i` is that
+        interval's own points per minute.  One interval is capped at
+        `POINTS_WINSOR` times the median rate, so a single inflated reading —
+        the account probe answering at last, say — cannot carry the average.
+        An interval that earned nothing while neither end was computing is
+        dropped rather than counted as zero — a pool waiting for work is not
+        slow computing — and an interval that did earn counts even if both of
+        its ends happened to land between batches.
+        """
         h = list(self.points_history)
         if len(h) < 2:
             return None
-        t1, p1 = h[-1]
-        older = [x for x in h if t1 - x[0] <= window_s]
-        t0, p0 = older[0]
-        return self._rate(t0, p0, t1, p1)
+        now = h[-1][0]
+        lo = now - window_s
+        segs: list[tuple[float, float, float]] = []   # (weight, seconds, points)
+        for (t0, p0, busy0), (t1, p1, busy1) in zip(h, h[1:]):
+            dt = t1 - t0
+            dp = float(p1 - p0)
+            if t1 <= lo or dt <= 0.05:
+                continue
+            if dp <= 0.0 and not (busy0 and busy1):
+                continue
+            segs.append((0.5 ** ((now - t1) / POINTS_HALF_LIFE_S), dt, dp))
+        if not segs:
+            return None
+        rates = sorted(dp * 60.0 / dt for _, dt, dp in segs if dp > 0)
+        cap = (POINTS_WINSOR * rates[len(rates) // 2]) if rates else None
+        num = den = 0.0
+        for w, dt, dp in segs:
+            r = dp * 60.0 / dt
+            if cap is not None and r > cap:
+                r = cap
+            num += w * r
+            den += w
+        return (num / den) if den > 0 else None
 
     def points_per_minute_all(self) -> float | None:
         """CONFIRMED points per minute from the first sample to now.
@@ -5093,10 +5145,22 @@ class Fleet:
             if v.points_known and v.base_confirmed is None:
                 v.base_confirmed = v.confirmed_points
 
+    def _was_computing(self) -> bool:
+        """Was this client actually trying to compute at this instant?
+
+        Only the speed readout uses this, to keep a genuine wait — paused, in
+        maintenance, or with no row in any slot — out of the average instead of
+        counting it as zero speed.  A pool that has run dry is not a slow
+        machine, and the old five minute number said it was.
+        """
+        return bool(not self.paused and not self.maintenance
+                    and any(self.slot_task.values()))
+
     def _record_points_history(self) -> None:
         self.points_at = time.time()
         self.points_history.append(
-            (self.points_at, self.session_points_now()[1]))
+            (self.points_at, self.session_points_now()[1],
+             self._was_computing()))
 
     async def _refresh_points(self) -> None:
         """Read the account's authoritative per-device points.

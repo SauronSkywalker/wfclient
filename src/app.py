@@ -1263,7 +1263,7 @@ class WfSimClient(App):
             "[bold white on #d97706] 贡献 [/]\n"
             f"[dim]账号积分[/dim] {acct_s}   [dim]本次上传[/dim] "
             f"[b]{st['uploaded']}[/b]\n"
-            f"[dim]速度（近 5 分钟）[/dim]  {rate_s}\n"
+            f"[dim]速度（近 10 分钟加权）[/dim] {rate_s}\n"
             f"[dim]平均（启动至今）[/dim]   {rate_all_s}\n"
             f"[dim]本次待确认 / 本次已确认[/dim] {pend} / {conf}\n"
             "\n[bold white on #d97706] 任务池 [/]\n"
