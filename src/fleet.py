@@ -684,10 +684,10 @@ class Fleet:
         if state is True:
             return None, True, unowned
         if state is None:
-            self.on_event("verifiers", f"归属未知，保留 {vid[:10]}")
+            # Saying so is the caller's job (`_log_owner_one`), so that every
+            # verifier gets its one line in the same place, healthy or not.
             return None, None, False
         new = await self.fresh_unclaimed_verifier()
-        self.on_event("verifiers", f"{vid[:10]} 不属于当前账号，替换为 {new[:10]}")
         return new, True, True    # a freshly generated id is unowned by construction
 
     def _apply_verifier_replacements(self, ids: list[str],
@@ -711,6 +711,11 @@ class Fleet:
         * 无所属（无主）   -> registered to this account right now (注册到名下);
         * 属于当前账号     -> left alone.
 
+        EVERY verifier gets one line in the rolling log, healthy or not: the
+        question "is this id registered to my account, nobody's, or somebody
+        else's?" has to be answerable from the log alone, on a machine nobody
+        can inspect.  A summary line closes the pass with the four counts.
+
         Returns how many verifiers were registered in this pass.
         """
         if not self.remote.cookie or not self.account_signed_in:
@@ -719,13 +724,31 @@ class Fleet:
         owned = await self._account_device_prefixes()
         since = self._local_midnight_utc_hour()
         ids = list(self.cfg.get("verifiers") or [])
+        if not ids:
+            self.on_event("verifiers", f"归属校验（{reason}）：没有任何 verifier")
+            return 0
+        self.on_event("verifiers",
+                      f"归属校验（{reason}）：逐个核对 {len(ids)} 个 verifier…")
         replace: dict[str, str] = {}
         unowned_of: dict[str, bool] = {}
-        for vid in ids:
+        known = set(self.cfg.get("claimed") or [])
+        local_hits = sum(1 for vid in ids if vid in known)
+        tally = {"yours": 0, "unowned": 0, "foreign": 0, "unknown": 0}
+        for i, vid in enumerate(ids):
             new, state, unowned = await self._validate_one_verifier(vid, owned, since)
             unowned_of[new or vid] = bool(unowned)
             if new:
                 replace[vid] = new
+            if state is None:
+                where = "unknown"
+            elif state is False or new:
+                # In the replacement branch the returned "unowned" flag describes
+                # the brand new id, not the one being replaced.
+                where = "foreign"
+            else:
+                where = "unowned" if unowned else "yours"
+            tally[where] += 1
+            self._log_owner_one(i, vid, where, new, reason)
         if replace:
             self._apply_verifier_replacements(ids, replace)
         registered = 0
@@ -734,10 +757,45 @@ class Fleet:
                 continue
             if await self._claim_unowned(v, reason):
                 registered += 1
-        if registered:
-            self.on_event("verifiers", f"归属校验（{reason}）：{registered} 个 verifier "
-                                       f"登记到当前账号")
+        self.on_event("verifiers",
+                      f"归属校验（{reason}）完成：共 {len(ids)} 个 — "
+                      f"属于当前账号 {tally['yours']} · 无主 {tally['unowned']} · "
+                      f"别人的 {tally['foreign']} · 归属未知 {tally['unknown']} · "
+                      f"本次登记 {registered}")
+        self.log.event("verifier_ownership_summary", reason=reason, total=len(ids),
+                       yours=tally["yours"], unowned=tally["unowned"],
+                       foreign=tally["foreign"], unknown=tally["unknown"],
+                       registered=registered, replaced=len(replace),
+                       local_claimed=local_hits)
         return registered
+
+    def _log_owner_one(self, i: int, vid: str, where: str,
+                       replacement: str | None, reason: str) -> None:
+        """One verifier's ownership verdict, in words, always.
+
+        `where` is what the server said: `yours` (held by this account),
+        `unowned` (nobody's, about to be registered), `foreign` (another
+        account's, about to be replaced) or `unknown` (the server did not
+        decide, so we leave it alone rather than risk a theft).
+        """
+        label = f"v{i + 1:02d}"
+        local = vid in set(self.cfg.get("claimed") or [])
+        if where == "unknown":
+            word = "归属未知（服务器没给结论）→ 保留，不冒认"
+        elif where == "unowned":
+            word = "无主 → 登记到当前账号名下"
+        elif where == "foreign":
+            word = ("不属于当前账号（属于别人的账号）→ 已换成新的无主 id "
+                    f"{str(replacement or '')[:12]}")
+        elif local:
+            word = "属于当前账号（本地已登记）→ 保持不动"
+        else:
+            word = ("属于当前账号，但本地没有登记记录 → 保持不动"
+                    "（分数按本地账本记，不当成设备分）")
+        self.on_event("verifiers", f"{label} {vid[:12]}：{word}")
+        self.log.event("verifier_ownership", reason=reason, index=i + 1,
+                       label=label, verifier=vid, state=where,
+                       local_claimed=local, replacement=replacement)
 
     def ensure_verifiers(self) -> None:
         want = self.cfg["max_verifiers"]
