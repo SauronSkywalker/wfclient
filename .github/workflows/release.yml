@@ -77,13 +77,28 @@ jobs:
               f.write(f"crt={'static' if d.get('crt_static') else 'dynamic'}\n")
           print(eng, d.get("sha256"))
 
+      - name: stamp the build time
+        id: when
+        shell: python
+        run: |
+          import datetime as dt, os, pathlib
+          now = dt.datetime.now(dt.timezone.utc)
+          cn = now.astimezone(dt.timezone(dt.timedelta(hours=8)))
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"cn={cn:%Y-%m-%d %H:%M:%S}\n")
+              f.write(f"utc={now:%Y-%m-%d %H:%M:%S}\n")
+          print("build time", cn)
+
       - name: publish the engine release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: engine-${{ steps.ident.outputs.engine }}
-          name: "wfclient engine ${{ steps.ident.outputs.engine }}"
+          name: "wfclient engine ${{ steps.ident.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
           make_latest: "false"
+          prerelease: true           # 附带产物：不占 Latest，网页折叠在 Pre-releases 里
           body: |
+            构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
+
             只含引擎本体，供已有便携包的用户替换 `engine/wfsim-core.exe`（标签即 engine id，可幂等重发）。
 
             | 字段 | 值 |
@@ -136,13 +151,27 @@ jobs:
       - name: pack the portable zip
         run: python ci/pack_portable.py --build-dir dist/staging --keep-build
 
+      - name: stamp the build time
+        id: when
+        shell: python
+        run: |
+          import datetime as dt, os, pathlib
+          now = dt.datetime.now(dt.timezone.utc)
+          cn = now.astimezone(dt.timezone(dt.timedelta(hours=8)))
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"cn={cn:%Y-%m-%d %H:%M:%S}\n")
+              f.write(f"utc={now:%Y-%m-%d %H:%M:%S}\n")
+          print("build time", cn)
+
       - name: publish the portable release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: portable-${{ steps.ident.outputs.engine }}
-          name: "wfclient portable ${{ steps.ident.outputs.engine }}"
+          name: "wfclient portable ${{ steps.ident.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
           make_latest: "true"
           body: |
+            构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
+
             完整便携包：内置打好补丁的引擎（MSVC + PGO + mimalloc，随包预编译）、客户端 src、
             便携版 Python 与依赖、使用说明与启动脚本。解压后双击 `run-portable.bat` 即可运行。
 
@@ -234,13 +263,28 @@ jobs:
           --registry dist/cargo-home/registry --work engine-src/work --ci ci
           --engine ${{ steps.ident.outputs.engine }} --out dist/wfclient-deps-${{ steps.ident.outputs.engine }}.zip
 
+      - name: stamp the build time
+        id: when
+        shell: python
+        run: |
+          import datetime as dt, os, pathlib
+          now = dt.datetime.now(dt.timezone.utc)
+          cn = now.astimezone(dt.timezone(dt.timedelta(hours=8)))
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"cn={cn:%Y-%m-%d %H:%M:%S}\n")
+              f.write(f"utc={now:%Y-%m-%d %H:%M:%S}\n")
+          print("build time", cn)
+
       - name: publish the deps release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: deps-${{ steps.ident.outputs.engine }}
-          name: "wfclient self-build deps ${{ steps.ident.outputs.engine }}"
+          name: "wfclient self-build deps ${{ steps.ident.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
           make_latest: "false"
+          prerelease: true           # 附带产物：不占 Latest，网页折叠在 Pre-releases 里
           body: |
+            构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
+
             自编译依赖包（**除 Visual Studio 以外全部自包含**），配合 `portable-${{ steps.ident.outputs.engine }}` 使用。
 
             1. 解压便携包，双击 `run-portable.bat` 确认能跑；

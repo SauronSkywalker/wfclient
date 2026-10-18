@@ -106,13 +106,27 @@ jobs:
           if (pathlib.Path("dist/staging") / "toolchain").exists():
               raise SystemExit("a portable zip must not ship toolchain/")
 
+      - name: stamp the build time
+        id: when
+        shell: python
+        run: |
+          import datetime as dt, os, pathlib
+          now = dt.datetime.now(dt.timezone.utc)
+          cn = now.astimezone(dt.timezone(dt.timedelta(hours=8)))
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"cn={cn:%Y-%m-%d %H:%M:%S}\n")
+              f.write(f"utc={now:%Y-%m-%d %H:%M:%S}\n")
+          print("build time", cn)
+
       - name: publish the portable release (same tag, replaced asset)
         uses: softprops/action-gh-release@v3
         with:
           tag_name: portable-${{ steps.pick.outputs.engine }}
-          name: "wfclient portable ${{ steps.pick.outputs.engine }}"
+          name: "wfclient portable ${{ steps.pick.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
           make_latest: "true"
           body: |
+            构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
+
             完整便携包：内置打好补丁的引擎（MSVC + PGO + mimalloc，随包预编译）、客户端 src、
             便携版 Python 与依赖、使用说明与启动脚本。解压后双击 `run-portable.bat` 即可运行。
 
@@ -199,12 +213,27 @@ jobs:
                   raise SystemExit("the build doc does not mention " + must)
           print("build doc:", len(text), "chars,", text.count("\n") + 1, "lines")
 
+      - name: stamp the build time
+        id: when
+        shell: python
+        run: |
+          import datetime as dt, os, pathlib
+          now = dt.datetime.now(dt.timezone.utc)
+          cn = now.astimezone(dt.timezone(dt.timedelta(hours=8)))
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write(f"cn={cn:%Y-%m-%d %H:%M:%S}\n")
+              f.write(f"utc={now:%Y-%m-%d %H:%M:%S}\n")
+          print("build time", cn)
+
       - uses: softprops/action-gh-release@v3
         with:
           tag_name: selfbuild-${{ needs.repack.outputs.engine }}
-          name: "wfclient self-build sources ${{ needs.repack.outputs.engine }}"
+          name: "wfclient self-build sources ${{ needs.repack.outputs.engine }} · ${{ steps.when.outputs.cn }} (UTC+8)"
           make_latest: "false"      # 便携包那条线才是 latest
+          prerelease: true          # 附带产物：不占 Latest
           body: |
+            构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
+
             自己编译引擎用的源码包：客户端 `src/`、构建脚本 `ci/`、上游补丁、文档与许可。
             完整依赖说明见仓库根目录的 `自构建说明.md`（也在 zip 里）。
 
