@@ -33,7 +33,7 @@
   "stale_start_promote_seconds": 2400,
   "ui_scale_percent": 0,
   "ui_scale_state": {},
-  "task_logging": "verbose",
+  "task_logging": "full",
   "task_persist": false,
   "cpu_limit_percent": 100,
   "slot_watchdog_seconds": 10,

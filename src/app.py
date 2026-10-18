@@ -56,10 +56,11 @@ import cores
 import sync_engine          # has a __main__ guard, so importing runs nothing
 import ui_scale
 from fleet import Fleet, Verifier, new_verifier_id
+from task_log import normalise_level
 
-#: The three log levels, in the words the settings page shows.  The stored
-#: value is the English key (stable in config.json); the page shows the label.
-LOG_LEVEL_LABELS = {"off": "关", "standard": "标准", "verbose": "详细", "full": "完整"}
+#: The two log levels, in the words the settings page shows.  The stored value
+#: is the English key (stable in config.json); the page shows the label.
+LOG_LEVEL_LABELS = {"off": "关", "full": "完整"}
 
 # TWO COLOURS ONLY: black background with white text, and orange background
 # with white text for every title bar, chip, button and log tag.
@@ -341,12 +342,9 @@ class SettingsScreen(Screen):
             toggle = self.query_one("#small_batch_toggle", Button)
             toggle.label = "开" if enabled else "关"
             toggle.set_class(enabled, "on")
-            # log detail level: 关 writes nothing, 标准 keeps errors only,
-            # 详细 the medium set, 完整 every body and every scheduling record.
-            level = str(self.fleet.cfg.get("task_logging") or "off")
-            level = {"summary": "verbose"}.get(level, level)
-            if level not in LOG_LEVEL_LABELS:
-                level = "off"
+            # log level: 关 writes nothing, 完整 keeps every body and every
+            # scheduling record.
+            level = normalise_level(self.fleet.cfg.get("task_logging"))
             self.query_one("#log_level_value", Static).update(
                 LOG_LEVEL_LABELS.get(level, level))
             lb = self.query_one("#log_level_toggle", Button)
@@ -527,23 +525,17 @@ class SettingsScreen(Screen):
         self._toggle_small_batch()
 
     def _on_log_level(self, event) -> None:
-        #: 关 -> 标准 -> 详细 -> 完整 -> 关.  `enabled` is part of the toggle:
-        #: without it, switching to 关 would leave the logger writing, and
-        #: switching back on would find it still switched off.
-        order = ["off", "standard", "verbose", "full"]
-        current = str(self.fleet.cfg.get("task_logging") or "off")
-        current = {"summary": "verbose"}.get(current, current)
-        try:
-            idx = order.index(current)
-        except ValueError:
-            idx = 0
-        value = order[(idx + 1) % len(order)]
+        #: 关 -> 完整 -> 关.  `enabled` is part of the toggle: without it,
+        #: switching to 关 would leave the logger writing, and switching back
+        #: on would find it still switched off.
+        order = ["off", "full"]
+        current = normalise_level(self.fleet.cfg.get("task_logging"))
+        value = order[(order.index(current) + 1) % len(order)]
         self.fleet.cfg["task_logging"] = value
         log = self.fleet.log
         log.mode = value
         log.enabled = value != "off"
         log.full = value == "full"
-        log.errors_only = value == "standard"
         self._save(f"日志级别 -> {LOG_LEVEL_LABELS.get(value, value)}")
         self._refresh()
 

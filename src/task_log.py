@@ -6,11 +6,11 @@
 #---------------------------------------------------------------------------
 """Complete per-task debug log for the portable client.
 
-FOUR LEVELS, and the default is 关 (``"off"``): an untouched install writes
-nothing.  ``"standard"`` (标准) keeps errors and the session's own start/stop,
-``"verbose"`` (详细) adds the routine session/timing/upload records but omits
-the large engine bodies, and ``"full"`` (完整) keeps every body plus the
-CPU-scheduling records.  The level may be changed while the client runs.
+TWO LEVELS, and the default is 关 (``"off"``): an untouched install writes
+nothing.  ``"full"`` (完整) keeps everything — every body plus the
+CPU-scheduling records.  There is deliberately NO middle level: a file that
+keeps only part of the story is worse than useless when the question is "what
+did that engine actually do".  The level may be changed while the client runs.
 
 When it is on, everything is written under client-portable/logs/:
 
@@ -31,54 +31,56 @@ import time
 from pathlib import Path
 
 
+#: Spellings from the builds that had more levels, and from raw booleans.  All
+#: of them meant "write something", and the only level above 关 is 完整.
+_LEGACY_ON = ("full", "standard", "verbose", "summary", "true", "on", "1", "yes")
+_LEGACY_OFF = ("off", "false", "none", "0", "no", "")
+
+
+def normalise_level(value) -> str:
+    """Map any stored or legacy value onto the two levels: ``off`` / ``full``."""
+    if value is True:
+        return "full"
+    if value in (False, None):
+        return "off"
+    text = str(value).strip().lower()
+    if text in _LEGACY_OFF:
+        return "off"
+    if text in _LEGACY_ON:
+        return "full"
+    return "off"          # unknown: a typo must not start writing files
+
+
 class TaskLogger:
-    """JSONL logger with FOUR levels, each a real strictness of its own.
+    """JSONL logger with TWO levels: 关 (``"off"``) and 完整 (``"full"``).
 
     The level names are the page's (`app.py`): ``"off"`` (关) writes nothing at
-    all — no directory, no file, no record, not even the redaction walk;
-    ``"standard"`` (标准) keeps only errors; ``"verbose"`` (详细) keeps the
-    medium set — session, timing and error data, with large engine bodies such
-    as the board fold accumulator replaced by an omission marker — and
+    all — no directory, no file, no record, not even the redaction walk — and
     ``"full"`` (完整) keeps every body and every scheduling record for
     debugging.
 
     ``off`` IS THE DEFAULT.  An untouched install leaves nothing on disk, and
     the early return in `event`/`task` is what makes that cost nothing.
 
-    An older config may carry ``"summary"`` (the name this file used before the
-    three-level split); it is read as ``"verbose"`` so nothing written by an
-    earlier build loses its meaning.  A bare ``true``/``false`` from a build
-    that only knew on/off reads as ``standard``/``off``.
+    Older configs carry the names of builds that had more levels
+    (``"standard"``/``"verbose"``/``"summary"``, or a bare ``true``): they all
+    meant "write something", so `normalise_level` reads them as ``"full"``.
     """
-    #: The four levels, weakest first.  `off` is the production default.
-    LEVELS = ("off", "standard", "verbose", "full")
+    #: The two levels, weakest first.  `off` is the production default.
+    LEVELS = ("off", "full")
     #: A value this build does not recognise means the same as the default:
     #: nothing written.  A typo must not silently start writing files.
     DEFAULT = "off"
-    #: Spellings from the builds that had fewer levels, and from raw booleans.
-    _ALIASES = {"summary": "verbose",
-                "true": "standard", "on": "standard", "1": "standard",
-                "false": "off", "none": "off", "0": "off", "": "off"}
 
     def __init__(self, root: str | Path, enabled=True):
         #: `enabled` carries the LEVEL as-is (a string) or a legacy boolean;
         #: wrapping it in `bool()` here once collapsed all levels to on/off.
         self.root = Path(root)
-        if enabled is True:
-            mode = "standard"
-        elif enabled in (False, None):
-            mode = "off"
-        else:
-            mode = str(enabled).strip().lower()
-        mode = self._ALIASES.get(mode, mode)
-        if mode not in self.LEVELS:
-            mode = self.DEFAULT
+        mode = normalise_level(enabled)
         self.mode = mode
         self.enabled = mode != "off"
-        #: 完整 keeps every body; 详细/标准 omit the large accumulators.
+        #: 完整 keeps every body and every scheduling record.
         self.full = mode == "full"
-        #: 标准 keeps only errors.
-        self.errors_only = mode == "standard"
         self.dir = self.root / "logs"
         self.tasks_dir = self.dir / "tasks"
         self._lock = threading.Lock()
@@ -186,32 +188,10 @@ class TaskLogger:
                      f"{cls._SAFE_MARKER}",
             text)
 
-    #: 标准 (errors only) keeps an event whose kind says it is a failure.  The
-    #: suffix covers the whole `*_error` family; the explicit set names the
-    #: failure-shaped events that do not end that way.  `session_start` and
-    #: `session_stop` are kept too — without them a 标准 file has no beginning
-    #: or end and cannot be told from one that never ran.
-    _ERROR_KINDS = frozenset({
-        "session_start", "session_stop",
-        "row_lost", "row_lost_after_reserve",
-        "board_sync_stale", "board_sync_banned", "board_sync_malformed",
-        "board_pack_stalled", "board_tail_failed", "board_kept_dropped",
-        "riven_pending_dropped", "riven_pending_refused",
-        "riven_answer_unconfirmed", "riven_pending_unconfirmed",
-        "sync_pack_unparseable", "sync_riven_unparseable",
-        "sync_pack_no_room", "sync_riven_no_room",
-        "slot_watchdog_dead", "fetch_empty",
-    })
-
-    def _keep_event(self, kind: str) -> bool:
-        if not self.errors_only:
-            return True
-        return kind.endswith("_error") or kind in self._ERROR_KINDS
-
     def event(self, kind: str, **data) -> None:
         #: 关 RETURNS HERE: the caller's data is never walked, redacted,
         #: serialized or opened, so "no logging" really costs nothing.
-        if not self.enabled or not self._keep_event(kind):
+        if not self.enabled:
             return
         rec = {"ts": self._now(), "iso": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                "kind": kind, **self.redact(data)}
@@ -228,13 +208,8 @@ class TaskLogger:
         object per update, in the order the events happened.  A large riven
         result no longer makes every later update read and serialize the whole
         previous file again.
-
-        标准 keeps only updates that carry a failure — the task-side twin of
-        `_keep_event`.
         """
         if not self.enabled or not lease_id:
-            return
-        if self.errors_only and not self._task_is_error(data):
             return
         lease_id = str(lease_id)
         rec = {"ts": self._now(),
@@ -246,17 +221,3 @@ class TaskLogger:
             path = self.tasks_dir / f"{lease_id}.jsonl"
             with path.open("a", encoding="utf-8") as f:
                 f.write(line + "\n")
-
-    @staticmethod
-    def _task_is_error(data: dict) -> bool:
-        """A task update worth keeping at 标准: one that names a failure."""
-        if any(k in data for k in ("upload_exception", "renew_lost_row",
-                                   "release_reason")):
-            return True
-        for key in ("upload_response", "kept_response", "fetch_response"):
-            body = data.get(key)
-            if isinstance(body, dict) and (
-                    body.get("transport_error") or body.get("http_error")
-                    or body.get("ok") is False):
-                return True
-        return False

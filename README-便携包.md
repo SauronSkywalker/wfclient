@@ -32,7 +32,7 @@
 |---|---|---|
 | `board_batch_rows` | `8` | 一次向引擎投 8 行。摊薄每行固定的串行尾巴；设为 `1` 即回到逐行投递 |
 | `idle_recycle_s` | `60` | 空闲 60 秒回收闲置引擎（保底留 `idle_keep`=1 个）。下次有活时**先拉起引擎再算**，所以不吃首次卡顿；设为 `0` 关闭 |
-| `task_logging` | `verbose` | 四档：`off` / `standard` / `verbose` / `full`。**日常建议 `off`**（一个字节都不写）；验收/排查用 `verbose`；`full` 会把每行大 body 也写进日志，代价约 4.5 个百分点算力 |
+| `task_logging` | `off` | 两档：`off` / `full`（关 / 完整）。**日常建议 `off`**（一个字节都不写）；排查/验收切到 `full`（每行大 body 也写进日志，代价约 4.5 个百分点算力）。旧配置里的 `standard`/`verbose`/`summary` 一律按 `full` 读 |
 
 其余键与上游一致，没把握就不要改。
 

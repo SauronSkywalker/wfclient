@@ -118,7 +118,7 @@ def test_unowned_is_registered():
     ck("登记事件带 reason", ev(f, "claim_begin")["reason"], "启动")
     ck("on_event 有提示", any("登记到当前账号" in m for _, m in f.events), True)
     ck("逐个归属事件 state=unowned", ev(f, "verifier_ownership")["state"], "unowned")
-    ck("逐个归属行说得清楚", any("无主 → 登记到当前账号" in m for m in lines(f)), True)
+    ck("逐个归属行说得清楚", any("无主 → 本轮登记到当前账号名下" in m for m in lines(f)), True)
 
 
 def test_foreign_is_switched():
@@ -276,6 +276,60 @@ def test_call_sites():
     ck("每个 verifier 都有结构化事件", 'self.log.event("verifier_ownership",' in src, True)
     ck("有小结事件", 'self.log.event("verifier_ownership_summary",' in src, True)
     ck("小结带 registered", "registered=registered, replaced=len(replace)" in src, True)
+    ck("异常不吞行", "归属校验失败（" in src, True)
+    ck("坏的那个也调一次 _log_owner_one", 'note=f"归属校验失败（' in src, True)
+    ck("补上的 id 也有行", 'self.log.event("verifier_ownership_extra",' in src, True)
+    ck("小结带 added", "added=len(added)" in src, True)
+    ck("循环有 try", "One bad verifier must not blind the log" in src, True)
+    ck("认领失败的文案不再说死", "无主 → 本轮登记到当前账号名下" in src, True)
+
+
+def test_a_broken_check_still_gets_a_line():
+    print("某个 verifier 的校验抛异常 -> 它自己一行（写清原因），后面的照旧")
+    r = FakeRemote(devices=("ours01",),
+                   points={"aaaa1111": {"ok": True, "claimed": True},
+                           "bbbb2222": {"ok": True, "claimed": True},
+                           "cccc3333": {"ok": True, "claimed": False}},
+                   ledger={"aaaa1111": {"ok": True, "hours": [{"hour": "h", "holder": "you"}]},
+                           "bbbb2222": {"ok": True, "hours": [{"hour": "h", "holder": "other"}]}})
+    f = make_fleet(r, ["aaaa1111", "bbbb2222", "cccc3333"], claimed=["aaaa1111"])
+
+    async def boom() -> str:
+        raise RuntimeError("造不出新的无主 id")
+
+    f.fresh_unclaimed_verifier = boom        # the real failure mode: :677 mid-loop
+    asyncio.run(f.validate_verifier_ownership("启动"))
+    ck("三个都有一行", len(ev_all(f, "verifier_ownership")), 3)
+    ck("正文三行", len([m for m in lines(f) if re.match(r"^v\d\d [0-9a-f]+：", m)]), 3)
+    ck("坏的那个写了原因",
+       any("v02 bbbb2222" in m and "归属校验失败" in m and "RuntimeError" in m
+           and "保留" in m for m in lines(f)), True)
+    ck("坏的那个归入未知", ev_all(f, "verifier_ownership")[1]["state"], "unknown")
+    ck("没被换掉", f.cfg["verifiers"], ["aaaa1111", "bbbb2222", "cccc3333"])
+    summary = ev(f, "verifier_ownership_summary")
+    ck("小结还在", summary["total"], 3)
+    ck("小结 unknown=1", summary["unknown"], 1)
+    ck("小结 foreign=0", summary["foreign"], 0)
+    ck("后面的照旧登记", summary["unowned"], 1)
+    ck("只登记了 1 个", summary["registered"], 1)
+    ck("正文小结仍在", any("归属校验（启动）完成：共 3 个" in m for m in lines(f)), True)
+
+
+def test_new_ids_are_reported_and_registered():
+    print("替换后 ensure_verifiers 补上的新 id -> 单独一行 + 一并登记")
+    r = FakeRemote(devices=("ours01",),
+                   points={"bbbb2222": {"ok": True, "claimed": True}},
+                   ledger={"bbbb2222": {"ok": True, "hours": [{"hour": "h", "holder": "other"}]}})
+    f = make_fleet(r, ["bbbb2222"])
+    f.cfg["max_verifiers"] = 3                 # room for ensure_verifiers to pad
+    n = asyncio.run(f.validate_verifier_ownership("启动"))
+    ck("补上的有结构事件", ev(f, "verifier_ownership_extra")["count"], 2)
+    ck("正文说明补了几个", any("另有 2 个 verifier" in m for m in lines(f)), True)
+    ck("小结里的 added", ev(f, "verifier_ownership_summary")["added"], 2)
+    ck("正文小结带补上", any("另有 2 个补上" in m for m in lines(f)), True)
+    ck("替换的新 id + 补上的 2 个都登记了", n, 3)
+    ck("认领调用 3 次", len(r.claimed_calls), 3)
+    ck("最终三个 verifier", len(f.cfg["verifiers"]), 3)
 
 
 if __name__ == "__main__":
@@ -288,6 +342,8 @@ if __name__ == "__main__":
     test_claim_failure_is_survivable()
     test_held_by_prefix_is_not_stolen()
     test_every_verifier_gets_one_line()
+    test_a_broken_check_still_gets_a_line()
+    test_new_ids_are_reported_and_registered()
     test_labels_are_numbered()
     test_no_verifiers_is_sane()
     test_call_sites()

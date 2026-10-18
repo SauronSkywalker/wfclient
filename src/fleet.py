@@ -358,7 +358,7 @@ class Fleet:
         self.on_event = on_event or _noop_event
         self.on_config_changed = on_config_changed or _noop_config_changed
         # HAND THE LEVEL THROUGH AS-IS: `TaskLogger` reads the four levels
-        # ("off"/"standard"/"verbose"/"full") itself, and 关 is the default.
+        # ("off"/"full") itself, and 关 is the default.
         # Wrapping it in `bool()` here collapsed every level to on/off, so the
         # settings page's 标准/详细/完整 all produced the same file.
         self.log = TaskLogger(paths.ROOT,
@@ -735,7 +735,17 @@ class Fleet:
         local_hits = sum(1 for vid in ids if vid in known)
         tally = {"yours": 0, "unowned": 0, "foreign": 0, "unknown": 0}
         for i, vid in enumerate(ids):
-            new, state, unowned = await self._validate_one_verifier(vid, owned, since)
+            new: str | None = None
+            try:
+                new, state, unowned = await self._validate_one_verifier(vid, owned, since)
+            except Exception as e:
+                # One bad verifier must not blind the log for all the rest: say
+                # what became of THIS one, then carry on with the others.
+                tally["unknown"] += 1
+                self._log_owner_one(i, vid, "unknown", None, reason,
+                                    note=f"归属校验失败（{type(e).__name__}: {e}）"
+                                         f" → 保留，下一轮再看")
+                continue
             unowned_of[new or vid] = bool(unowned)
             if new:
                 replace[vid] = new
@@ -751,39 +761,58 @@ class Fleet:
             self._log_owner_one(i, vid, where, new, reason)
         if replace:
             self._apply_verifier_replacements(ids, replace)
+        # `ensure_verifiers` pads the set back up to `max_verifiers` with brand
+        # new ids: unowned by construction, so they get their line too.
+        added = [v for v in (self.cfg.get("verifiers") or [])
+                 if v not in set(ids) and v not in replace.values()]
+        for v in added:
+            unowned_of.setdefault(v, True)
+        if added:
+            self.on_event("verifiers",
+                          f"归属校验（{reason}）：另有 {len(added)} 个 verifier "
+                          f"（{added[0][:12]}…）是这一轮补上的 → 一并登记")
+            self.log.event("verifier_ownership_extra", reason=reason,
+                           count=len(added), verifiers=added)
         registered = 0
         for v in self.verifiers:
             if v.account_claimed or not unowned_of.get(v.vid):
                 continue
             if await self._claim_unowned(v, reason):
                 registered += 1
+        pad = f" · 另有 {len(added)} 个补上" if added else ""
         self.on_event("verifiers",
                       f"归属校验（{reason}）完成：共 {len(ids)} 个 — "
                       f"属于当前账号 {tally['yours']} · 无主 {tally['unowned']} · "
                       f"别人的 {tally['foreign']} · 归属未知 {tally['unknown']} · "
-                      f"本次登记 {registered}")
+                      f"本次登记 {registered}{pad}")
         self.log.event("verifier_ownership_summary", reason=reason, total=len(ids),
                        yours=tally["yours"], unowned=tally["unowned"],
                        foreign=tally["foreign"], unknown=tally["unknown"],
                        registered=registered, replaced=len(replace),
-                       local_claimed=local_hits)
+                       added=len(added), local_claimed=local_hits)
         return registered
 
     def _log_owner_one(self, i: int, vid: str, where: str,
-                       replacement: str | None, reason: str) -> None:
+                       replacement: str | None, reason: str,
+                       note: str = "") -> None:
         """One verifier's ownership verdict, in words, always.
 
         `where` is what the server said: `yours` (held by this account),
         `unowned` (nobody's, about to be registered), `foreign` (another
         account's, about to be replaced) or `unknown` (the server did not
         decide, so we leave it alone rather than risk a theft).
+
+        `note`, when given, replaces the whole sentence — that is how a failed
+        check still gets its one line instead of vanishing into an exception.
         """
         label = f"v{i + 1:02d}"
         local = vid in set(self.cfg.get("claimed") or [])
-        if where == "unknown":
+        if note:
+            word = note
+        elif where == "unknown":
             word = "归属未知（服务器没给结论）→ 保留，不冒认"
         elif where == "unowned":
-            word = "无主 → 登记到当前账号名下"
+            word = "无主 → 本轮登记到当前账号名下（失败会另出一行）"
         elif where == "foreign":
             word = ("不属于当前账号（属于别人的账号）→ 已换成新的无主 id "
                     f"{str(replacement or '')[:12]}")

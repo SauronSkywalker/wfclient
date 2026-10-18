@@ -169,13 +169,12 @@ DEFAULTS = {
     #: `ui_scale_state` stores the original size so "follow" can restore it.
     "ui_scale_percent": 0,
     "ui_scale_state": {},
-    #: JSONL debug logging, FOUR levels, and the default is "off" (关) — an
-    #: untouched install writes nothing at all.  "standard" (标准) keeps only
-    #: errors and session bounds; "verbose" (详细) adds session/timing/error
-    #: data and omits the large engine bodies; "full" (完整) keeps every body
-    #: and adds the CPU-scheduling records (affinity masks, CPU Sets, per-row
-    #: cores used, per-slot idle spells).  An old "summary" reads as "verbose",
-    #: and a bare true/false from a two-level build reads as standard/off.
+    #: JSONL debug logging, TWO levels, and the default is "off" (关) — an
+    #: untouched install writes nothing at all.  "full" (完整) keeps every body
+    #: and the CPU-scheduling records (affinity masks, CPU Sets, per-row cores
+    #: used, per-slot idle spells).  Names from older builds that had middle
+    #: levels ("standard"/"verbose"/"summary", or a bare true) all read as
+    #: "full" — they all meant "write something".
     "task_logging": "off",
     #: persist board/riven task answers & results to disk between runs.
     #: Default false: answers stay in memory only (see requirements).
