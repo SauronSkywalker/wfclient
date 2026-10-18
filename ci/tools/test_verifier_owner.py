@@ -111,7 +111,7 @@ def test_unowned_is_registered():
     n = asyncio.run(f.validate_verifier_ownership("启动"))
     ck("返回登记数量", n, 1)
     ck("claim 被调用", [v for v, _ in r.claimed_calls], ["aaaa1111"])
-    ck("标签用 wfsimpp NN", r.claimed_calls[0][1], "wfsimpp 01")
+    ck("标签用 ver id 前 8 位", r.claimed_calls[0][1], "aaaa1111")
     ck("标记为已认领", f.verifiers[0].account_claimed, True)
     ck("写入 cfg.claimed", f.cfg["claimed"], ["aaaa1111"])
     ck("登记事件带 tasks_held=0", ev(f, "claim_begin")["tasks_held"], 0)

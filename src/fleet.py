@@ -128,6 +128,11 @@ POINTS_HALF_LIFE_S = 120.0
 #: its own it would carry the whole average; a real sprint lasts several
 #: intervals, so capping one of them costs nothing.
 POINTS_WINSOR = 2.0
+#: A DEVICE WHOSE NAME THE SERVER REFUSED IS NOT ASKED AGAIN FOR THIS
+#: LONG.  The label is a display field: one refused name must not become
+#: one request on every account read, and a transient 5xx must not freeze
+#: the old label forever either.
+DEVICE_RENAME_RETRY_S = 600.0
 #: A ROW THAT HAS WAITED THIS LONG FOR AN ENGINE is put at the front of the
 #: pick order, at the manual pick's own level.  Renewals keep a row alive
 #: forever, so without this a pack that arrives faster than it drains can
@@ -222,12 +227,20 @@ SLOT_STALL_CHECKS = 3
 SLOT_STALL_CPU_EPS = 0.05
 
 
+def device_label_of(vid: str) -> str:
+    """A device's account-page name: the verifier id's first EIGHT.
+
+    The old name was `wfsimpp NN`, which every machine of every account
+    produced, so an account with several clients could not tell its own
+    devices apart.  Eight hex characters of the id are unique in practice
+    and say exactly which verifier a row belongs to.
+    """
+    return str(vid)[:8]
+
+
 def claim_label(v: Verifier) -> str:
-    """Keep the server-side device labels in the existing wfsimpp NN form."""
-    label = (v.label or "").strip()
-    if label.startswith("v") and label[1:].isdigit():
-        return f"wfsimpp {label[1:]}"
-    return label or f"wfsimpp {v.vid[:6]}"
+    """The name a claim carries: the verifier id's first eight characters."""
+    return device_label_of(v.vid)
 
 
 def task_label(item) -> str:
@@ -562,6 +575,8 @@ class Fleet:
         #: the ACCOUNT's own total, from /api/account/devices.
         self.account_points: int | None = None
         self.account_at: float = 0.0
+        #: device id -> the last time the server refused a name for it.
+        self._rename_bad: dict[str, float] = {}
         #: points cursor sent with protocol-8 syncs (`since`): the reader's own
         #: "today", same value the official page and `/board/points` use.
         #: A sync reply's `points` then replaces the per-device poll for the
@@ -5080,6 +5095,24 @@ class Fleet:
                 return pts
         return None
 
+    @staticmethod
+    def _device_rows_by_id(acc: dict) -> dict[str, dict]:
+        """The account's device rows, keyed by device id."""
+        rows: dict[str, dict] = {}
+        for d in acc.get("devices") or []:
+            did = str(d.get("id") or "")
+            if did:
+                rows[did] = dict(d)
+        return rows
+
+    @staticmethod
+    def _device_row_for(vid: str, rows: dict[str, dict]) -> dict | None:
+        """The row of OUR device for this verifier, by 6-char id prefix."""
+        for did, row in rows.items():
+            if vid.startswith(did):
+                return row
+        return None
+
     def _store_claimed(self, claimed_now: list[str]) -> None:
         current = list(self.cfg.get("claimed") or [])
         if current == claimed_now:
@@ -5120,7 +5153,53 @@ class Fleet:
                 v.points_known = False
         self._store_claimed(claimed_now)
         await self._claim_ready_verifiers()
+        await self._sync_device_labels(acc)
         self.account_at = time.time()
+
+    async def _sync_device_labels(self, acc: dict) -> None:
+        """Name every device of OURS after its verifier id's first eight.
+
+        Only rows that belong to this fleet are touched: the browser's own
+        device (`Windows . Chrome`, say) and another machine's are left
+        alone, and a name the server refuses is not asked for again for
+        `DEVICE_RENAME_RETRY_S`.
+        """
+        rows = self._device_rows_by_id(acc)
+        if not rows:
+            return
+        now = time.time()
+        for v in self.verifiers:
+            row = self._device_row_for(v.vid, rows)
+            if row is None:
+                continue
+            did = str(row.get("id") or "")
+            if not did:
+                continue
+            want = device_label_of(v.vid)
+            old = str(row.get("label") or "")
+            if old == want:
+                continue
+            if now - self._rename_bad.get(did, 0.0) < DEVICE_RENAME_RETRY_S:
+                continue
+            try:
+                r = await self._io(self.remote.rename, did, want)
+            except Exception as e:
+                r = {"transport_error": f"{type(e).__name__}: {e}"}
+            ok = bool(isinstance(r, dict) and r.get("ok"))
+            if ok:
+                self._rename_bad.pop(did, None)
+                self.on_event(
+                    "verifiers",
+                    f"{v.label} 设备名 {old or '（空）'} → {want}")
+            else:
+                self._rename_bad[did] = time.time()
+                self.on_event(
+                    "verifiers",
+                    f"{v.label} 设备改名被拒：{old or '（空）'} → {want}"
+                    f"（{DEVICE_RENAME_RETRY_S / 60:.0f} 分钟后再试）")
+            self.log.event("device_rename", verifier=v.vid, device=did,
+                           old=old, new=want, ok=ok,
+                           response=(None if ok else r))
 
     async def _fill_unclaimed_points(self) -> None:
         """Unclaimed devices are the one case the per-device endpoint still

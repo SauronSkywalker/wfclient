@@ -122,6 +122,15 @@ class Remote:
     def claim(self, verifier: str, label: str) -> dict:
         return self.post("/api/account/devices/claim", {"verifier": verifier, "label": label}, self.cookie)
 
+    def rename(self, device_id: str, label: str) -> dict:
+        """Give one of our devices a new display name.
+
+        The site rejects a name it dislikes with `{"ok": false}` and a
+        message (duplicate, too long, a blocked word); that is a refusal,
+        not an error, and the caller backs off rather than retrying.
+        """
+        return self.post("/api/account/devices/label", {"id": device_id, "label": label}, self.cookie)
+
     def release_info(self) -> dict:
         return self.get("/release.json")
 
