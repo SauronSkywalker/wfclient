@@ -329,15 +329,15 @@
       ],
       "dps": 6058282.416410564,
       "evolutions": [],
-      "exilus": "eject_magazine",
+      "exilus": "primed_steady_hands",
       "forma": {
-       "total_drain": 58,
+       "total_drain": 59,
        "used": 6
       },
       "from_starts": [
        {
         "from": 21.1413481155729,
-        "moves": 9,
+        "moves": 10,
         "start": 3
        }
       ],
@@ -433,7 +433,7 @@
         "magnetic_might",
         "pistol_elementalist",
         "riven:rmv6g90dvax9",
-        "eject_magazine"
+        "primed_steady_hands"
        ],
        "overshields": false,
        "player_at": [
@@ -7668,30 +7668,30 @@
       ],
       "dps": 4183404.3177442946,
       "evolutions": [],
-      "exilus": "eject_magazine",
+      "exilus": "primed_steady_hands",
       "forma": {
        "total_drain": 60,
-       "used": 5
+       "used": 6
       },
       "from_starts": [
        {
         "from": 4.682237975907745,
-        "moves": 15,
+        "moves": 17,
         "start": 0
        },
        {
         "from": 8.805148723173847,
-        "moves": 13,
+        "moves": 14,
         "start": 1
        },
        {
         "from": 5.550068552182685,
-        "moves": 12,
+        "moves": 13,
         "start": 2
        },
        {
         "from": 3.88661602331398,
-        "moves": 15,
+        "moves": 17,
         "start": 3
        }
       ],
@@ -7706,9 +7706,9 @@
        "riven:rmv6g916cxyt",
        "primed_heated_charge",
        "anemic_agility",
-       "augur_seeker",
        "galvanized_diffusion",
        "magnetic_might",
+       "perpetual_agony",
        "pistol_elementalist"
       ],
       "rank": 1,
@@ -7783,11 +7783,11 @@
         "riven:rmv6g916cxyt",
         "primed_heated_charge",
         "anemic_agility",
-        "augur_seeker",
         "galvanized_diffusion",
         "magnetic_might",
+        "perpetual_agony",
         "pistol_elementalist",
-        "eject_magazine"
+        "primed_steady_hands"
        ],
        "overshields": false,
        "player_at": [
@@ -14290,15 +14290,15 @@
       ],
       "dps": 3391707.290933135,
       "evolutions": [],
-      "exilus": "eject_magazine",
+      "exilus": "primed_steady_hands",
       "forma": {
        "total_drain": 60,
-       "used": 6
+       "used": 7
       },
       "from_starts": [
        {
         "from": 9.699486561434561,
-        "moves": 11,
+        "moves": 12,
         "start": 0
        }
       ],
@@ -14310,11 +14310,11 @@
       "mode": "base",
       "mods": [
        "primed_heated_charge",
-       "augur_seeker",
        "galvanized_diffusion",
        "galvanized_shot",
        "lethal_torrent",
        "magnetic_might",
+       "perpetual_agony",
        "pistol_elementalist",
        "riven:rmv6g9319zrq"
       ],
@@ -14387,14 +14387,14 @@
        "mode": "base",
        "mods": [
         "primed_heated_charge",
-        "augur_seeker",
         "galvanized_diffusion",
         "galvanized_shot",
         "lethal_torrent",
         "magnetic_might",
+        "perpetual_agony",
         "pistol_elementalist",
         "riven:rmv6g9319zrq",
-        "eject_magazine"
+        "primed_steady_hands"
        ],
        "overshields": false,
        "player_at": [
