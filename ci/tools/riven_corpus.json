@@ -314,7 +314,7 @@
     "failed_starts": [],
     "fights": 31838,
     "final_runs": 100,
-    "final_work": 384254369,
+    "final_work": 382480634,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -327,7 +327,7 @@
       "arcane_rank": [
        5
       ],
-      "dps": 6058282.416410564,
+      "dps": 6054043.196655593,
       "evolutions": [],
       "exilus": "primed_steady_hands",
       "forma": {
@@ -336,15 +336,15 @@
       },
       "from_starts": [
        {
-        "from": 21.1413481155729,
+        "from": 21.141176197062126,
         "moves": 10,
         "start": 3
        }
       ],
-      "kill_progress": 40.37058876618983,
-      "kill_progress_se": 0.1597470923891746,
-      "kills": 39.84,
-      "kills_max": 44,
+      "kill_progress": 40.33138747611314,
+      "kill_progress_se": 0.1679367532173745,
+      "kills": 39.8,
+      "kills_max": 43,
       "kills_min": 35,
       "mode": "base",
       "mods": [
@@ -676,7 +676,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 384254369
+      "work": 382480634
      }
     ],
     "sampled": 1040.0,
@@ -7653,7 +7653,7 @@
     "failed_starts": [],
     "fights": 57050,
     "final_runs": 100,
-    "final_work": 692978633,
+    "final_work": 689163714,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 2,
@@ -7666,7 +7666,7 @@
       "arcane_rank": [
        5
       ],
-      "dps": 4183404.3177442946,
+      "dps": 4178681.410431834,
       "evolutions": [],
       "exilus": "primed_steady_hands",
       "forma": {
@@ -7675,29 +7675,29 @@
       },
       "from_starts": [
        {
-        "from": 4.682237975907745,
+        "from": 4.6811530121745015,
         "moves": 17,
         "start": 0
        },
        {
-        "from": 8.805148723173847,
+        "from": 8.806163365270764,
         "moves": 14,
         "start": 1
        },
        {
-        "from": 5.550068552182685,
+        "from": 5.376118076890228,
         "moves": 13,
         "start": 2
        },
        {
-        "from": 3.88661602331398,
+        "from": 3.8816463992190924,
         "moves": 17,
         "start": 3
        }
       ],
-      "kill_progress": 26.244764566946273,
-      "kill_progress_se": 0.0637219739251482,
-      "kills": 25.65,
+      "kill_progress": 26.216486450341964,
+      "kill_progress_se": 0.06601395370005096,
+      "kills": 25.6,
       "kills_max": 27,
       "kills_min": 24,
       "mode": "base",
@@ -8030,7 +8030,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 365718006
+      "work": 363676501
      }
     ],
     "sampled": 1719.0,
@@ -14275,7 +14275,7 @@
     "failed_starts": [],
     "fights": 48196,
     "final_runs": 100,
-    "final_work": 371247380,
+    "final_work": 369460928,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -14288,7 +14288,7 @@
       "arcane_rank": [
        5
       ],
-      "dps": 3391707.290933135,
+      "dps": 3391589.56837626,
       "evolutions": [],
       "exilus": "primed_steady_hands",
       "forma": {
@@ -14297,14 +14297,14 @@
       },
       "from_starts": [
        {
-        "from": 9.699486561434561,
+        "from": 9.696512546836479,
         "moves": 12,
         "start": 0
        }
       ],
-      "kill_progress": 23.15902167286422,
-      "kill_progress_se": 0.06123676919258956,
-      "kills": 22.58,
+      "kill_progress": 23.147059544969725,
+      "kill_progress_se": 0.061825412618335296,
+      "kills": 22.55,
       "kills_max": 24,
       "kills_min": 21,
       "mode": "base",
@@ -14637,7 +14637,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 371247380
+      "work": 369460928
      }
     ],
     "sampled": 1593.0,
