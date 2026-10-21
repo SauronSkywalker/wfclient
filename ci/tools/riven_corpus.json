@@ -314,7 +314,7 @@
     "failed_starts": [],
     "fights": 31838,
     "final_runs": 100,
-    "final_work": 382480634,
+    "final_work": 384503061,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -676,7 +676,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 382480634
+      "work": 384503061
      }
     ],
     "sampled": 1040.0,
@@ -7653,7 +7653,7 @@
     "failed_starts": [],
     "fights": 57050,
     "final_runs": 100,
-    "final_work": 689163714,
+    "final_work": 693520016,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 2,
@@ -8030,7 +8030,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 363676501
+      "work": 366012101
      }
     ],
     "sampled": 1719.0,
@@ -14275,7 +14275,7 @@
     "failed_starts": [],
     "fights": 48196,
     "final_runs": 100,
-    "final_work": 369460928,
+    "final_work": 371516266,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -14637,7 +14637,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 369460928
+      "work": 371516266
      }
     ],
     "sampled": 1593.0,
