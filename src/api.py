@@ -296,6 +296,11 @@ class Engine:
         self.cpu_limit_error = ""
         #: open stderr log handle while the engine runs; see `_open_stderr`.
         self._err = None
+        #: the thread draining the engine's stderr into that handle; see
+        #: `_pump_stderr`.  stderr is a PIPE, not the file, because the same
+        #: lines are the engine's own account of where a row's time went.
+        self._pump = None
+        self._err_path = None
 
     def set_cpu_percent(self, percent: int) -> bool:
         """Apply/update the hard cap immediately on this running engine."""
@@ -347,15 +352,30 @@ class Engine:
             return subprocess.DEVNULL, None
 
     def start(self, cpu_limiter=None):
-        import os, subprocess
+        import os, subprocess, threading
         if cpu_limiter is not None:
             self.cpu_limit = cpu_limiter
             self.owns_cpu_limit = False
-        env = dict(os.environ, WFSIM_PORT=str(self.port))
+        # THE ENGINE TIMES ITS OWN ROWS. `WFSIM_PHASE_TRACE=1` makes it write two
+        # stderr lines per board row — the row's stages (order / fold / score,
+        # CPU-seconds and cores) and the fold's shape (lanes, chunk, peak shards
+        # in flight).  Those lines are the only account of WHERE a row's time
+        # goes that survives the process; without them a slow row is a single
+        # `ms` number and a guess.  The flag is read once per row, so leaving it
+        # on costs the parse of an environment variable, not a measurement.
+        env = dict(os.environ, WFSIM_PORT=str(self.port), WFSIM_PHASE_TRACE="1")
         err, err_path = self._open_stderr()
         self._err = err if hasattr(err, "write") else None
+        self._err_path = err_path
         self.proc = subprocess.Popen([self.exe], env=env,
-                                     stdout=subprocess.DEVNULL, stderr=err)
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.PIPE,
+                                     text=True, encoding="utf-8",
+                                     errors="replace", bufsize=1)
+        self._pump = threading.Thread(target=self._pump_stderr,
+                                      args=(self.proc, self._err, self.port),
+                                      name=f"engine-stderr-{self.port}", daemon=True)
+        self._pump.start()
         # BELOW NORMAL: an engine thread only runs when the client (one class
         # above normal) is not using the CPU — the client's loop, TLS and
         # logger can no longer queue behind compute work.
@@ -372,6 +392,11 @@ class Engine:
             except Exception:
                 time.sleep(0.25)
         tail = ""
+        try:
+            if self._pump is not None:
+                self._pump.join(1.0)       # let the pipe finish before quoting it
+        except Exception:
+            pass
         try:
             if err_path and err_path.exists():
                 tail = err_path.read_text(encoding="utf-8",
@@ -391,12 +416,95 @@ class Engine:
             except Exception:
                 pass
 
+    @staticmethod
+    def _phase_fields(line: str) -> dict:
+        """`PHASE row runs=1000 … fold(fight+merge)=0.959 cpu_s=1.86` → dict.
+
+        The engine prints its own `key=value` tokens; the parenthesised one is
+        renamed to `fold` so a reader (and the JSONL) says `fold` and not
+        `fold(fight+merge)`.
+        """
+        out = {}
+        for token in line.split()[2:]:
+            key, sep, value = token.partition("=")
+            if not sep or not key:
+                continue
+            if key.startswith("fold("):
+                key = "fold"
+            try:
+                out[key] = int(value)
+            except ValueError:
+                try:
+                    out[key] = float(value)
+                except ValueError:
+                    out[key] = value
+        return out
+
+    def _pump_stderr(self, proc, fh, port) -> None:
+        """Drain the engine's stderr: the file keeps every byte, the log gets
+        the engine's own timings.
+
+        The file is what a boot failure quotes; `PHASE row` / `PHASE fold` are
+        what a SLOW row is diagnosed from — which stage took the time, how many
+        cores it burned, how many shards were in flight.  Lifting them into the
+        event log is the difference between "this row took 3.6 s" and "this
+        row's fold took 3.5 of the 3.6 s at 4.7 cores".
+        """
+        stream = getattr(proc, "stderr", None)
+        if stream is None:
+            return
+        try:
+            for line in stream:
+                if fh is not None:
+                    try:
+                        fh.write(line)
+                        fh.flush()
+                    except Exception:
+                        fh = None          # the file went away; keep reading
+                if not line.startswith("PHASE "):
+                    # EVERYTHING ELSE TOO: a Rust panic, a warning, a backtrace
+                    # in a worker thread.  The file still holds every byte; the
+                    # event log holds the line, which is what makes a crash at
+                    # 03:00 findable without knowing to open six logs.
+                    text = line.rstrip()
+                    if text and self.log:
+                        try:
+                            self.log.event("engine_stderr", port=port,
+                                           line=text[:500])
+                        except Exception:
+                            pass
+                    continue
+                parts = line.split()
+                what = parts[1] if len(parts) > 1 else "?"
+                try:
+                    if self.log:
+                        self.log.event("engine_phase", port=port, what=what,
+                                       **self._phase_fields(line))
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        finally:
+            try:
+                stream.close()
+            except Exception:
+                pass
+
     def stop(self):
         if self.proc:
             self.proc.terminate()
             try: self.proc.wait(timeout=15)
             except Exception: self.proc.kill()
             self.proc = None
+        # THE PUMP OWNS THE PIPE: it ends when the process closes it.  Read the
+        # last lines before the file handle goes, so a crash's final words are
+        # in the file and not in a buffer.
+        try:
+            if self._pump is not None:
+                self._pump.join(1.5)
+        except Exception:
+            pass
+        self._pump = None
         self._close_stderr()
         if self.owns_cpu_limit and self.cpu_limit is not None:
             self.cpu_limit.close()
