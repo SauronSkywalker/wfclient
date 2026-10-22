@@ -960,6 +960,23 @@ def fold_pipeline_patch_already_applied() -> bool:
             and "cursor.store(expect, Ordering::Release)" in mono)
 
 
+def panic_isolation_patch_already_applied() -> bool:
+    """One panicking run failing its request instead of the whole engine.
+
+    Detected by the three things the change adds: the failure value the fight
+    layer returns, the single-run guard that produces it, and the flag the
+    endpoints publish so a client can tell whether the build it is talking to
+    can actually isolate a panic.
+    """
+    try:
+        mono = (WORK / "engine/src/fight/monte_carlo.rs").read_text(encoding="utf-8")
+        meta = (WORK / "webapi/src/meta.rs").read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    return ("RunFailure" in mono and "fn fight_guarded" in mono
+            and '"panic_isolation"' in meta)
+
+
 def patch_command(name: str, dry_run: bool = False) -> list[str]:
     """How to apply one of our patches — with a fallback when the package's own
     `patch.exe` is not there.
@@ -1016,6 +1033,7 @@ opt-level = 3
 lto = "fat"
 codegen-units = 1
 incremental = false
+panic = "unwind"
 
 [profile.devfast]
 inherits = "dev"
@@ -1027,20 +1045,34 @@ codegen-units = 256
         p.write_text(text.rstrip() + "\n" + block, encoding="utf-8")
         log("added maxperf/devfast build profiles")
         return
-    # The profile once carried `panic = "abort"` (added with the profile on
-    # 10-10, removed here on 10-14): it turned ANY engine panic into an
-    # instant 0xc0000409 process death — eight of them on 10-14 evening — and
-    # silently defeated the compute-optimization patch's own `catch_unwind`,
-    # which needs unwinding to work at all.  maxperf's speed comes from LTO,
-    # codegen-units=1 and target-cpu=native, not from the abort; the profile
-    # keeps every one of those.  Strip the line wherever it stands, so an
-    # already-patched tree heals on the next sync instead of waiting for a
-    # clean rebuild.
+    # `panic = "unwind"` IS PINNED HERE, NOT INHERITED.  The profile once carried
+    # `panic = "abort"` (added with the profile on 10-10, stripped here on 10-14):
+    # it turned ANY engine panic into an instant 0xc0000409 process death — eight
+    # of them on 10-14 evening — and silently defeated the compute-optimization
+    # patch's own `catch_unwind`, which needs unwinding to work at all.  maxperf's
+    # speed comes from LTO, codegen-units=1 and target-cpu, not from the abort.
+    # The engine now isolates a panicking run and answers with the run's identity,
+    # so the key is a correctness constraint: heal an abort wherever it stands,
+    # write unwind when the key is missing (a hand-edited or older tree must not
+    # silently fall back to a default), and refuse to continue without it.
     healed = re.sub(r"(?m)^[ \t]*panic[ \t]*=[ \t]*[\"']abort[\"'][ \t]*\r?\n",
                     "", text)
+    m = re.search(r"(?ms)^\[profile\.maxperf\][^\[]*", healed)
+    if m is None:
+        raise RuntimeError("Cargo.toml has [profile.maxperf] in a form this cannot read")
+    block = m.group(0)
+    if not re.search(r"(?m)^\s*panic\s*=\s*[\"']unwind[\"']", block):
+        anchor = re.search(r"(?m)^[ \t]*incremental[ \t]*=[ \t]*false[ \t]*\r?\n", block)
+        if anchor is None:
+            raise RuntimeError("maxperf has no `incremental = false` line to anchor panic")
+        block2 = block[:anchor.end()] + 'panic = "unwind"\n' + block[anchor.end():]
+        healed = healed[:m.start()] + block2 + healed[m.end():]
     if healed != text:
         p.write_text(healed, encoding="utf-8")
-        log("removed panic=abort from the maxperf profile")
+        log("maxperf profile: panic = \"unwind\"")
+    final = re.search(r"(?ms)^\[profile\.maxperf\][^\[]*", p.read_text(encoding="utf-8"))
+    if final is None or not re.search(r"(?m)^\s*panic\s*=\s*[\"']unwind[\"']", final.group(0)):
+        raise RuntimeError("maxperf profile does not pin panic = \"unwind\"")
 
 
 def apply_patches() -> None:
@@ -1088,6 +1120,22 @@ def apply_patches() -> None:
             raise RuntimeError("fold-pipeline patch finished but its markers are missing")
     else:
         log("fold-pipeline patch already applied")
+    # PANIC ISOLATION, and it goes last because it rewrites the same fight paths
+    # the compute and fold-pipeline patches produce — its hunks are written
+    # against their result, and its guard is `catch_unwind`, which only exists in
+    # a build whose `[profile.maxperf]` pins `panic = "unwind"` (the profile step
+    # above guarantees that, and `ci/build_engine.py` re-checks it before
+    # compiling).  A run that panics becomes a failed request carrying the run's
+    # identity (`{ok:false, step:"fight", run, from, count, seed}`), the lanes
+    # and the pool stay alive, and `/api/meta` reports `panic_isolation` so a
+    # client can tell an isolating build from one where the same panic is a dead
+    # process (0xC0000409, no stderr, nothing to attribute).
+    if not panic_isolation_patch_already_applied():
+        apply_patch("panic-isolation.patch")
+        if not panic_isolation_patch_already_applied():
+            raise RuntimeError("panic-isolation patch finished but its markers are missing")
+    else:
+        log("panic-isolation patch already applied")
 
 
 def find_mingw() -> pathlib.Path:

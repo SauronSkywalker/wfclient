@@ -138,8 +138,36 @@ def find_profdata() -> str:
     return hits[0]
 
 
+def assert_unwind_profile(work: pathlib.Path) -> None:
+    """A core that aborts cannot tell a bad run from a crash, so refuse to build one.
+
+    The engine isolates a panicking run (`engine/src/fight/monte_carlo.rs`,
+    `fight_guarded`) and answers with that run's identity; under
+    `panic = "abort"` the same panic kills the process instead — on Windows as a
+    bare 0xC0000409 with no stderr and nothing to attribute.  `sync_engine.
+    ensure_build_profiles()` writes the key, but the build is the last place that
+    can notice a tree which never went through that step (an older work
+    directory, a hand-edited Cargo.toml, a revert), and a build that silently
+    loses the isolation is worse than no build at all.
+    """
+    import re
+    text = (work / "Cargo.toml").read_text(encoding="utf-8")
+    m = re.search(r"(?ms)^\[profile\.maxperf\][^\[]*", text)
+    if m is None:
+        raise SystemExit("Cargo.toml has no [profile.maxperf]: run ci/fetch_sources.py first")
+    block = m.group(0)
+    if re.search(r"(?m)^\s*panic\s*=\s*[\"']abort[\"']", block):
+        raise SystemExit('maxperf says panic = "abort": a run panic would kill the process '
+                         'instead of failing one request; drop the key')
+    if not re.search(r"(?m)^\s*panic\s*=\s*[\"']unwind[\"']", block):
+        raise SystemExit('maxperf does not pin panic = "unwind": the panic-isolation patch '
+                         'needs unwinding; run ci/fetch_sources.py')
+    print('maxperf: panic = "unwind" (a panicking run fails its request, not the process)')
+
+
 def cargo_build(work: pathlib.Path, out: pathlib.Path, cpu: str, crt_static: bool,
                 features: str, extra_flags: list[str]) -> pathlib.Path:
+    assert_unwind_profile(work)
     flags = [f"-C target-cpu={cpu}"]
     if crt_static:
         flags.append("-C target-feature=+crt-static")
