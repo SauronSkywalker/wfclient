@@ -15,6 +15,46 @@ use serde_json::{json, Value};
 use wfsim_optimizer::{set_worker_threads, FunnelState};
 use wfsim_webapi::{err_json, funnel_status_json, parse_optimize, run_optimize};
 
+/// THE CLIENT'S WORKER BUDGET, AS IT LAST SET IT.
+///
+/// `set_worker_threads` is global to the optimizer and the only writer is
+/// `POST /api/optimize/threads`.  [`optimize_drive`] runs `threads` lanes of
+/// its own, so each lane must be single-threaded or the two budgets multiply
+/// (lanes × workers over the same cores).  This mirror is how the drive puts
+/// the budget back afterwards without asking the optimizer for a value it does
+/// not publish.  Zero means "the client never set one", and then the drive
+/// restores the platform's own count.
+static WORKER_THREADS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
+/// The budget to restore: what the client set, else one per usable core.
+fn client_worker_threads() -> usize {
+    match WORKER_THREADS.load(Ordering::Relaxed) {
+        0 => std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1),
+        n => n,
+    }
+}
+
+/// Makes the optimizer single-threaded for as long as it lives, then restores
+/// the client's budget.  A guard rather than a call at the end because
+/// [`optimize_drive`] returns early from six places, and a seventh added later
+/// would otherwise leave every later request single-threaded.
+struct WorkerBudget;
+
+impl WorkerBudget {
+    fn single() -> Self {
+        set_worker_threads(1);
+        Self
+    }
+}
+
+impl Drop for WorkerBudget {
+    fn drop(&mut self) {
+        set_worker_threads(client_worker_threads());
+    }
+}
+
 /// ALLOCATION METERING, OFF UNLESS `WFSIM_MEM_TRACE=1`.
 ///
 /// The engine's own counters say how much ARITHMETIC a row costs and say
@@ -242,19 +282,34 @@ fn optimize_cancel(v: &Value) -> Value {
 fn optimize_drive(v: &Value, state: &Arc<FunnelState>,
                   progress: &dyn Fn(usize, usize)) -> Value {
     let threads = v.get("threads").and_then(Value::as_u64).unwrap_or(8).clamp(1, 64) as usize;
+    // ONE PARSE FOR THE WHOLE SEARCH (fleet patch 009).  Every round used to
+    // re-parse the request — candidate pool, forma resolution and all — and so
+    // did every lane: `1 + lanes` parses a round.  The plan is the same plan
+    // every time; only its `quick_fleet` message changes, and `for_fleet`
+    // swaps exactly that.
+    let mut body = v.clone();
+    body["quick_fleet"] = json!({ "lead": true, "fresh": true, "scores": Vec::<Value>::new() });
+    let plan0 = match parse_optimize(&body) {
+        Ok(p) => p,
+        Err(e) => return e,
+    };
+    // THE LANES ARE SINGLE-THREADED (fleet patch 007).  The page runs one
+    // leader and N browser workers, and a worker IS one thread.  Here the lanes
+    // share a process, so a lane that also lets the optimizer fan out multiplies
+    // the two budgets.  The guard restores the client's budget on every exit.
+    let _budget = WorkerBudget::single();
     let mut scores: Vec<Value> = Vec::new();
     let mut worked: u64 = 0;
     let mut built: u64 = 0;
     let mut fought: u64 = 0;
     let mut step = 0usize;
     loop {
-        let mut body = v.clone();
-        body["quick_fleet"] = json!({ "lead": true, "fresh": step == 0, "scores": scores });
-        let plan = match parse_optimize(&body) {
-            Ok(p) => p,
-            Err(e) => return e,
-        };
-        let out = run_optimize(plan, state, |c: usize, j: usize| progress(c, j), None);
+        let out = run_optimize(
+            plan0.for_fleet(json!({ "lead": true, "fresh": step == 0, "scores": scores })),
+            state,
+            |c: usize, j: usize| progress(c, j),
+            None,
+        );
         if out.get("ok").and_then(Value::as_bool) != Some(true) {
             return out;
         }
@@ -287,16 +342,12 @@ fn optimize_drive(v: &Value, state: &Arc<FunnelState>,
                     if i >= slices.len() {
                         break;
                     }
-                    let mut body = v.clone();
-                    body["quick_fleet"] = json!({ "score": slices[i] });
-                    let plan = match parse_optimize(&body) {
-                        Ok(p) => p,
-                        Err(e) => {
-                            *failed.lock().unwrap() = Some(e);
-                            break;
-                        }
-                    };
-                    let one = run_optimize(plan, state, |_c: usize, _j: usize| {}, None);
+                    let one = run_optimize(
+                        plan0.for_fleet(json!({ "score": slices[i] })),
+                        state,
+                        |_c: usize, _j: usize| {},
+                        None,
+                    );
                     if one.get("ok").and_then(Value::as_bool) != Some(true) {
                         *failed.lock().unwrap() = Some(one);
                         break;
@@ -674,7 +725,7 @@ fn handle(mut stream: TcpStream) -> std::io::Result<()> {
                 }
                 __llvm_profile_write_file();
             }
-            respond_json(&mut stream, &json!({ "ok": true, "quitting": true }));
+            let _ = respond_json(&mut stream, &json!({ "ok": true, "quitting": true }));
             std::process::exit(0);
         }
         ("POST", "/api/optimize/status") => respond_json(&mut stream, &optimize_status(&body)),
@@ -684,6 +735,7 @@ fn handle(mut stream: TcpStream) -> std::io::Result<()> {
             if n == 0 {
                 respond_json(&mut stream, &json!({ "ok": false, "error": "threads must be > 0" }))
             } else {
+                WORKER_THREADS.store(n as usize, Ordering::Relaxed);
                 set_worker_threads(n as usize);
                 respond_json(&mut stream, &json!({ "ok": true, "threads": n }))
             }

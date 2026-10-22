@@ -4,7 +4,7 @@
 许可与命名问题见 [`NOTICE.md`](NOTICE.md)。
 
 - 上游：`https://github.com/magenie33/wfsim`（AGPL-3.0-or-later）
-- 本分支对齐的上游提交：`a2b132e7c03efb07b636830126e4bcd8d54d3631`（`main`，2026-10-21）
+- 本分支对齐的上游提交：`a3bec14e398847e4d10c25ae648effee19082240`（`main`，2026-10-22）
 - 本分支的改动**全部公开**：`src/`（客户端）、`ci/patches/`（引擎补丁）、`ci/`（构建与闸门工具）
 
 ---
@@ -36,11 +36,27 @@
 | `wfsim-fleet-drive.patch` | 11,234 B | `core-host/src/main.rs` | 引擎本地 HTTP 面：`/api/board/row`、`/api/optimize` 等驱动接口（内容已并入 `ci/core-host-template/`） |
 | `wfsim-fold-pipeline.patch` | 7,967 B | `engine/src/fight/monte_carlo.rs` | 折叠流水线（把逐行的串行尾巴藏进下一行的计算里） |
 | `panic-isolation.patch` | 109,655 B | `engine/src/fight/monte_carlo.rs`、`webapi/src/{simulate,board_rows,meta}.rs`、`core-host/src/main.rs` | 单个 run 的 panic 只让该请求失败（响应带 `run`/`from`/`count`/`seed`），引擎与线程池存活；`/api/meta` 发布 `panic_isolation` |
+| `007-fleet-single-worker.patch` | 482 B | `optimizer/src/descent.rs` | `par_map` 在只允许一条线程时直接串行 map，不再为单个 item 开线程（lane 驱动的前置条件） |
+| `008-fleet-static-panel.patch` | 2,170 B | `engine/src/data/weapons/panel.rs`、`engine/src/build/rivens/spec.rs` | 面板的 `class`/`slot`/`summoned_by`/`mod_pools` 不再每个请求 `Box::leak`，改为借用数据并按武器缓存池表 |
+| `009-fleet-frozen-plan.patch` | 968 B | `webapi/src/optimize.rs` | `OptimizePlan` 可克隆，`for_fleet()` 用另一条 `quick_fleet` 消息复跑同一份已解析计划 |
+| `010-fleet-deferred-reports.patch` | 6,820 B | `optimizer/src/quick.rs`、`webapi/src/optimize/quick.rs` | 暂停轮不再生成无人读取的候选摘要，只回它等待的 builds（`paused` 累计，避免后一个起点读缓存把暂停抹掉） |
+| `011-fleet-lead-memo.patch` | 3,090 B | `webapi/src/optimize/quick.rs` | lead 的规范键与榜单偏好按线程记忆化（两张 4096 上限表，`fresh` 重置，与 `FLEET` 分开以免 `RefCell` 重入） |
 
 补丁都带**幂等标记**：客户端每次同步后按标记判断"已应用 / 未应用"，重复同步不会二次打补丁。
 
-应用顺序固定为 `compute-optimization` → `work-statistics` → `fleet-drive` → `fold-pipeline` → `panic-isolation`。
+应用顺序固定为 `compute-optimization` → `work-statistics` → `fleet-drive` → `fold-pipeline` → `panic-isolation` → `007` → `008` → `009` → `010` → `011`。
 `fleet-drive` 的内容已并入 `ci/core-host-template/`，补丁保留作对照，幂等检查会直接跳过它。
+
+`007`–`011` 移植自 [superexboom/simfleet](https://github.com/superexboom/simfleet) 0.8.1 的 `native-engine/patches/001`–`006`，
+按我们的顺序重新编号并**按本仓的树重新生成**（simfleet 的第六个补丁 `001-prepared-board` 未采用：它给"逐 run 取数"的原生通道用，
+本客户端没有那条通道，`/api/board/row` 已经在一个请求里准备一次、折叠完、评分完）。
+五个补丁全部是**纯性能**改动：任何一个请求返回的数字都不许变，因此它们排在我们自己的补丁之后，且各自只碰我们从未编辑过的文件。
+
+其中两处需要模板侧接线才算生效，都在 `ci/core-host-template/src/main.rs`：
+- `007` 要配合 `WorkerBudget`（`set_worker_threads(1)` + `Drop` 还原客户端的预算）：lane 单线程，否则 lane × worker 相乘；
+- `009` 要配合 `optimize_drive` 的"整场只解析一次"（`plan0.for_fleet(...)`），否则补丁只是让计划可克隆，无人使用。
+
+`008`、`010`、`011` 只有补丁、无需接线。`011` 依赖 `009`：只有计划冻结、`pool` 跨轮稳定，记忆化的键才长期有效。
 
 `panic = "unwind"` 是**硬约束**，不是偏好：`catch_unwind` 只在这个 profile 下有意义。
 它由 profile 步骤负责（`ensure_build_profiles()` 剥掉遗留的 `abort`、缺键时补上 `unwind`），

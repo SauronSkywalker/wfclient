@@ -2630,17 +2630,3 @@
          "weapons": weapons,
          // THE EQUIPMENT SLOTS in home-page order, each with the roster that
          // fills it — the page groups by this list and adds no slot of its own.
---- a/core-host/src/main.rs
-+++ b/core-host/src/main.rs
-@@ -674,7 +674,10 @@
-                 }
-                 __llvm_profile_write_file();
-             }
--            respond_json(&mut stream, &json!({ "ok": true, "quitting": true }));
-+            // THE ANSWER IS SENT BEFORE THE PROCESS GOES: the reply is what the
-+            // client waits for, and its own error is not actionable — there is
-+            // nothing left to fall back to once this line runs.
-+            let _ = respond_json(&mut stream, &json!({ "ok": true, "quitting": true }));
-             std::process::exit(0);
-         }
-         ("POST", "/api/optimize/status") => respond_json(&mut stream, &optimize_status(&body)),
