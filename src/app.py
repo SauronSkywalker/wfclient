@@ -1150,6 +1150,18 @@ class WfSimClient(App):
 
     async def _startup_task(self) -> None:
         try:
+            # SWEEP BEFORE THE ENGINES START. The update keeps the generation it
+            # replaces for one rollback; nothing removed it afterwards, so every
+            # update left a full engine + python + src behind.  Only the process
+            # that runs from the generation `current.txt` names may delete the
+            # others — one still executing the previous generation would pull
+            # the folder out from under itself, so the check is not optional.
+            try:
+                active_src = paths.current_generation("src")
+                if active_src and os.path.basename(paths.HERE) == active_src:
+                    sync_engine.sweep_stale()
+            except Exception as e:                                # noqa: BLE001
+                self._event("update", f"旧代清理失败（不影响计算）：{type(e).__name__}: {e}")
             await self.fleet.start()
             self.cfg.update({k: self.fleet.cfg[k] for k in
                              ("verifiers", "active_verifiers", "base_verifiers",

@@ -1840,6 +1840,43 @@ def prune_launchers(keep: set[str]) -> list[str]:
     return removed
 
 
+def sweep_stale() -> list[str]:
+    """Delete every generation the pointer does not name, plus flat leftovers.
+
+    Once at startup, BEFORE any engine is launched.  An update deliberately
+    keeps the generation it replaces so a bad build can be rolled back; nothing
+    then ever removes it, and a folder that has survived three updates carries
+    three full engines and three pythons.  This is the other half of that
+    bargain: the first boot that runs from the new generation drops the old one.
+
+    THE CALLER MUST RUN FROM THE GENERATION THE POINTER NAMES.  A process still
+    executing the previous generation would delete the folder it is running out
+    of — `app.py` compares `paths.HERE` with line 2 before calling this, and an
+    empty pointer (a flat, pre-generations pack) returns at once: those folders
+    are the install, not garbage.
+
+    `previous.txt` and the flat `run-portable.bat` go with them: the first names
+    a folder this call is about to delete, and the packages no longer ship the
+    second — a stale copy of it is a launcher someone will eventually run.
+    """
+    lines = read_pointer()
+    if len(lines) < 3:
+        return []
+    removed = prune_generations({lines[0], lines[1], lines[2]})
+    for name in ("previous.txt", "run-portable.bat"):
+        p = ROOT / name
+        try:
+            if p.is_file():
+                p.unlink()
+                removed.append(name)
+        except OSError:
+            pass
+    prune_launchers({lines[3] if len(lines) > 3 else ""})
+    if removed:
+        log("swept the generations nobody points at: " + ", ".join(removed))
+    return removed
+
+
 def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool, str]:
     """Unpack a package as new GENERATIONS, then move the pointer.
 
