@@ -27,7 +27,9 @@ or the new one -- never a mixture.
 """
 from __future__ import annotations
 
+import json
 import os
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))          # src-<h>/
 ROOT = os.path.dirname(HERE)                                # portable root
@@ -70,9 +72,67 @@ def current_generation(kind: str) -> str:
     return lines[idx]
 
 
+def _generation_built_at(folder: str) -> str:
+    """The pack time recorded in ``.gen.json`` (``""`` when there is none)."""
+    try:
+        with open(os.path.join(folder, ".gen.json"), "r", encoding="utf-8") as f:
+            stamp = json.load(f).get("built_at")
+    except (OSError, ValueError, AttributeError):
+        return ""
+    return stamp if isinstance(stamp, str) else ""
+
+
+def _newest_generation(kind: str) -> str:
+    """The last ``<kind>-<hash>`` directory, for a pack with no pointer yet.
+
+    A fresh unzip has the generations but has not been installed, so nothing has
+    written ``current.txt``; the launcher falls back to the names baked into it
+    and the engine has to be found the same way, or the fleet starts and every
+    `Popen` answers FileNotFoundError.
+
+    "Newest" is the pack's own ``built_at`` from ``.gen.json`` -- a folder can
+    hold two engine generations extracted from two packages, and the hash says
+    nothing about which one is later.  A directory without a marker falls back
+    to its mtime, so an unpacked-by-hand generation still ranks by age.
+    """
+    try:
+        names = [n for n in os.listdir(ROOT)
+                 if n.startswith(kind + "-")
+                 and os.path.isdir(os.path.join(ROOT, n))]
+    except OSError:
+        return ""
+    if not names:
+        return ""
+
+    def rank(name: str) -> tuple:
+        folder = os.path.join(ROOT, name)
+        try:
+            mtime = os.path.getmtime(folder)
+        except OSError:
+            mtime = 0.0
+        # ONE COMPARABLE STAMP: the pack's own time when the marker is readable,
+        # otherwise the folder's, in the same shape -- a generation whose marker
+        # is missing must not be ranked *below* one merely because it has none.
+        stamp = _generation_built_at(folder) or time.strftime(
+            "%Y-%m-%dT%H:%M:%S%z", time.localtime(mtime))
+        return (stamp, mtime, name)
+
+    return max(names, key=rank)
+
+
 def engine_dir() -> str:
-    """The live engine generation; ``engine/`` for a pack without a pointer."""
+    """The live engine generation; ``engine/`` for a pack without either.
+
+    The pointer wins when it names a folder that is really there.  It can name a
+    folder that is not: a hand-deleted generation, or a copy that took the three
+    names and left one out.  Then -- and whenever there is no pointer at all --
+    the newest generation on disk answers, so the fleet starts instead of failing
+    every `Popen` with FileNotFoundError.
+    """
     name = current_generation("engine")
+    if name and os.path.isdir(os.path.join(ROOT, name)):
+        return os.path.join(ROOT, name)
+    name = _newest_generation("engine")
     return os.path.join(ROOT, name) if name else os.path.join(ROOT, "engine")
 
 

@@ -1336,8 +1336,13 @@ class WfSimClient(App):
             return "排空中" if s.get("tasks_total") else "已暂停"
         return "计算中"
 
-    @staticmethod
-    def _engine_label(s: dict) -> str:
+    def _engine_label(self, s: dict) -> str:
+        # NOT a staticmethod: the last line reads `self._update_notice`, and as a
+        # staticmethod that line raised `NameError: name 'self' is not defined`
+        # on every single paint.  `_paint` catches per panel, so the only visible
+        # symptom was this row never being repainted -- it kept the boot text
+        # ("正在启动…") for the whole session while everything else worked, which
+        # read as "stuck at startup".
         served = s.get("served_engine")
         local_engine = s.get("local_engine") or s.get("engine")
         effective = s.get("engine") or local_engine
