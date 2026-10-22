@@ -1871,8 +1871,13 @@ def install_dispatcher(force: bool = False) -> bool:
                 '  )\r\n'
                 '  set "BAT=!L4!"\r\n'
                 ')\r\n'
-                'if not "!BAT!"=="" if exist "%~dp0!BAT!" call "%~dp0!BAT!" & exit /b\r\n'
-                'if exist "%~dp0run-portable.bat" call "%~dp0run-portable.bat"\r\n')
+                'if not "!BAT!"=="" if exist "%~dp0!BAT!" (\r\n'
+                '  call "%~dp0!BAT!"\r\n'
+                '  exit /b !ERRORLEVEL!\r\n'
+                ')\r\n'
+                'echo 这个目录没有可用的启动器：current.txt 指向的 run-portable-*.bat 不在。\r\n'
+                'pause\r\n'
+                'exit /b 1\r\n')
     tmp = target.with_name("run-portable.bat.tmp")
     try:
         tmp.write_text(text, encoding="utf-8", newline="\r\n")

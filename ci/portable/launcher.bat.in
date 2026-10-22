@@ -2,12 +2,18 @@
 setlocal EnableDelayedExpansion
 rem PORTABLE-LAUNCHER @STAMP@
 rem
-rem 这一代的启动器：文件名带打包时间戳，所以下一代是**另一个文件**，
-rem 永远不会覆盖正在运行的批处理（那正是旧方案里"更新成功但还在跑老代码"的来源）。
+rem THIS GENERATION'S LAUNCHER.  Its file name carries the pack timestamp, so
+rem the next release is a DIFFERENT file and can never overwrite a batch file
+rem that a console is running -- that was how an "updated" client kept running
+rem the old code.
 rem
-rem 包里三个大目录都带内容哈希（python-<h> / src-<h> / engine-<h>），
-rem 跑哪一代由同目录 current.txt 的第 1、2 行决定；下面两行只在
-rem current.txt 缺失时兜底，指向打包时的那一代。
+rem The three big folders are named after their content (python-<h> / src-<h> /
+rem engine-<h>); which one runs is decided by lines 1 and 2 of current.txt.  The
+rem two defaults below are only for a folder that has not been installed yet,
+rem and point at the generations this package was built with.
+rem
+rem ASCII ONLY: cmd reads a .bat in the OEM codepage, so utf8 chinese here is
+rem mis-parsed.  All user-facing text belongs in the client's log.
 set "PYDIR=@PY@"
 set "SRCDIR=@SRC@"
 if exist "%~dp0current.txt" (
