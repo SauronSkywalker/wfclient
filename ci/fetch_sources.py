@@ -10,7 +10,9 @@ server is serving.
 The tree is assembled from
   * upstream ``magenie33/wfsim@<ref>`` (engine/, webapi/, optimizer/, tools/, data/, Cargo.*)
   * ``ci/core-host-template/``  (the client-side crate wrapper, copied into work/core-host/)
-  * ``ci/patches/*.patch``      (our four patches, applied with the bundled patch.exe)
+  * ``ci/patches/*.patch``      (our patch series, applied with the bundled patch.exe;
+                                 idempotent, so a patch already carried by
+                                 ``ci/core-host-template/`` is skipped)
 
 Speed, because a 6-minute fetch is 6 minutes of every run:
 

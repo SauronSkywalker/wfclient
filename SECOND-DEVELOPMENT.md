@@ -4,7 +4,7 @@
 许可与命名问题见 [`NOTICE.md`](NOTICE.md)。
 
 - 上游：`https://github.com/magenie33/wfsim`（AGPL-3.0-or-later）
-- 本分支对齐的上游提交：`8cd2ec649fc5845b13ae560b793c714fa29f415a`（`main`，2026-10-16）
+- 本分支对齐的上游提交：`a2b132e7c03efb07b636830126e4bcd8d54d3631`（`main`，2026-10-21）
 - 本分支的改动**全部公开**：`src/`（客户端）、`ci/patches/`（引擎补丁）、`ci/`（构建与闸门工具）
 
 ---
@@ -30,13 +30,21 @@
 
 | 补丁 | 大小 | 作用文件 | 作用 |
 |---|---|---|---|
-| `wfsim-build-profile.patch` | 466 B | `Cargo.toml` | 增加 `maxperf` / `devfast` 构建 profile（`codegen-units=1`、fat LTO 等）；由客户端 `ensure_build_profiles()` 使用，不经 `patch.exe` |
-| `wfsim-compute-optimization.patch` | 14,197 B | `engine/src/fight/monte_carlo.rs`、`webapi/src/simulate.rs`、`webapi/src/board_rows.rs` | 战斗折叠循环的并行切分与合流优化 |
-| `wfsim-fleet-drive.patch` | 11,234 B | `core-host/src/main.rs` | 引擎本地 HTTP 面：`/api/board/row`、`/api/optimize` 等驱动接口 |
-| `wfsim-fold-pipeline.patch` | 7,967 B | `engine/src/fight/monte_carlo.rs` | 折叠流水线（把逐行的串行尾巴藏进下一行的计算里） |
+| `wfsim-build-profile.patch` | 466 B | `Cargo.toml` | 增加 `maxperf` / `devfast` 构建 profile（`codegen-units=1`、fat LTO、`panic = "unwind"`）；由客户端 `ensure_build_profiles()` 使用，不经 `patch.exe` |
+| `wfsim-compute-optimization.patch` | 13,835 B | `engine/src/fight/monte_carlo.rs`、`webapi/src/simulate.rs`、`webapi/src/board_rows.rs` | 战斗折叠循环的并行切分与合流优化 |
 | `wfsim-work-statistics.patch` | 2,716 B | `webapi/src/optimize.rs` | 紫卡优化器报告里的工作统计字段（`work` / `builds` / `fights`） |
+| `wfsim-fleet-drive.patch` | 11,234 B | `core-host/src/main.rs` | 引擎本地 HTTP 面：`/api/board/row`、`/api/optimize` 等驱动接口（内容已并入 `ci/core-host-template/`） |
+| `wfsim-fold-pipeline.patch` | 7,967 B | `engine/src/fight/monte_carlo.rs` | 折叠流水线（把逐行的串行尾巴藏进下一行的计算里） |
+| `panic-isolation.patch` | 109,655 B | `engine/src/fight/monte_carlo.rs`、`webapi/src/{simulate,board_rows,meta}.rs`、`core-host/src/main.rs` | 单个 run 的 panic 只让该请求失败（响应带 `run`/`from`/`count`/`seed`），引擎与线程池存活；`/api/meta` 发布 `panic_isolation` |
 
 补丁都带**幂等标记**：客户端每次同步后按标记判断"已应用 / 未应用"，重复同步不会二次打补丁。
+
+应用顺序固定为 `compute-optimization` → `work-statistics` → `fleet-drive` → `fold-pipeline` → `panic-isolation`。
+`fleet-drive` 的内容已并入 `ci/core-host-template/`，补丁保留作对照，幂等检查会直接跳过它。
+
+`panic = "unwind"` 是**硬约束**，不是偏好：`catch_unwind` 只在这个 profile 下有意义。
+它由 profile 步骤负责（`ensure_build_profiles()` 剥掉遗留的 `abort`、缺键时补上 `unwind`），
+`ci/build_engine.py` 在编译前再断言一次，不满足就**不产出**——一个悄悄失去隔离的引擎比没有引擎更糟。
 
 ### 引擎侧的构建加速（不改算法）
 
