@@ -216,6 +216,102 @@ def process_cpu_seconds(pid: int) -> float | None:
         k32.CloseHandle(h)
 
 
+# --- PER-CORE AND PER-THREAD CPU: who else was on the machine ---------------
+# A row that got slow is either a heavier row or a row whose cores were taken.
+# Process CPU seconds cannot tell those apart; these two can.
+ntdll = ctypes.WinDLL("ntdll")
+_SystemProcessorPerformanceInformation = 8
+_core_times_buf = None
+_core_times_n = 0
+
+
+def system_core_times() -> list[tuple[int, int, int]] | None:
+    """(idle, kernel, user) 100 ns ticks per logical core, or None.
+
+    ONE NtQuerySystemInformation, 48 bytes per core, ~0.08 ms on 16 cpus.  Take
+    two of these and the delta is each core's busy share — the only honest way
+    to say "our lane was starved" instead of "our lane was slow".
+    """
+    global _core_times_buf, _core_times_n
+    try:
+        if _core_times_buf is None:
+            _core_times_n = max(64, (os.cpu_count() or 8) * 2)
+            _core_times_buf = (ctypes.c_ubyte * (48 * _core_times_n))()
+        used = ctypes.c_ulong(0)
+        st = ntdll.NtQuerySystemInformation(
+            _SystemProcessorPerformanceInformation, _core_times_buf,
+            ctypes.sizeof(_core_times_buf), ctypes.byref(used))
+        if st != 0:
+            return None
+        count = used.value // 48
+        raw = bytes(_core_times_buf)
+        return [struct.unpack_from("<3Q", raw, i * 48) for i in range(count)]
+    except Exception:
+        return None
+
+
+THREAD_QUERY_LIMITED_INFORMATION = 0x0800
+k32.GetThreadTimes.argtypes = [
+    wintypes.HANDLE, ctypes.POINTER(wintypes.FILETIME),
+    ctypes.POINTER(wintypes.FILETIME), ctypes.POINTER(wintypes.FILETIME),
+    ctypes.POINTER(wintypes.FILETIME)]
+k32.GetThreadTimes.restype = wintypes.BOOL
+
+
+def thread_ids(pid: int) -> list[int]:
+    """Every thread id of one process.
+
+    A Toolhelp thread snapshot walks every thread on the MACHINE (~36 ms here)
+    before the pid filter can run, so callers cache this: an engine's pool keeps
+    its thread count for the life of the process.
+    """
+    out = []
+    try:
+        snap = k32.CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
+        if not snap or snap == wintypes.HANDLE(-1).value:
+            return out
+        try:
+            ent = _ThreadEntry32()
+            ent.dwSize = ctypes.sizeof(_ThreadEntry32)
+            ok = k32.Thread32First(snap, ctypes.byref(ent))
+            while ok:
+                if ent.th32OwnerProcessID == pid:
+                    out.append(int(ent.th32ThreadID))
+                ok = k32.Thread32Next(snap, ctypes.byref(ent))
+        finally:
+            k32.CloseHandle(snap)
+    except Exception:
+        pass
+    return out
+
+
+def thread_cpu_seconds(pid: int, tids=None) -> dict[int, float]:
+    """Kernel+user seconds per thread, ~0.02 ms per CACHED thread id.
+
+    Cache the ids (`thread_ids`): the open/read/close of each thread is cheap,
+    finding them is not.  An engine's lane threads live as long as the process,
+    so one snapshot is enough for a whole session.
+    """
+    out = {}
+    if not pid:
+        return out
+    for tid in (tids if tids is not None else thread_ids(pid)):
+        h = k32.OpenThread(THREAD_QUERY_LIMITED_INFORMATION, False, int(tid))
+        if not h:
+            continue
+        try:
+            creation, exit_, kernel, user = (wintypes.FILETIME() for _ in range(4))
+            if k32.GetThreadTimes(h, ctypes.byref(creation), ctypes.byref(exit_),
+                                  ctypes.byref(kernel), ctypes.byref(user)):
+                out[int(tid)] = (_filetime_ticks(kernel)
+                                 + _filetime_ticks(user)) / 1e7
+        except Exception:
+            pass
+        finally:
+            k32.CloseHandle(h)
+    return out
+
+
 def process_affinity_cpus(pid: int) -> list[int] | None:
     """Logical CPUs a process's HARD affinity mask currently allows.
 

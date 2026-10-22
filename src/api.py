@@ -9,13 +9,18 @@
 Nothing here knows about state machines or the UI — it is the wire.
 """
 from __future__ import annotations
-import json, time, urllib.error, urllib.request
+import collections, json, statistics, time, urllib.error, urllib.request
 
 import cores
+import cpu_watch
 from work_model import PROTOCOL, CONSENT_V
 
 BASE = "https://wfsim.app"
 UA = "wfsimpp-client/0.1"
+#: A request this slow gets one `engine_slow` line: the machine's per-core busy
+#: percent over the window it ran in, and whether the engine's own threads were
+#: balanced.  Below this the row is ordinary and the line would be noise.
+SLOW_ROW_MS = 2000
 #: These endpoints carry an accumulator large enough that logging the whole
 #: body doubles JSON serialization and dominates the on-disk log.  Summary
 #: mode records the endpoint/timing and omits the body.
@@ -367,6 +372,10 @@ class Engine:
         err, err_path = self._open_stderr()
         self._err = err if hasattr(err, "write") else None
         self._err_path = err_path
+        #: the last twenty request durations — the baseline a slow one is
+        #: compared with.  A row is not "slow" in the abstract; it is slow
+        #: against what this engine is doing right now.
+        self._recent = collections.deque(maxlen=20)
         self.proc = subprocess.Popen([self.exe], env=env,
                                      stdout=subprocess.DEVNULL,
                                      stderr=subprocess.PIPE,
@@ -376,6 +385,10 @@ class Engine:
                                       args=(self.proc, self._err, self.port),
                                       name=f"engine-stderr-{self.port}", daemon=True)
         self._pump.start()
+        # ONE sampler for the whole client: per-core busy percent and the
+        # engine's per-thread CPU seconds.  It is what lets a slow row say what
+        # it was competing with, and whether its own lanes were balanced.
+        cpu_watch.watch(self.log)
         # BELOW NORMAL: an engine thread only runs when the client (one class
         # above normal) is not using the CPU — the client's loop, TLS and
         # logger can no longer queue behind compute work.
@@ -438,6 +451,16 @@ class Engine:
                     out[key] = float(value)
                 except ValueError:
                     out[key] = value
+        # THE ROW'S OWN VERDICT: cpu-seconds over wall-seconds is how many cores
+        # the engine actually kept busy.  Compare it with `lanes` — the config
+        # the row was given — and a lane that never computed shows up here.
+        try:
+            total = float(out.get("total") or 0.0)
+            cpu_s = out.get("cpu_s")
+            if total > 0 and cpu_s is not None:
+                out["cores_used"] = round(float(cpu_s) / total, 2)
+        except Exception:
+            pass
         return out
 
     def _pump_stderr(self, proc, fh, port) -> None:
@@ -492,6 +515,10 @@ class Engine:
 
     def stop(self):
         if self.proc:
+            try:
+                cpu_watch.WATCH.forget(self.proc.pid)
+            except Exception:
+                pass
             self.proc.terminate()
             try: self.proc.wait(timeout=15)
             except Exception: self.proc.kill()
@@ -522,6 +549,18 @@ class Engine:
             self.log.event("engine_request", port=self.port, endpoint=path,
                            tag=self.log_tag, body=self._engine_log_body(path, body))
         t0 = time.time()
+        threads0 = {}
+        cores0 = None
+        if self.proc is not None and path != "/api/meta":
+            # CACHED THREAD IDS: the first snapshot of a process costs ~36 ms
+            # (Toolhelp walks every thread on the machine), every later one
+            # 0.02 ms a thread.  Taken before the request so the row's own
+            # threads can be told apart from the ones that idled.
+            try:
+                threads0 = cpu_watch.WATCH.thread_snapshot(self.proc.pid)
+                cores0 = cpu_watch.WATCH.mark()
+            except Exception:
+                threads0, cores0 = {}, None
         req = urllib.request.Request(
             f"http://127.0.0.1:{self.port}{path}", data=json.dumps(body).encode(),
             headers={"Content-Type": "application/json"}, method="POST")
@@ -532,13 +571,64 @@ class Engine:
                     self.log.event("engine_response", port=self.port, endpoint=path,
                                    tag=self.log_tag, body=self._engine_log_body(path, out),
                                    ms=int((time.time() - t0) * 1000))
+                self._log_slow(path, t0, threads0, cores0)
                 return out
         except Exception as e:
             if log and self.log:
                 self.log.event("engine_error", port=self.port, endpoint=path,
                                tag=self.log_tag, error=f"{type(e).__name__}: {e}",
                                ms=int((time.time() - t0) * 1000))
+            self._log_slow(path, t0, threads0, cores0, failed=True)
             raise
+
+    def _log_slow(self, path: str, t0: float, threads0: dict, cores0=None,
+                  failed: bool = False) -> None:
+        """ONE line for a slow request: the machine, and the engine's threads.
+
+        Wall time alone cannot separate a heavy row from a starved one.  This
+        pairs the cores' busy percent over the exact window with the CPU-seconds
+        each engine thread gained inside it — an engine given four lanes whose
+        busiest thread did 90% of the work was not short of cores, it was short
+        of parallelism.
+        """
+        if not self.log or not getattr(self.log, "enabled", True):
+            return
+        wall = time.time() - t0
+        recent = getattr(self, "_recent", None)
+        if recent is None:
+            self._recent = recent = collections.deque(maxlen=20)
+        baseline = statistics.median(recent) if len(recent) >= 5 else None
+        recent.append(wall)
+        # SLOW IS RELATIVE: a row is slow against what this engine is doing
+        # now, not against a constant.  Every row of a busy session takes
+        # seconds; only the one that broke away from the running median is
+        # worth sixteen core numbers and a thread tally.
+        if wall * 1000 < SLOW_ROW_MS:
+            return
+        if baseline is not None and wall < 1.5 * baseline:
+            return
+        pid = self.proc.pid if self.proc is not None else 0
+        w = cpu_watch.WATCH
+        busy = w.busy_between(cores0, w.mark())
+        threads1 = w.thread_snapshot(pid) if pid else {}
+        delta = {}
+        for tid, cpu in threads1.items():
+            gained = cpu - threads0.get(tid, 0.0)
+            if gained > 0.001:
+                delta[tid] = gained
+        busiest = max(delta.values()) if delta else 0.0
+        avg = (sum(delta.values()) / len(delta)) if delta else 0.0
+        try:
+            self.log.event(
+                "engine_slow", port=self.port, endpoint=path, tag=self.log_tag,
+                failed=failed or None, wall_s=round(wall, 3),
+                median_s=round(baseline, 3) if baseline else None,
+                cores_busy=busy,
+                busy_avg=round(sum(busy) / len(busy), 1) if busy else None,
+                threads=len(delta), thread_busiest_s=round(busiest, 3),
+                thread_imbalance=round(busiest / avg, 2) if avg > 0 else None)
+        except Exception:
+            pass
 
     def get(self, path: str, timeout: int = 60) -> dict:
         if self.log:
