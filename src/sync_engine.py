@@ -1875,7 +1875,7 @@ def install_dispatcher(force: bool = False) -> bool:
                 '  call "%~dp0!BAT!"\r\n'
                 '  exit /b !ERRORLEVEL!\r\n'
                 ')\r\n'
-                'echo 这个目录没有可用的启动器：current.txt 指向的 run-portable-*.bat 不在。\r\n'
+                'echo No usable launcher here: current.txt does not name an existing run-portable-*.bat.' + bs + 'r' + bs + "n'"
                 'pause\r\n'
                 'exit /b 1\r\n')
     tmp = target.with_name("run-portable.bat.tmp")
