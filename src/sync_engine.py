@@ -977,6 +977,75 @@ def panic_isolation_patch_already_applied() -> bool:
             and '"panic_isolation"' in meta)
 
 
+def fleet_single_worker_patch_already_applied() -> bool:
+    """`par_map` running the items inline when only one thread is allowed.
+
+    The short-circuit is the whole patch and it names nothing else, so its own
+    line is the marker: a tree that spawns a thread to run one item has no
+    `if threads == 1` there.
+    """
+    try:
+        desc = (WORK / "optimizer/src/descent.rs").read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    return ("if threads == 1 {" in desc and "items.iter().map(f).collect()" in desc)
+
+
+def fleet_static_panel_patch_already_applied() -> bool:
+    """`Box::leak` gone from the weapon panel.
+
+    Detected by the pool table the panel keeps instead of leaking a slice per
+    request, and by the riven class answering from the data rather than a
+    fresh boxed string.
+    """
+    try:
+        panel = (WORK / "engine/src/data/weapons/panel.rs").read_text(encoding="utf-8")
+        spec = (WORK / "engine/src/build/rivens/spec.rs").read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    return ("static POOLS: OnceLock<Mutex<BTreeMap" in panel
+            and "class: raw.class.as_str()" in panel
+            and ".map(String::as_str)" in spec)
+
+
+def fleet_frozen_plan_patch_already_applied() -> bool:
+    """One parsed optimize plan resumed with another fleet message."""
+    try:
+        opt = (WORK / "webapi/src/optimize.rs").read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    return "pub fn for_fleet(&self, fleet: Value) -> Self" in opt
+
+
+def fleet_deferred_reports_patch_already_applied() -> bool:
+    """A paused leader step answering with the builds it waits for and no report.
+
+    Two markers, because the change has two halves: the optimizer's descent has
+    to remember that ANY start paused (`paused`), and the endpoint has to widen
+    `pending` into `has_pending_work` so a start that waited is not forgotten
+    when a later start reads a cached score.
+    """
+    try:
+        quick = (WORK / "optimizer/src/quick.rs").read_text(encoding="utf-8")
+        ep = (WORK / "webapi/src/optimize/quick.rs").read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    return ("fn has_pending_work(&self) -> bool" in quick
+            and "paused |= space.has_pending_work();" in quick
+            and "fn has_pending_work(&self) -> bool" in ep
+            and "if ctx.has_pending_work() {" in ep)
+
+
+def fleet_lead_memo_patch_already_applied() -> bool:
+    """The lead's canonical keys and preferences remembered per thread."""
+    try:
+        ep = (WORK / "webapi/src/optimize/quick.rs").read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    return ("static LEAD_MEMO:" in ep and "fn key_now(&self, b: &QBuild) -> String" in ep
+            and "fn preference_now(&self, b: &QBuild)" in ep)
+
+
 def patch_command(name: str, dry_run: bool = False) -> list[str]:
     """How to apply one of our patches — with a fallback when the package's own
     `patch.exe` is not there.
@@ -1136,6 +1205,60 @@ def apply_patches() -> None:
             raise RuntimeError("panic-isolation patch finished but its markers are missing")
     else:
         log("panic-isolation patch already applied")
+    # THE FLEET SERIES (port of simfleet 0.8.1's five engine patches; its sixth,
+    # a per-row `PreparedBoard` API, is deliberately absent — this client has no
+    # per-run native channel, and `/api/board/row` already prepares once per
+    # row and folds in the same request).  All five are performance-only: no
+    # number any request returns may change, so they sit after the series above
+    # and each one touches files that series never edits.
+    #
+    # 007 makes a one-thread `par_map` run inline.  It is the enabler for the
+    # fleet drive above: lanes are driven single-threaded, and without this a
+    # lane's every batch would still spawn a thread to run one item.
+    if not fleet_single_worker_patch_already_applied():
+        apply_patch("007-fleet-single-worker.patch")
+        if not fleet_single_worker_patch_already_applied():
+            raise RuntimeError("fleet single-worker patch finished but its markers are missing")
+    else:
+        log("fleet single-worker patch already applied")
+    # 008 stops the weapon panel leaking `class`/`slot`/`summoned_by`/`mod_pools`
+    # on EVERY request.  A per-row client barely noticed (a process per row); a
+    # long-lived engine does, and this one is long-lived.
+    if not fleet_static_panel_patch_already_applied():
+        apply_patch("008-fleet-static-panel.patch")
+        if not fleet_static_panel_patch_already_applied():
+            raise RuntimeError("fleet static-panel patch finished but its markers are missing")
+    else:
+        log("fleet static-panel patch already applied")
+    # 009 freezes a parsed optimize plan so the drive can resume it with another
+    # fleet message instead of re-parsing the whole request (candidate pool and
+    # forma resolution included) on every round and every lane.
+    if not fleet_frozen_plan_patch_already_applied():
+        apply_patch("009-fleet-frozen-plan.patch")
+        if not fleet_frozen_plan_patch_already_applied():
+            raise RuntimeError("fleet frozen-plan patch finished but its markers are missing")
+    else:
+        log("fleet frozen-plan patch already applied")
+    # 010 stops a paused leader step building contender summaries nobody reads:
+    # the step answers with the builds it waits for and nothing else.  The
+    # pause flag is the whole point — `pending()` only describes the LAST score
+    # call, so a later start that reads a cached score would otherwise erase the
+    # fact that an earlier one is still waiting.
+    if not fleet_deferred_reports_patch_already_applied():
+        apply_patch("010-fleet-deferred-reports.patch")
+        if not fleet_deferred_reports_patch_already_applied():
+            raise RuntimeError("fleet deferred-reports patch finished but its markers are missing")
+    else:
+        log("fleet deferred-reports patch already applied")
+    # 011 remembers the lead's canonical keys and board preferences per thread,
+    # bounded and reset at `fresh`.  It is the largest single win of the series,
+    # and it only stays valid while 009 keeps the pool stable across rounds.
+    if not fleet_lead_memo_patch_already_applied():
+        apply_patch("011-fleet-lead-memo.patch")
+        if not fleet_lead_memo_patch_already_applied():
+            raise RuntimeError("fleet lead-memo patch finished but its markers are missing")
+    else:
+        log("fleet lead-memo patch already applied")
 
 
 def find_mingw() -> pathlib.Path:
