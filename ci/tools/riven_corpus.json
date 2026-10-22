@@ -314,7 +314,7 @@
     "failed_starts": [],
     "fights": 31838,
     "final_runs": 100,
-    "final_work": 384503061,
+    "final_work": 390800367,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -327,7 +327,7 @@
       "arcane_rank": [
        5
       ],
-      "dps": 6054043.196655593,
+      "dps": 5675465.400614893,
       "evolutions": [],
       "exilus": "primed_steady_hands",
       "forma": {
@@ -336,16 +336,16 @@
       },
       "from_starts": [
        {
-        "from": 21.141176197062126,
+        "from": 20.36745990043095,
         "moves": 10,
         "start": 3
        }
       ],
-      "kill_progress": 40.33138747611314,
-      "kill_progress_se": 0.1679367532173745,
-      "kills": 39.8,
-      "kills_max": 43,
-      "kills_min": 35,
+      "kill_progress": 37.432155777720006,
+      "kill_progress_se": 0.1618670084700252,
+      "kills": 36.97,
+      "kills_max": 40,
+      "kills_min": 33,
       "mode": "base",
       "mods": [
        "frostbite",
@@ -676,7 +676,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 384503061
+      "work": 390800367
      }
     ],
     "sampled": 1040.0,
@@ -7653,7 +7653,7 @@
     "failed_starts": [],
     "fights": 57050,
     "final_runs": 100,
-    "final_work": 693520016,
+    "final_work": 667182880,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 2,
@@ -7666,47 +7666,47 @@
       "arcane_rank": [
        5
       ],
-      "dps": 4178681.410431834,
+      "dps": 3996083.9408355327,
       "evolutions": [],
       "exilus": "primed_steady_hands",
       "forma": {
-       "total_drain": 60,
-       "used": 6
+       "total_drain": 58,
+       "used": 7
       },
       "from_starts": [
        {
-        "from": 4.6811530121745015,
+        "from": 4.657637422860447,
         "moves": 17,
         "start": 0
        },
        {
-        "from": 8.806163365270764,
+        "from": 8.809860176281928,
         "moves": 14,
         "start": 1
        },
        {
-        "from": 5.376118076890228,
+        "from": 5.2647362012922745,
         "moves": 13,
         "start": 2
        },
        {
-        "from": 3.8816463992190924,
+        "from": 3.853723518161049,
         "moves": 17,
         "start": 3
        }
       ],
-      "kill_progress": 26.216486450341964,
-      "kill_progress_se": 0.06601395370005096,
-      "kills": 25.6,
-      "kills_max": 27,
-      "kills_min": 24,
+      "kill_progress": 24.945317384248238,
+      "kill_progress_se": 0.04066025737493777,
+      "kills": 24.51,
+      "kills_max": 26,
+      "kills_min": 23,
       "mode": "base",
       "mods": [
        "frostbite",
        "riven:rmv6g916cxyt",
        "primed_heated_charge",
-       "anemic_agility",
        "galvanized_diffusion",
+       "lethal_torrent",
        "magnetic_might",
        "perpetual_agony",
        "pistol_elementalist"
@@ -7782,8 +7782,8 @@
         "frostbite",
         "riven:rmv6g916cxyt",
         "primed_heated_charge",
-        "anemic_agility",
         "galvanized_diffusion",
+        "lethal_torrent",
         "magnetic_might",
         "perpetual_agony",
         "pistol_elementalist",
@@ -8030,7 +8030,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 366012101
+      "work": 333599944
      }
     ],
     "sampled": 1719.0,
@@ -14275,7 +14275,7 @@
     "failed_starts": [],
     "fights": 48196,
     "final_runs": 100,
-    "final_work": 371516266,
+    "final_work": 376782950,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -14297,7 +14297,7 @@
       },
       "from_starts": [
        {
-        "from": 9.696512546836479,
+        "from": 9.643583306604894,
         "moves": 12,
         "start": 0
        }
@@ -14637,7 +14637,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 371516266
+      "work": 376782950
      }
     ],
     "sampled": 1593.0,
