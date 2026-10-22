@@ -4161,20 +4161,20 @@
    "mode": "base"
   },
   "expected": {
-   "score": 59.49229747684474,
+   "score": 64.87811206048978,
    "metric": "kpm",
-   "work": 2185870322,
+   "work": 2271438099,
    "counts": {
-    "body_shots": 334000,
-    "dot_ticks": 173373,
-    "field_ticks": 3270992,
-    "gas": 35717406456,
-    "hits": 3778365,
-    "kills": 178395,
-    "pellets": 334000,
-    "procs": 3282162,
+    "body_shots": 349000,
+    "dot_ticks": 194600,
+    "field_ticks": 3388992,
+    "gas": 37428761986,
+    "hits": 3932592,
+    "kills": 194507,
+    "pellets": 349000,
+    "procs": 3393377,
     "runs": 1000,
-    "shots": 334000
+    "shots": 349000
    }
   },
   "note": {
