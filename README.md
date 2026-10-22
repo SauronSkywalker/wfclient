@@ -75,8 +75,8 @@ python ci/build_engine.py --crt-static     # MSVC + PGO，跑完闸门才落盘
 ```
 src/                    客户端（上游源码 + 本分支改动，AGPL-3.0-or-later）
 data/config.json        现场配置（只含设置，不含游戏数据）
-run-portable.bat        便携包启动脚本（包内路径）
-ci/patches/             本分支对上游的 5 个补丁（唯一真源）
+ci/portable/            便携包的启动脚本模板（打包时展开成 run-portable-<时间>.bat + 固定入口）
+ci/patches/             本分支对上游的 11 个补丁（唯一真源）
 ci/core-host-template/  客户端自建引擎用的 core-host 模板
 ci/tools/               逐位闸门与语料（run_corpus / verify_batch / verify_pipeline / pgo_train / corpus.json / riven3.json）
 ci/fetch_sources.py     按清单拉上游源码并应用补丁（tarball 一次拉完 4,220 个文件 + `.synced-commit` 跳过）

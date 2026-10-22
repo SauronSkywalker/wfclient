@@ -87,6 +87,36 @@
 
 客户端的**自愈链（发现上游更新 → 拉源码 → 打补丁 → 编译 → 安装 → 重启）是上游自带能力**，本分支没有改；改动只在于它现在拿到的是一个已经过闸门的预编译引擎（见 `ci/`），而不是每次都必须现场用便携 GNU 链编。
 
+### 3.1 整包更新改成"代目录 + 指针"（2026-10-22）
+
+旧的整包更新是**逐文件覆盖活树**：`install_portable()` 把包里的 1770 个文件 `shutil.copy2`
+到正在运行的这个目录上，被占用的（`python.exe`、正在被 cmd 读取的 `.bat`）记一条
+`skipped` 就算了，然后照样报"更新成功"。于是"新 `app.py` 配老 `fleet.py`"这种半更新
+状态**从设计上是可能的**：现场那次顶栏永远停在"正在启动…"就是它的一种表现（面板里只有
+一项读的键在旧模块里没有，异常被按面板隔离吞掉，只有那一行不刷新）。
+
+现在的布局（`src/paths.py`、`src/sync_engine.py:install_portable`、`ci/pack_portable.py`）：
+
+```
+current.txt              四行：python / src / engine / 启动器。唯一的提交点是一次 rename
+python-<hash>/  src-<hash>/  engine-<hash>/   内容寻址的"代"，一旦落盘就不再改
+engine-local/            本机自己的核心（自编译 / 下载替换 / 回滚副本），不参与代切换
+run-portable-<时间>.bat  本次发布的启动器（每次发布是新文件名，永不覆盖正在跑的批处理）
+run-portable.bat / 启动.bat   转发器：读 current.txt 第 4 行再 call 它，内容永不改变
+```
+
+- **提交点**：`os.replace(current.txt.next, current.txt)`。之前任何一步失败，磁盘上只是多
+  了几个没用到的代目录，指针还指着旧的，进程照常跑——不可能出现两代混用。
+- **幂等**：代目录名就是内容哈希，`generation_present()` 只读 `.gen.json`，同名同哈希就
+  整代跳过解压（只改 `src/` 的发布落盘约 0.4 MB，不重写 Python 和引擎）。
+- **原子性**：每个代先解压到 `.incoming/<代名>`，校验文件数与字节数后一次 `os.replace`
+  改名进来；`.incoming` 每次安装前清空。
+- **批处理不覆盖**：`.bat` 内容相同就跳过，转发器带 `PORTABLE-DISPATCH` 标记后一律不重写
+  （正在被 cmd 按字节偏移读取的文件被截断会读出乱码）。
+- **回收**：切换后只留当前与上一代（`prune_generations`），`run-portable-*.bat` 只留最新两份。
+- **不兼容旧目录**：这是新包的新布局，旧便携目录不会被就地"升级"成它——拿新包重新解压即可，
+  `data/config.json`（账号、PAT、verifier 身份）可以原样保留。
+
 ---
 
 ## 4. 怎么复现

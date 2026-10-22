@@ -40,15 +40,15 @@ python\python.exe src\sync_engine.py --native-status   :: 现在实际会跑哪�
 
 ## 兜底：通用引擎永远都在
 
-- 自动更新照旧从 GitHub Release 下载**通用引擎**（`engine-<id>`），写进 `engine/wfsim-core.exe`；
-- 本机编译出的引擎单独放 `engine/wfsim-core.native.exe`，并把当时的源码 revision 记在 `engine-src/state.json`；
+- 自动更新照旧从 GitHub Release 下载**通用引擎**（`engine-<id>`），写进 `engine-local/wfsim-core.exe`（交付核心在 `engine-<hash>/` 里，升级时整代换名，所以替换只能落在 `engine-local/`）；
+- 本机编译出的引擎单独放 `engine-local/wfsim-core.native.exe`，并把当时的源码 revision 记在 `engine-src/state.json`；
 - 客户端**只在 `engine` id + `patches_sha` + 自身 sha256 三者都一致时**才跑 native，否则自动回落到通用引擎（设置页会显示「native 已过期」）；
 - 用户自己设过 `engine_exe` 的机器**不受影响**：指向别处就永远跑那一个；
-- 想撤销：删掉 `engine/wfsim-core.native.exe`，或直接删掉依赖包目录（见下）。
+- 想撤销：删掉 `engine-local/wfsim-core.native.exe`，或直接删掉依赖包目录（见下）。
 
 ## 卸载依赖包
 
-删掉 `toolchain-msvc/`、`build-deps/`、`build-deps.json`、`ci/`、`engine-src/work/`，再把 `engine/wfsim-core.native.exe` 删掉即可恢复成纯通用便携包。`build-cache/`（编译中间产物，可能上百 MB）也可以随时删。
+删掉 `toolchain-msvc/`、`build-deps/`、`build-deps.json`、`ci/`、`engine-src/work/`，再把 `engine-local/wfsim-core.native.exe` 删掉即可恢复成纯通用便携包。`build-cache/`（编译中间产物，可能上百 MB）也可以随时删。
 
 ## 已知坑（脚本已经处理）
 

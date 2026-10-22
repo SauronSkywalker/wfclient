@@ -35,6 +35,11 @@ try:
     from textual.containers import Horizontal, Vertical, VerticalScroll
     from textual.screen import Screen
     from textual.widgets import Button, DataTable, Footer, Header, RichLog, Static
+    # A FAILURE MESSAGE IS NOT MARKUP.  The header row reports its own breakage,
+    # and an exception's text can carry `[` (`KeyError: 'uploaded'` as a repr,
+    # a list of keys, a path) — handed to `Static.update` as markup that would
+    # raise inside the reporter too, and the row would keep showing nothing.
+    from rich.text import Text
 except ModuleNotFoundError as _e:                      # Textual missing
     if _e.name and _e.name.split(".")[0] == "textual":
         import sys
@@ -1072,7 +1077,15 @@ class WfSimClient(App):
     # ------------------------------------------------------------- compose
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
-        yield Static("正在启动…", id="head")
+        # NO BOOT WORD IN THIS ROW.  `#head` is written by a successful
+        # `_paint_header` and by nothing else, so whatever text sits here stays
+        # on screen exactly as long as that paint keeps failing — a machine
+        # whose header refresh broke read "正在启动…" forever while it was
+        # computing, uploading and ranking normally (reported 2026-10-22).  The
+        # boot progress already goes to the scrolling log (`_event("boot", …)`,
+        # plus Fleet's 登录/认领/引擎 events), and a broken row now says it is
+        # broken instead of pretending to be a state (`_paint_failed`).
+        yield Static("", id="head")
         with Horizontal(id="body"):
             with Vertical(id="left"):
                 yield PriorityTable(id="vers")
@@ -1340,7 +1353,12 @@ class WfSimClient(App):
         return label
 
     def _paint_header(self, s: dict, st: dict, paused: bool) -> None:
-        uptime = int(s["uptime"])
+        # EVERY FIELD HERE IS READ AS IF IT MIGHT BE MISSING.  This row is the
+        # one panel nothing else repaints, and it used to be the only panel in
+        # `_paint` with straight `s["…"]` / `st['…']` reads — so a snapshot that
+        # lacked one key (a half-replaced `src/` after a failed update is the
+        # reported case) threw away the whole row instead of that field.
+        uptime = int(s.get("uptime") or 0)
         clock = f"{uptime // 3600}:{(uptime // 60) % 60:02d}:{uptime % 60:02d}"
         self.query_one("#head", Static).update(
             "[bold white on #d97706] WFSim 共享算力 [/] "
@@ -1348,8 +1366,8 @@ class WfSimClient(App):
             f"[b]已运行[/b] {clock}  "
             + self._engine_label(s)
             + "  "
-            + f"[b]上传[/b] {st['uploaded']} "
-            f"[dim](榜单 {st['board']} / 紫卡 {st['riven']})[/dim]  "
+            + f"[b]上传[/b] {st.get('uploaded', 0)} "
+            f"[dim](榜单 {st.get('board', 0)} / 紫卡 {st.get('riven', 0)})[/dim]  "
             f"[b]无效[/b] {st.get('task_invalid', 0)} "
             f"[dim](服务器 {st.get('task_gone', 0)} / 本地 "
             f"{st.get('task_local_invalid', 0)})[/dim]  "
@@ -1842,7 +1860,11 @@ class WfSimClient(App):
         try:
             f = self.fleet
             s = f.snapshot()
-            st = s["stats"]
+            # `stats` MISSING IS NOT A REASON TO FREEZE EVERYTHING.  Every
+            # reader below uses `.get`, so an empty mapping paints zeroes for
+            # the counters and keeps the rest of the row — including the line
+            # that says the snapshot is broken.
+            st = s.get("stats") or {}
             paused = bool(f.paused)
         except Exception as e:
             self._paint_failed("snapshot", e)
@@ -1869,6 +1891,19 @@ class WfSimClient(App):
         if self._paint_errors.get(panel) == text:
             return
         self._paint_errors[panel] = text
+        # THE TOP ROW NOW REPORTS ITSELF.  It used to keep whatever it last
+        # painted (or the boot word), so a broken header was indistinguishable
+        # from a client that never finished starting — while the fleet below it
+        # computed normally.  A `snapshot` failure counts as a header failure:
+        # that is the case where no panel can be painted at all.
+        if panel in ("header", "snapshot"):
+            try:
+                row = Text()
+                row.append(" 界面故障 ", style="bold white on #d97706")
+                row.append(f" {text} ", style="dim")
+                self.query_one("#head", Static).update(row)
+            except Exception:
+                pass
         try:
             self._event("error", f"paint {panel} failed: {text}")
         except Exception:
@@ -2499,12 +2534,12 @@ class WfSimClient(App):
             return False
 
     def _restore_core_file(self) -> None:
-        target = os.path.join(paths.ENGINE, "wfsim-core.exe")
-        prev = os.path.join(paths.ENGINE, "wfsim-core.prev.exe")
+        target = os.path.join(paths.ENGINE_LOCAL, "wfsim-core.exe")
+        prev = os.path.join(paths.ENGINE_LOCAL, "wfsim-core.prev.exe")
         try:
             if os.path.exists(prev):
                 shutil.copy2(prev, target)
-                self._event("update", "已把老核心还原到 engine\\wfsim-core.exe")
+                self._event("update", "已把老核心还原到 engine-local\\wfsim-core.exe")
             else:
                 self._event("error", "没有找到 wfsim-core.prev.exe，无法回滚")
         except Exception as e:
@@ -2698,7 +2733,7 @@ class WfSimClient(App):
                 st = await self.fleet._io(sync_engine.load_state) or {}
                 if st.get("engine"):
                     self.cfg["known_engine"] = st["engine"]
-                    self.cfg["engine_exe"] = "engine\\wfsim-core.exe"
+                    self.cfg["engine_exe"] = "wfsim-core.exe"
                     config.save(self.cfg)
                     self.fleet.local_engine = st["engine"]
             except Exception:
@@ -2710,7 +2745,7 @@ class WfSimClient(App):
         if rc != 0:
             raise RuntimeError(f"安装 staged 核心退出码 {rc}")
         self.cfg["known_engine"] = rel.get("engine")
-        self.cfg["engine_exe"] = "engine\\wfsim-core.exe"
+        self.cfg["engine_exe"] = "wfsim-core.exe"
         config.save(self.cfg)
         self._event("update", f"核心替换完成；用新核心重启 {self.fleet.slot_count()} 个计算进程")
         if not await self._restart_fleet():
@@ -2719,11 +2754,13 @@ class WfSimClient(App):
     async def _relaunch(self) -> None:
         """Start a fresh client from this folder, then quit this one.
 
-        A whole-package update replaces src/*.py, which Python has already
-        imported — the new client can only run in a new process.  It gets its own
-        console (the same window the user would have opened by hand) and is then
-        checked once: if it died immediately, this window stays so the error in
-        logs/ is still visible.
+        A whole-package update installs new GENERATIONS and moves current.txt, so
+        the new client's code, interpreter and engine are on disk while Python
+        here has already imported the old ones -- the new client can only run in a
+        new process.  It is started through the launcher the pointer names (a NEW
+        file name each release, so nothing ever has to overwrite a batch file this
+        console is running), gets its own console, and is then checked once: if it
+        died immediately, this window stays so the error in logs/ is still visible.
         """
         # paths.ROOT is a str (see paths.py): dividing it with `/` raised
         # `TypeError: unsupported operand type(s) for /: 'str' and 'str'` AFTER a
@@ -2732,12 +2769,13 @@ class WfSimClient(App):
         flags = (int(getattr(subprocess, "CREATE_NEW_CONSOLE", 0x10))
                  | int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x200)))
         try:
-            bat = os.path.join(paths.ROOT, "run-portable.bat")
+            bat = paths.launcher_file()
             if os.path.isfile(bat):
                 proc = subprocess.Popen(["cmd", "/c", bat],
                                         cwd=str(paths.ROOT), creationflags=flags)
             else:
-                proc = subprocess.Popen([sys.executable, "src/app.py"],
+                proc = subprocess.Popen([sys.executable, "-B",
+                                         os.path.join(paths.HERE, "app.py")],
                                         cwd=str(paths.ROOT), creationflags=flags)
         except Exception as e:                                       # noqa: BLE001
             self._event("error", f"自动重启失败（{type(e).__name__}: {e}）；请手动重开客户端")

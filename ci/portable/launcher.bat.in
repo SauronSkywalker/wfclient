@@ -1,0 +1,28 @@
+@echo off
+setlocal EnableDelayedExpansion
+rem PORTABLE-LAUNCHER @STAMP@
+rem
+rem 这一代的启动器：文件名带打包时间戳，所以下一代是**另一个文件**，
+rem 永远不会覆盖正在运行的批处理（那正是旧方案里"更新成功但还在跑老代码"的来源）。
+rem
+rem 包里三个大目录都带内容哈希（python-<h> / src-<h> / engine-<h>），
+rem 跑哪一代由同目录 current.txt 的第 1、2 行决定；下面两行只在
+rem current.txt 缺失时兜底，指向打包时的那一代。
+set "PYDIR=@PY@"
+set "SRCDIR=@SRC@"
+if exist "%~dp0current.txt" (
+  set "N=0"
+  for /f "usebackq delims=" %%L in ("%~dp0current.txt") do (
+    set /a N+=1
+    set "L!N!=%%L"
+  )
+  if not "!L1!"=="" set "PYDIR=!L1!"
+  if not "!L2!"=="" set "SRCDIR=!L2!"
+)
+cd /d "%~dp0"
+set "PYTHONIOENCODING=utf-8"
+set "PYTHONNOUSERSITE=1"
+"%~dp0!PYDIR!\python.exe" -B "%~dp0!SRCDIR!\app.py"
+echo.
+echo ---- exited with code %ERRORLEVEL% ----
+pause

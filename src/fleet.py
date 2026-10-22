@@ -1637,13 +1637,16 @@ class Fleet:
         return ok
 
     def engine_exe(self) -> str:
-        """ABSOLUTE OR RELATIVE TO THIS FOLDER. A portable copy names the engine
-        `engine\\wfsim-core.exe`, so the whole folder can be moved anywhere.
+        """ABSOLUTE, or relative to this folder.  The shipped name is a BARE FILE
+        NAME (`wfsim-core.exe`): the core lives in the live `engine-<hash>/`
+        generation, which the client renames as a whole, so a path into it would
+        go stale the moment the engine changes.
 
-        ONE EXCEPTION, the local line: when this machine has built its own core
-        for exactly the revision the client is on (`sync_engine.native_active`),
-        that overlay is what runs.  `wfsim-core.exe` stays on disk untouched, so
-        an overlay that stops matching is simply ignored and the delivered core
+        TWO EXCEPTIONS, both answered by `sync_engine.engine_path()`: a machine
+        that built its own core for exactly the revision the client is on
+        (`native_active`), and a core the download line installed into
+        `engine-local/`.  The generation's own `wfsim-core.exe` stays untouched,
+        so an overlay that stops matching is simply ignored and the delivered core
         takes over again -- the fallback cannot be lost to a local build.
         """
         exe = str(self.cfg.get("engine_exe") or "")

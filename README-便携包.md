@@ -47,7 +47,7 @@
 
 想要本机最快的引擎有两条路：
 
-- **推荐（不用装 rustup、不用拉源码）**：下载同一 engine id 的 `wfclient-deps-<id>.zip`，解压到本目录（与 `run-portable.bat` 同层，覆盖合并），然后双击 `build-engine.bat` 或在设置页点「编译本机最快引擎」。除 **VS** 以外全是自包含的（rust 工具链、离线 crate 缓存、PGO 剖面、补丁、已打补丁源码都在包里），编译**离线**完成，产物是 `engine/wfsim-core.native.exe`，**不覆盖**通用引擎；详见 [`ci/deps/README-自编译依赖.md`](ci/deps/README-自编译依赖.md)。
+- **推荐（不用装 rustup、不用拉源码）**：下载同一 engine id 的 `wfclient-deps-<id>.zip`，解压到本目录（与本文件同层，覆盖合并），然后双击 `build-engine.bat` 或在设置页点「编译本机最快引擎」。除 **VS** 以外全是自包含的（rust 工具链、离线 crate 缓存、PGO 剖面、补丁、已打补丁源码都在包里），编译**离线**完成，产物是 `engine-local/wfsim-core.native.exe`，**不覆盖**通用引擎；详见 [`ci/deps/README-自编译依赖.md`](ci/deps/README-自编译依赖.md)。
 - **从源码编译**：下载源码包 `selfbuild-<id>`，依赖清单与官方安装渠道见 [`自构建说明.md`](自构建说明.md)。
 
 两条路都装最新的 **VS 2026** 即可（2022 起都行）；native 一般比通用引擎快 **10%~15%**（通用引擎也是 PGO 构建，差别只在 CPU 目标指令集）。
@@ -55,23 +55,27 @@
 ## 文件夹里有什么
 
 ```
-run-portable.bat            启动脚本
-README-便携包.md            本文件
-README.txt                  上游原始说明
-src/                        客户端源码（协议 8 单一通路 + 批量投递 + 空闲回收）
+启动.bat                    固定入口（run-portable.bat 是它的同一个文件）
+current.txt                 指针：python / src / engine / 启动器 四行
+python-<hash>/              便携版 Python 3.11 + 依赖（textual 等）
+src-<hash>/                 客户端源码（协议 8 单一通路 + 批量投递 + 空闲回收）
+engine-<hash>/              预编译引擎 + engine-identity.json
+engine-local/               本机自己的核心（自编译或下载替换），可整目录删掉
+run-portable-<时间>.bat     本次发布的启动器（每次发布是新文件名）
 data/config.json            现场配置（不含账号、不含 PAT、不含设备身份）
-engine/wfsim-core.exe       预编译引擎
-engine/engine-identity.json 引擎身份与闸门结果
 engine-src/state.json       引擎 revision 记录（客户端据此离线启动）
-python/                     便携版 Python 3.11 + 依赖（textual 等）
 logs/                       运行日志（`task_logging` 为 `off` 时不生成）
 ```
+
+三个带哈希的目录是**代目录**：新版本落在另一个名字下，`current.txt` 一行改名就切过去，
+所以正在运行的 `python.exe` 不参与替换，也不会出现"新 app.py 配老 fleet.py"。旧的代在
+切换后自动删掉（只留当前与上一代）。
 
 ## 自检
 
 ```powershell
-# 引擎 sha256 是否与包内记录一致
-python -c "import hashlib,json,pathlib;p=pathlib.Path('engine/wfsim-core.exe');print(hashlib.sha256(p.read_bytes()).hexdigest());print(json.loads(pathlib.Path('engine-src/state.json').read_text())['sha256'])"
+# 引擎 sha256 是否与包内记录一致（核心在 engine-<hash>/ 里，名字随内容变）
+python -c "import glob,hashlib,json,pathlib;p=pathlib.Path(sorted(glob.glob('engine-*/wfsim-core.exe'))[-1]);print(p);print(hashlib.sha256(p.read_bytes()).hexdigest());print(json.loads(pathlib.Path('engine-src/state.json').read_text())['sha256'])"
 ```
 
 两行一致即包未被改动。

@@ -22,3 +22,12 @@
 !ci/**/*.json
 __pycache__/
 *.pyc
+
+# A portable install's pointer and generations (present only inside a package)
+/current.txt
+/previous.txt
+/.incoming/
+/engine-local/
+/run-portable.bat
+/run-portable-*.bat
+/启动.bat

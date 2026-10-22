@@ -99,7 +99,7 @@ jobs:
           body: |
             构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
 
-            只含引擎本体，供已有便携包的用户替换 `engine/wfsim-core.exe`（标签即 engine id，可幂等重发）。
+            只含引擎本体，供已有便携包的用户替换 `engine-<hash>/wfsim-core.exe`（或直接放进 `engine-local/`；标签即 engine id，可幂等重发）。
 
             | 字段 | 值 |
             |---|---|
@@ -184,6 +184,12 @@ jobs:
 
             完整便携包：内置打好补丁的引擎（MSVC + PGO + mimalloc，随包预编译）、客户端 src、
             便携版 Python 与依赖、使用说明与启动脚本。解压后双击 `run-portable.bat` 即可运行。
+
+            **包结构已改为「代目录 + 指针」**：`python-<hash>/`、`src-<hash>/`、`engine-<hash>/`
+            三代并列，`current.txt` 决定跑哪一代；更新只会新增代目录再改一次指针，不再逐文件覆盖
+            运行中的 `python.exe`。这也意味着**旧的便携目录不会再被自动更新**（旧客户端只认
+            `src/app.py` / `engine/wfsim-core.exe` 这种老路径）：请用本包重新解压一份，需要保留
+            账号与 verifier 身份的话，把旧的 `data/config.json` 拷到新目录即可。
 
             | 字段 | 值 |
             |---|---|
@@ -305,7 +311,7 @@ jobs:
 
             包含：裁剪过的 rust `1.97.1-x86_64-pc-windows-msvc`（约 346 MB，含 `llvm-profdata`）、
             离线 crate 缓存、本次 revision 的 PGO 剖面、四个源码补丁、已打补丁的上游源码。
-            编译**离线**完成，产物是 `engine/wfsim-core.native.exe`，**不覆盖**通用引擎；
+            编译**离线**完成，产物是 `engine-local/wfsim-core.native.exe`，**不覆盖**通用引擎；
             两者 revision 一致时优先跑 native，对不上自动回落。
 
             唯一要你自己装的是 **Visual Studio**（`cl.exe`/`link.exe` 与 SDK 导入库不允许再分发）：

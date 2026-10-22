@@ -73,6 +73,8 @@ BUILD = pathlib.Path(paths.BUILD)
 TARGET = BUILD / "target"
 TMP = BUILD / "tmp"
 ENGINE = pathlib.Path(paths.ENGINE)
+#: This machine's own core files; never inside a generation (those are immutable).
+ENGINE_LOCAL = pathlib.Path(paths.ENGINE_LOCAL)
 CONFIG = pathlib.Path(paths.CONFIG)
 
 RELEASE_URL = "https://wfsim.app/release.json"
@@ -383,12 +385,17 @@ def save_state(state: dict) -> None:
 
 def installed_core_matches_state() -> bool:
     """The state hash is a guard, not a claim: a copied/corrupted exe rebuilds."""
-    target = ENGINE / "wfsim-core.exe"
+    target = engine_path()
     if not target.exists():
         return False
     expected = str((load_state() or {}).get("sha256") or "").strip()
     if not expected:
         return True
+    if target == BUNDLED_CORE:
+        # The delivered core is covered by the generation's own `.gen.json`.
+        marker = read_gen_marker(ENGINE) or {}
+        if str(marker.get("sha256") or "").lower() == expected.lower():
+            return True
     return file_sha256(target).lower() == expected.lower()
 
 
@@ -1472,17 +1479,37 @@ PORTABLE_ASSET = "wfsim-portable-{engine}.zip"
 #: Never overwritten by a package update: this machine's identity and its own
 #: build inputs.  data/config.json carries the account, the PAT and the verifier
 #: ids — losing it would sign the user out and drop their identities.
-PORTABLE_KEEP = ("data/config.json", "build-deps.json")
+#:
+#: The three big parts are GENERATIONS now (see install_portable), so a package
+#: no longer writes over them at all: what an update still touches in place is a
+#: handful of small files (the pointer, the launchers, engine-src/state.json),
+#: and those are either atomic renames or harmless to repeat.
+PORTABLE_KEEP = ("data/config.json", "build-deps.json", "current.txt", "previous.txt")
 PORTABLE_KEEP_PREFIX = (
     "logs/",                          # this machine's own history
     "build-deps/",                    # the self-build dependency pack
     "toolchain-msvc/",                # the trimmed toolchain that pack carries
     "build-cache/",                   # cargo caches and staged cores
     "engine-src/work/",               # the synced upstream tree
-    "engine/wfsim-core.native.exe",   # the engine THIS machine built for itself
-    "engine/wfsim-core.exe.prev",
+    "engine-local/",                  # the core THIS machine built or downloaded
+    "python/", "src/", "engine/",     # a folder that still predates the pointer
 )
 PORTABLE_UPDATE_DIR = BUILD / "update"
+#: Written inside every generation directory by the packer.  Its `hash` is the
+#: number the directory name carries, so the installer can tell "this generation
+#: is already here, byte for byte" from "same name, damaged content" without
+#: unpacking 20 MB just to find out.
+GEN_MARKER = ".gen.json"
+GEN_KINDS = ("python", "src", "engine")
+GEN_PREFIX = {"python": "python-", "src": "src-", "engine": "engine-"}
+#: First-line markers of the two batch files.  A launcher carries
+#: PORTABLE-LAUNCHER and is superseded by a new file name each release; the
+#: forwarder carries PORTABLE-DISPATCH and never changes content.
+LAUNCHER_MARKER = "PORTABLE-LAUNCHER"
+DISPATCH_MARKER = "PORTABLE-DISPATCH"
+#: The live pointer and the previous one (rollback = copy over the live one).
+POINTER = pathlib.Path(paths.CURRENT)
+PREVIOUS = pathlib.Path(paths.PREVIOUS)
 
 
 def portable_asset_url(engine: str) -> str:
@@ -1556,6 +1583,22 @@ def client_manifest(engine: str | None = None, force: bool = False) -> dict | No
     return info
 
 
+def _manifest_path(name: str) -> pathlib.Path:
+    """Where a manifest entry (`src/app.py`) lives HERE.
+
+    The manifest speaks the packer's logical names, computed before the
+    generations exist; the live copy keeps those files in `src-<hash>/`, so the
+    first segment is resolved through the pointer.  A folder that predates the
+    pointer has the plain directory, and then this is the same path as before.
+    """
+    head, _, rest = str(name).replace("\\", "/").partition("/")
+    if rest:
+        live = paths.current_generation(head) if head in GEN_KINDS else ""
+        if live:
+            return ROOT / live / rest
+    return ROOT / str(name)
+
+
 def client_manifest_drift(info: dict | None) -> dict:
     """Which of THIS copy's sources differ from the manifest's.
 
@@ -1577,7 +1620,7 @@ def client_manifest_drift(info: dict | None) -> dict:
     if not isinstance(want, dict):
         return out
     for name, sha in sorted(want.items()):
-        path = ROOT / str(name)
+        path = _manifest_path(str(name))
         if not path.is_file():
             out["missing_local"].append(str(name))
             continue
@@ -1690,65 +1733,313 @@ def latest_portable() -> pathlib.Path | None:
     return hits[0] if hits else None
 
 
-def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool, str]:
-    """Copy a downloaded package over this folder, in place.
+def dir_digest(folder: pathlib.Path) -> str:
+    """The number a generation directory is named by.
 
-    In place, not by renaming folders: this process keeps running while the
-    files are replaced, and a rename would depend on it having exited first.
-    Python re-reads .py sources at import time, so the new client takes effect
-    on the relaunch that follows.  Locked binaries (the running python.exe, a
-    core in use) are skipped and reported instead of failing the whole update —
-    they are also the files that never change.
+    Byte-for-byte the same algorithm as `ci/pack_portable.py:dir_digest`: the
+    packer names the directory with it and the installer decides "already here"
+    with it, so ordering, exclusions and truncation must agree on both sides.
+    """
+    root = pathlib.Path(folder)
+    h = hashlib.sha256()
+    for p in sorted(x for x in root.rglob("*") if x.is_file()):
+        rel = p.relative_to(root).as_posix()
+        if rel == GEN_MARKER:
+            continue
+        h.update(rel.encode("utf-8"))
+        h.update(b"\0")
+        h.update(file_sha256(p).encode("ascii"))
+        h.update(b"\n")
+    return h.hexdigest()[:12]
+
+
+def folder_stats(folder: pathlib.Path) -> tuple[int, int]:
+    """(files, bytes) of a generation, NOT counting its own `.gen.json`."""
+    files = [p for p in pathlib.Path(folder).rglob("*")
+             if p.is_file() and p.name != GEN_MARKER]
+    return len(files), sum(p.stat().st_size for p in files)
+
+
+def read_gen_marker(folder: pathlib.Path) -> dict | None:
+    try:
+        info = json.loads((pathlib.Path(folder) / GEN_MARKER)
+                          .read_text(encoding="utf-8-sig"))
+    except Exception:                                            # noqa: BLE001
+        return None
+    return info if isinstance(info, dict) else None
+
+
+def generation_present(name: str, marker: dict | None) -> bool:
+    """Is this exact generation already on disk?
+
+    Cheap by design: the recorded hash plus the file count and byte total catch
+    a half-written or hand-edited directory; a full re-hash is what `--verify`
+    is for.  A hit means the installer writes nothing at all for that part.
+    """
+    folder = ROOT / name
+    if not folder.is_dir() or not marker:
+        return False
+    local = read_gen_marker(folder)
+    if not local or str(local.get("hash") or "") != str(marker.get("hash") or ""):
+        return False
+    files, size = folder_stats(folder)
+    return (files == int(marker.get("files") or -1)
+            and size == int(marker.get("bytes") or -1))
+
+
+def read_pointer(path: "pathlib.Path | None" = None) -> list[str]:
+    p = pathlib.Path(path) if path else POINTER
+    try:
+        lines = [ln.strip() for ln in p.read_text(encoding="utf-8-sig").splitlines()]
+    except OSError:
+        return []
+    return [ln for ln in lines if ln]
+
+
+def prune_generations(keep: set[str]) -> list[str]:
+    """Delete the generations nobody points at.
+
+    A folder a process is running from cannot be deleted on Windows, and that
+    refusal is the correct answer — the caller keeps going, and the next boot
+    tries again.  `keep` is normally {active, previous}.
+
+    ONLY `<kind>-<twelve hex digits>` directories are candidates: `engine-src/`
+    (the synced upstream tree) and `engine-local/` (this machine's own cores)
+    share the `engine-` prefix and must never be swept up by this.
+    """
+    removed: list[str] = []
+    for kind in GEN_KINDS:
+        pattern = re.compile(rf"^{re.escape(GEN_PREFIX[kind])}[0-9a-f]{{12}}$")
+        for d in sorted(ROOT.glob(f"{GEN_PREFIX[kind]}*")):
+            if not d.is_dir() or d.name in keep or not pattern.match(d.name):
+                continue
+            try:
+                shutil.rmtree(d)
+                removed.append(d.name)
+            except OSError:
+                pass
+    shutil.rmtree(ROOT / ".incoming", ignore_errors=True)
+    if removed:
+        log("pruned generations: " + ", ".join(removed))
+    return removed
+
+
+def prune_launchers(keep: set[str]) -> list[str]:
+    """Delete launchers no pointer names; keep the dispatcher."""
+    removed: list[str] = []
+    for p in sorted(ROOT.glob("run-portable-*.bat")):
+        if p.name in keep:
+            continue
+        try:
+            p.unlink()
+            removed.append(p.name)
+        except OSError:
+            pass
+    return removed
+
+
+def install_dispatcher(force: bool = False) -> bool:
+    """Put the frozen forwarder at `run-portable.bat` (the familiar name).
+
+    Startup is the only safe moment: the console that started this process is
+    the timestamped launcher, or the forwarder itself (whose content never
+    changes), so this file is not the one being executed.  A folder that still
+    predates the generations layout is left alone — there its old
+    `run-portable.bat` is the only way in.
+    """
+    if not paths.pointer():
+        return False
+    target = pathlib.Path(paths.LAUNCHER)
+    try:
+        old = target.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        old = ""
+    if DISPATCH_MARKER in old and not force:
+        return False
+    try:
+        text = (ROOT / "启动.bat").read_text(encoding="utf-8")
+    except OSError:
+        text = ('@echo off\r\nsetlocal EnableDelayedExpansion\r\n'
+                f'rem {DISPATCH_MARKER}\r\n'
+                'cd /d "%~dp0"\r\n'
+                'set "BAT="\r\n'
+                'if exist "%~dp0current.txt" (\r\n'
+                '  set "N=0"\r\n'
+                '  for /f "usebackq delims=" %%L in ("%~dp0current.txt") do (\r\n'
+                '    set /a N+=1\r\n'
+                '    set "L!N!=%%L"\r\n'
+                '  )\r\n'
+                '  set "BAT=!L4!"\r\n'
+                ')\r\n'
+                'if not "!BAT!"=="" if exist "%~dp0!BAT!" call "%~dp0!BAT!" & exit /b\r\n'
+                'if exist "%~dp0run-portable.bat" call "%~dp0run-portable.bat"\r\n')
+    tmp = target.with_name("run-portable.bat.tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8", newline="\r\n")
+        os.replace(tmp, target)
+        return True
+    except OSError:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+        return False
+
+
+def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool, str]:
+    """Unpack a package as new GENERATIONS, then move the pointer.
+
+    Nothing a running process holds is written.  Each big part appears under a
+    name no live directory can already occupy (`python-<hash>/`), and the single
+    commit point is `os.replace(current.txt.next, current.txt)`: a crash before
+    that line leaves the previous generation running, never a mixture of two —
+    which is exactly what the old in-place copy produced when the running
+    `python.exe` could not be replaced (`skipped (in use)`, and then an old
+    `fleet.py` behind a new `app.py`).
+
+    A generation already present with a matching hash is skipped without being
+    unpacked, so a release that only touches `src/` writes ~0.4 MB.
     """
     path = pathlib.Path(zip_path) if zip_path else latest_portable()
     if path is None or not path.is_file():
         return False, "没有已下载的便携包（先跑 --download-portable <engine>）"
-    stage = PORTABLE_UPDATE_DIR / "unpacked"
-    shutil.rmtree(stage, ignore_errors=True)
-    stage.mkdir(parents=True, exist_ok=True)
-    root = stage.resolve()
-    with zipfile.ZipFile(path) as z:
-        for name in z.namelist():
-            if name.endswith("/"):
-                continue
-            target = (stage / name).resolve()
-            # zip-slip: an entry may never escape the staging folder
-            if target != root and root not in target.parents:
-                return False, f"压缩包里有越界路径：{name}"
-        z.extractall(stage)
-    for need in ("src/app.py", "engine/wfsim-core.exe", "engine-src/state.json"):
-        if not (stage / need).is_file():
-            return False, f"更新包不完整：缺少 {need}"
+    root = ROOT
+    incoming = root / ".incoming"
+    shutil.rmtree(incoming, ignore_errors=True)
+    root_res = root.resolve()
+    skipped: list[str] = []
+    reused: list[str] = []
+    gens: list[str] = []
     try:
-        pkg_state = json.loads((stage / "engine-src" / "state.json")
-                               .read_text(encoding="utf-8-sig"))
-    except Exception as e:                                       # noqa: BLE001
-        return False, f"更新包的 state.json 读不出来：{type(e).__name__}: {e}"
-    want = str(pkg_state.get("sha256") or "").strip().lower()
-    got = file_sha256(stage / "engine" / "wfsim-core.exe")
-    if want and got != want:
-        return False, (f"更新包里的引擎 sha256 对不上：{got[:12]} != {want[:12]}"
-                       "（下载不完整或被人改过）")
-    copied, skipped = 0, []
-    for src in sorted(stage.rglob("*")):
-        if not src.is_file():
-            continue
-        rel = src.relative_to(stage).as_posix()
-        if rel in PORTABLE_KEEP or rel.startswith(PORTABLE_KEEP_PREFIX):
-            continue
-        dest = ROOT / rel
+        with zipfile.ZipFile(path) as z:
+            names = [n for n in z.namelist() if not n.endswith("/")]
+            for n in names:
+                target = (root / n).resolve()
+                # zip-slip: an entry may never escape the folder it lands in
+                if target != root_res and root_res not in target.parents:
+                    return False, f"压缩包里有越界路径：{n}"
+            tops: dict[str, list[str]] = {}
+            plain: list[str] = []
+            for n in names:
+                top = n.split("/", 1)[0]
+                kind = next((k for k in GEN_KINDS
+                             if top.startswith(GEN_PREFIX[k])
+                             and len(top) > len(GEN_PREFIX[k])), "")
+                if kind and "/" in n:
+                    tops.setdefault(top, []).append(n)
+                else:
+                    plain.append(n)
+
+            # 1) the generations, one at a time: unpack beside, then rename in.
+            for top in sorted(tops):
+                try:
+                    marker = json.loads(z.read(f"{top}/{GEN_MARKER}")
+                                        .decode("utf-8-sig"))
+                except Exception:                                # noqa: BLE001
+                    return False, f"更新包里的 {top} 没有 {GEN_MARKER}（不是新布局的包？）"
+                if generation_present(top, marker):
+                    reused.append(top)
+                    continue
+                for n in tops[top]:
+                    z.extract(n, incoming)
+                moved = incoming / top
+                if not (moved / GEN_MARKER).is_file():
+                    return False, f"更新包里的 {top} 不完整"
+                files, size = folder_stats(moved)
+                if (files != int(marker.get("files") or -1)
+                        or size != int(marker.get("bytes") or -1)):
+                    return False, f"更新包里的 {top} 与它自己的 .gen.json 不符"
+                link = root / top
+                if link.exists():
+                    shutil.rmtree(link, ignore_errors=True)
+                os.replace(moved, link)
+                gens.append(top)
+
+            # 2) the small files outside generations.  The pointer is switched
+            #    by name below, so `current.txt` inside the zip is ignored.
+            for n in plain:
+                if n in ("current.txt", "current.txt.next"):
+                    continue
+                if n in PORTABLE_KEEP or any(n.startswith(p)
+                                             for p in PORTABLE_KEEP_PREFIX):
+                    continue
+                if n == "engine-src/state.json":
+                    # The ledger describes the NEW engine, so it is written after
+                    # the pointer: a failed update must not leave the folder
+                    # claiming an engine it is not running.
+                    continue
+                dest = root / n
+                if dest.name.lower().endswith(".bat"):
+                    # A BATCH FILE MAY BE THE ONE RUNNING THIS UPDATE: truncating
+                    # it mid-execution makes cmd read garbage.  Identical files are
+                    # left alone, and the forwarder (whose text never changes) is
+                    # never rewritten once it carries its marker.
+                    try:
+                        if dest.is_file():
+                            if dest.stat().st_size == z.getinfo(n).file_size:
+                                with z.open(n) as src:
+                                    if src.read() == dest.read_bytes():
+                                        continue
+                            if DISPATCH_MARKER in dest.read_text(
+                                    encoding="utf-8", errors="replace"):
+                                continue
+                    except OSError:
+                        pass
+                try:
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    with z.open(n) as src, open(dest, "wb") as out:
+                        shutil.copyfileobj(src, out)
+                except PermissionError:
+                    skipped.append(n)            # a core in use / a running bat
+                except OSError as e:                             # noqa: PERF203
+                    skipped.append(f"{n}({type(e).__name__})")
+    finally:
+        shutil.rmtree(incoming, ignore_errors=True)
+
+    # 3) THE COMMIT: one rename of one small file.
+    ptr = root / "current.txt.next"
+    if not ptr.is_file():
+        return False, "更新包里没有 current.txt.next"
+    lines = read_pointer(ptr)
+    if len(lines) < 3:
+        return False, "current.txt.next 格式不对（至少三行）"
+    for name in lines[:3]:
+        if not (root / name).is_dir():
+            return False, f"指针指向的 {name} 不存在"
+    old = read_pointer(POINTER)
+    if old:
         try:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dest)
-            copied += 1
-        except PermissionError:
-            skipped.append(rel)                 # python.exe / 引擎 / dll 正在用
-        except OSError as e:                                     # noqa: PERF203
-            skipped.append(f"{rel}({type(e).__name__})")
-    shutil.rmtree(stage, ignore_errors=True)
-    msg = f"整包更新：替换 {copied} 个文件"
+            shutil.copy2(POINTER, PREVIOUS)
+        except OSError:
+            pass
+    os.replace(ptr, POINTER)
+    try:                                     # the ledger, now that the switch is real
+        with zipfile.ZipFile(path) as z:
+            ledger = z.read("engine-src/state.json")
+        (ROOT / "engine-src").mkdir(parents=True, exist_ok=True)
+        (ROOT / "engine-src" / "state.json").write_bytes(ledger)
+    except (KeyError, OSError) as e:                          # noqa: BLE001
+        log(f"the package carries no usable state.json ({type(e).__name__}); "
+            f"the engine id will be re-read from the server")
+    keep = set(lines[:3]) | set(old[:3])
+    prune_generations(keep)
+    prune_launchers({lines[3] if len(lines) > 3 else "", "run-portable.bat"})
+    # A core the download line put in `engine-local/` belonged to the engine
+    # generation being replaced; the package's own core is the delivered one.
+    for stale in (ENGINE_LOCAL / "wfsim-core.exe", ENGINE_LOCAL / "wfsim-core.prev.exe"):
+        try:
+            stale.unlink()
+        except OSError:
+            pass
+    install_dispatcher()
+
+    msg = f"整包更新：切到 {lines[1]}"
+    if reused:
+        msg += f"；{len(reused)} 个代已在本地，跳过解压（{', '.join(reused[:3])}）"
+    if gens:
+        msg += f"；新解压 {len(gens)} 个代"
     if skipped:
-        msg += f"，{len(skipped)} 个被占用保持原样（下次重开会再更新）"
+        msg += f"；{len(skipped)} 个文件被占用，下次启动再写"
         log("skipped (in use): " + ", ".join(skipped[:8]))
     log(msg)
     return True, msg
@@ -1765,12 +2056,21 @@ def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool
 DEPS_MARKER = ROOT / "build-deps.json"
 DEPS_DIR = ROOT / "build-deps"
 DEPS_MSVC = ROOT / "toolchain-msvc"
-#: The CI-built x86-64-v3 core: what the download line installs, always present.
-GENERIC_CORE = ENGINE / "wfsim-core.exe"
+#: The core the ACTIVE engine generation ships: delivered, read-only, and the
+#: answer whenever this machine has not replaced it.
+BUNDLED_CORE = ENGINE / "wfsim-core.exe"
+#: The download line's replacement core (and its `prev` copy) in the unversioned
+#: `engine-local/`: a generation directory is immutable by construction, and this
+#: file is what changes when a core is swapped without a whole new package.
+GENERIC_CORE = ENGINE_LOCAL / "wfsim-core.exe"
 #: The core this machine built for itself.  An OVERLAY, never a replacement:
 #: `native_active()` decides whether it may be run at all.
-NATIVE_CORE = ENGINE / "wfsim-core.native.exe"
-DEFAULT_ENGINE_REL = "engine\\wfsim-core.exe"
+NATIVE_CORE = ENGINE_LOCAL / "wfsim-core.native.exe"
+#: What `config.json:engine_exe` holds for the delivered core: a bare file name,
+#: resolved against the live engine generation.  The old `engine\wfsim-core.exe`
+#: spelling is still accepted so an existing config keeps working unchanged.
+DEFAULT_ENGINE_REL = "wfsim-core.exe"
+LEGACY_ENGINE_REL = "engine\\wfsim-core.exe"
 MSVC_TARGET = "x86_64-pc-windows-msvc"
 VS_BUILD_TOOLS_2022 = (r"C:\Program Files (x86)\Microsoft Visual Studio\2022"
                        r"\BuildTools")
@@ -2156,21 +2456,32 @@ def native_ignore_reason() -> str:
 
 
 def engine_exe_override(configured: str) -> str | None:
-    """The local native core to run instead of the configured one, or None.
+    """The core to run in place of `configured`, or None when it IS that path.
 
-    Only for the default engine name: a user who pointed `engine_exe` at their
-    own binary gets exactly that binary.
+    Only for the delivered core's name: a user who pointed `engine_exe` at their
+    own binary gets exactly that binary.  `configured` is a bare file name now
+    (`wfsim-core.exe`) because the engine lives in a generation directory whose
+    name changes with its content; the old `engine\\wfsim-core.exe` spelling is
+    accepted for a config written by an older version.
     """
-    if str(configured or "").replace("/", "\\").strip() != DEFAULT_ENGINE_REL:
+    name = str(configured or "").replace("/", "\\").strip()
+    if name not in (DEFAULT_ENGINE_REL, LEGACY_ENGINE_REL):
         return None
-    if not native_active():
-        return None
-    return str(NATIVE_CORE)
+    return str(engine_path())
 
 
 def engine_path() -> pathlib.Path:
-    """The core the fleet should start: the overlay when it still matches."""
-    return NATIVE_CORE if native_active() else GENERIC_CORE
+    """The core the fleet should start.
+
+    Order: this machine's own overlay when it still matches the served revision,
+    else a core the download line installed into `engine-local/`, else the one
+    the live engine generation ships.
+    """
+    if native_active():
+        return NATIVE_CORE
+    if GENERIC_CORE.exists():
+        return GENERIC_CORE
+    return BUNDLED_CORE
 
 
 def engine_status() -> dict:
@@ -2195,22 +2506,24 @@ def engine_status() -> dict:
         "engine": state.get("engine"),
         "cpu": state.get("cpu"),
         "deps": deps_pack() is not None,
-        "generic": GENERIC_CORE.exists(),
+        "generic": BUNDLED_CORE.exists() or GENERIC_CORE.exists(),
     }
 
 
 def install_native_core(built: pathlib.Path, *, pgo: bool) -> pathlib.Path:
-    """Adopt a locally built core as the OVERLAY; the generic core stays put.
+    """Adopt a locally built core as the OVERLAY; the delivered core stays put.
 
-    `engine/wfsim-core.exe` remains the CI-built core the download line installs,
-    so a native core that stops matching the served revision is simply ignored
-    (`native_active`) instead of leaving the machine on a stale binary.
+    The shipped core lives inside the engine generation (`engine-<hash>/`, which
+    the packer names by content and the client never edits), so a native core
+    that stops matching the served revision is simply ignored (`native_active`)
+    instead of leaving the machine on a stale binary -- and an update that swaps
+    the whole generation cannot delete this machine's build.
     """
     built = pathlib.Path(built)
     if not built.exists():
         raise RuntimeError(f"built binary not found at {built}")
-    ENGINE.mkdir(parents=True, exist_ok=True)
-    tmp = ENGINE / "wfsim-core.native.new.exe"
+    ENGINE_LOCAL.mkdir(parents=True, exist_ok=True)
+    tmp = ENGINE_LOCAL / "wfsim-core.native.new.exe"
     shutil.copy2(built, tmp)
     os.replace(tmp, NATIVE_CORE)
     digest = file_sha256(NATIVE_CORE)
@@ -2250,16 +2563,16 @@ def install_staged() -> pathlib.Path:
     actual = file_sha256(staged)
     if expected and expected.lower() != actual.lower():
         raise RuntimeError(f"staged core checksum mismatch: {expected} != {actual}")
-    target = ENGINE / "wfsim-core.exe"
-    prev = ENGINE / "wfsim-core.prev.exe"
-    ENGINE.mkdir(parents=True, exist_ok=True)
+    target = GENERIC_CORE
+    prev = ENGINE_LOCAL / "wfsim-core.prev.exe"
+    ENGINE_LOCAL.mkdir(parents=True, exist_ok=True)
     if target.exists():
         shutil.copy2(target, prev)
-    tmp = ENGINE / "wfsim-core.new.exe"
+    tmp = ENGINE_LOCAL / "wfsim-core.new.exe"
     shutil.copy2(staged, tmp)
     os.replace(tmp, target)
     cfg = load_config()
-    cfg["engine_exe"] = "engine\\wfsim-core.exe"
+    cfg["engine_exe"] = DEFAULT_ENGINE_REL
     cfg["known_engine"] = pending.get("engine")
     cfg["client_protocol"] = CLIENT_PROTOCOL
     CONFIG.parent.mkdir(parents=True, exist_ok=True)
@@ -2290,16 +2603,16 @@ def install_staged() -> pathlib.Path:
 
 
 def install_core(built: pathlib.Path, release: dict) -> pathlib.Path:
-    ENGINE.mkdir(parents=True, exist_ok=True)
-    target = ENGINE / "wfsim-core.exe"
-    prev = ENGINE / "wfsim-core.prev.exe"
+    ENGINE_LOCAL.mkdir(parents=True, exist_ok=True)
+    target = GENERIC_CORE
+    prev = ENGINE_LOCAL / "wfsim-core.prev.exe"
     if target.exists():
         shutil.copy2(target, prev)
-    tmp = ENGINE / "wfsim-core.new.exe"
+    tmp = ENGINE_LOCAL / "wfsim-core.new.exe"
     shutil.copy2(built, tmp)
     os.replace(tmp, target)
     cfg = load_config()
-    cfg["engine_exe"] = "engine\\wfsim-core.exe"
+    cfg["engine_exe"] = DEFAULT_ENGINE_REL
     cfg["known_engine"] = release.get("engine")
     cfg["client_protocol"] = CLIENT_PROTOCOL
     CONFIG.parent.mkdir(parents=True, exist_ok=True)
@@ -2464,7 +2777,7 @@ def _save_install_state(state: dict, rel: dict, built: pathlib.Path,
         "server_commit": rel.get("commit"),
         "ref": "main",
         "built": str(built),
-        "installed": str(ENGINE / "wfsim-core.exe"),
+        "installed": str(engine_path()),
         "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "client_protocol": CLIENT_PROTOCOL,
         "optimizer_tree_sha": synced_opt,
@@ -2506,7 +2819,7 @@ def main() -> int:
     try:
         rel = release_info()
         state = load_state()
-        target = ENGINE / "wfsim-core.exe"
+        target = engine_path()
         (engine_changed, opt_changed, patches_changed, hash_ok, stored_opt, opt_sha,
          cur_patches) = _update_signals(rel, state)
         up_to_date = (not engine_changed and not opt_changed and not patches_changed

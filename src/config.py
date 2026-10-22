@@ -201,7 +201,10 @@ DEFAULTS = {
     #: how long a finished, undelivered riven answer may hold its verifier.
     #: 0 disables the cap.
     "riven_pending_hold_seconds": 900,
-    "engine_exe": "engine\\wfsim-core.exe",
+    # A BARE FILE NAME: the core lives in the live `engine-<hash>/` generation,
+    # whose directory name changes when the engine's content does.  The
+    # old `engine\wfsim-core.exe` spelling is still understood.
+    "engine_exe": "wfsim-core.exe",
     "engine_base_port": 9310,
     #: which logical CPUs the engine processes may run on. Empty = all,
     #: i.e. the scheduler decides.

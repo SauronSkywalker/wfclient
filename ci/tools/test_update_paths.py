@@ -53,17 +53,40 @@ check("src 里没有 paths.<常量> / 的 str 除法", not offenders)
 for o in offenders:
     print("     str 除法残留:", o)
 
-# --- ② _relaunch：join + isfile，且都在 try 里 --------------------------------
+# --- ② 重启与更新：代目录 + 指针，不再就地覆盖 --------------------------------
+# 新布局（2026-10-22）：python-<h>/ src-<h>/ engine-<h>/ 三代 + current.txt 指针。
+# 更新的提交点只有一次 os.replace(current.txt.next, current.txt)，所以"跑着的
+# python.exe / 正在被 cmd 读取的批处理"从来不写；重启走 current.txt 第 4 行那份
+# 本次发布的**新文件名**启动器。
 relaunch = APP[APP.index("async def _relaunch("):]
 relaunch = relaunch[:relaunch.index("async def _resume_after_update(")]
-check("_relaunch 用 os.path.join(paths.ROOT, 'run-portable.bat')",
-      'os.path.join(paths.ROOT, "run-portable.bat")' in relaunch)
-check("_relaunch 用 os.path.isfile 判断批处理",
-      "os.path.isfile(bat)" in relaunch and "bat.is_file()" not in relaunch)
-check("bat 的拼法在 try 之内（异常必须被自己兜住，不能冒到回滚）",
-      relaunch.index("os.path.join(paths.ROOT") > relaunch.index("try:"))
-check("包目录里 run-portable.bat 真的存在，join 出来的路径能命中",
-      os.path.isfile(os.path.join(str(ROOT), "run-portable.bat")))
+PATHS = (SRC / "paths.py").read_text(encoding="utf-8")
+check("_relaunch 用 paths.launcher_file() 找本次发布的启动器",
+      "bat = paths.launcher_file()" in relaunch)
+check("没有 current.txt 时 _relaunch 回退到本文件的 app.py",
+      'os.path.join(paths.HERE, "app.py")' in relaunch)
+check("启动器拼法仍在 try 之内（异常必须被自己兜住，不能冒到回滚）",
+      relaunch.index("paths.launcher_file()") > relaunch.index("try:"))
+check("paths 有 launcher_file / engine_dir / current_generation",
+      all(f"def {n}(" in PATHS
+          for n in ("launcher_file", "engine_dir", "current_generation", "pointer")))
+check("paths 只认指针里的目录名，不再写死 engine/",
+      'os.path.join(ROOT, "engine")' not in PATHS.split("def engine_dir", 1)[1].split("def ", 1)[0]
+      .replace('return os.path.join(ROOT, "engine")', ""))
+check("sync_engine 有代目录安装器（解压旁路 + 单次 rename 提交）",
+      all(s in SYNC for s in ("def dir_digest", "def generation_present",
+                              "def prune_generations", "def read_pointer",
+                              "os.replace(ptr, POINTER)")))
+check("安装器不再逐文件 copy2 覆盖活树",
+      "shutil.copy2(src, dest)" not in SYNC
+      and "skipped.append(rel)" not in SYNC)
+if HAS_CI:
+    check("打包模板里有固定入口（启动.bat 转发器）",
+          (ROOT / "ci" / "portable" / "启动.bat").is_file()
+          and (ROOT / "ci" / "portable" / "launcher.bat.in").is_file())
+check("客户端会把转发器放到 run-portable.bat（老名字仍然能开）",
+      "def install_dispatcher" in SYNC
+      and "install_dispatcher()" in SYNC.split("def install_portable", 1)[1])
 
 # --- ③ 整包替换到位后不许回滚账本 ---------------------------------------------
 install = APP[APP.index("async def _install_and_restart("):]

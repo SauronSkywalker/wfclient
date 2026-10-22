@@ -140,6 +140,12 @@ jobs:
             完整便携包：内置打好补丁的引擎（MSVC + PGO + mimalloc，随包预编译）、客户端 src、
             便携版 Python 与依赖、使用说明与启动脚本。解压后双击 `run-portable.bat` 即可运行。
 
+            **包结构已改为「代目录 + 指针」**：`python-<hash>/`、`src-<hash>/`、`engine-<hash>/`
+            三代并列，`current.txt` 决定跑哪一代；更新只会新增代目录再改一次指针，不再逐文件覆盖
+            运行中的 `python.exe`。这也意味着**旧的便携目录不会再被自动更新**（旧客户端只认
+            `src/app.py` / `engine/wfsim-core.exe` 这种老路径）：请用本包重新解压一份，需要保留
+            账号与 verifier 身份的话，把旧的 `data/config.json` 拷到新目录即可。
+
             | 字段 | 值 |
             |---|---|
             | engine id | `${{ steps.pick.outputs.engine }}` |
@@ -158,7 +164,17 @@ jobs:
       # 判定归 gate-engine；这里绝不能反过来影响用户能不能拿到包。
       - name: smoke test the packed engine (5 WASM anchors) - after publishing
         continue-on-error: true
-        run: python ci/tools/run_corpus.py dist/staging/engine/wfsim-core.exe --anchors --port 9510
+        shell: python
+        run: |
+          import pathlib, subprocess, sys
+          # The core lives in the engine's GENERATION directory now, whose name is
+          # its content hash: find it instead of spelling a stale path.
+          cores = sorted(pathlib.Path("dist/staging").glob("engine-*/wfsim-core.exe"))
+          if not cores:
+              raise SystemExit("no packed core under dist/staging/engine-*/")
+          print("core:", cores[-1])
+          sys.exit(subprocess.call([sys.executable, "ci/tools/run_corpus.py",
+                                    str(cores[-1]), "--anchors", "--port", "9510"]))
 
   # 第三条发布线：源码 + 构建脚本（给别人自己编译用）。
   #
@@ -185,7 +201,7 @@ jobs:
           # 按本机生成的配置，见 README.txt：缺文件时首次启动会自动生成一份）。
           files = ["README.md", "README-便携包.md", "SECOND-DEVELOPMENT.md", "NOTICE.md",
                    "自构建说明.md", "LICENSE", "LICENSE-DATA.md", "TRADEMARK.md",
-                   "run-portable.bat", ".gitattributes"]
+                   ".gitattributes"]
           dirs = ["src", "ci", ".github"]
           with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
               for name in files:
