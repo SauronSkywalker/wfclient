@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))          # src-<h>/
@@ -94,10 +95,15 @@ def _newest_generation(kind: str) -> str:
     hold two engine generations extracted from two packages, and the hash says
     nothing about which one is later.  A directory without a marker falls back
     to its mtime, so an unpacked-by-hand generation still ranks by age.
+
+    ONLY ``<kind>-<twelve hex digits>`` counts: `engine-src/` and `engine-local/`
+    share the `engine-` prefix and sorting them in by name would hand the fleet
+    the synced upstream tree as if it were a core.
     """
+    pattern = re.compile(rf"^{re.escape(kind)}-[0-9a-f]{{12}}$")
     try:
         names = [n for n in os.listdir(ROOT)
-                 if n.startswith(kind + "-")
+                 if pattern.match(n)
                  and os.path.isdir(os.path.join(ROOT, n))]
     except OSError:
         return ""

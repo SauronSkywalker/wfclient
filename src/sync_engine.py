@@ -1502,6 +1502,10 @@ PORTABLE_UPDATE_DIR = BUILD / "update"
 GEN_MARKER = ".gen.json"
 GEN_KINDS = ("python", "src", "engine")
 GEN_PREFIX = {"python": "python-", "src": "src-", "engine": "engine-"}
+#: A generation's WHOLE name: `<kind>-<twelve hex digits>`.  Matching on the
+#: prefix alone is a trap -- `engine-src/` and `engine-local/` start with
+#: `engine-` and are not generations.
+GENERATION = re.compile(rf"^(?:{'|'.join(GEN_KINDS)})-[0-9a-f]{{12}}$")
 #: First-line marker of the launcher.  Each release ships a NEW file name,
 #: so an update never has to rewrite a batch file that cmd is running.
 LAUNCHER_MARKER = "PORTABLE-LAUNCHER"
@@ -1872,9 +1876,11 @@ def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool
             plain: list[str] = []
             for n in names:
                 top = n.split("/", 1)[0]
-                kind = next((k for k in GEN_KINDS
-                             if top.startswith(GEN_PREFIX[k])
-                             and len(top) > len(GEN_PREFIX[k])), "")
+                # A GENERATION IS `<kind>-<twelve hex digits>` AND NOTHING ELSE.
+                # `engine-src/` shares the `engine-` prefix; matching on the
+                # prefix alone made the installer demand `.gen.json` from the
+                # synced upstream tree and refuse every real package.
+                kind = next((k for k in GEN_KINDS if GENERATION.match(top)), "")
                 if kind and "/" in n:
                     tops.setdefault(top, []).append(n)
                 else:
@@ -1943,10 +1949,20 @@ def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool
     finally:
         shutil.rmtree(incoming, ignore_errors=True)
 
-    # 3) THE COMMIT: one rename of one small file.
-    ptr = root / "current.txt.next"
-    if not ptr.is_file():
+    # 3) THE COMMIT: one rename of one small file.  The four names are read OUT
+    #    OF THE ZIP: the folder's own `current.txt.next` is consumed by the
+    #    switch, so reading the local one made every update after the first
+    #    answer "更新包里没有 current.txt.next".
+    try:
+        with zipfile.ZipFile(path) as z:
+            blade = z.read("current.txt.next")
+    except KeyError:
         return False, "更新包里没有 current.txt.next"
+    ptr = root / "current.txt.next"
+    try:
+        ptr.write_bytes(blade)
+    except OSError as e:                                         # noqa: BLE001
+        return False, f"写 current.txt.next 失败：{type(e).__name__}: {e}"
     lines = read_pointer(ptr)
     if len(lines) < 3:
         return False, "current.txt.next 格式不对（至少三行）"
