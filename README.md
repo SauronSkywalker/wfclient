@@ -36,7 +36,7 @@
 
 ### 方式 A：下载现成的便携包（推荐）
 
-到 [Releases](../../releases) 下载 `wfsim-portable-*.zip`，解压，双击 **`run-portable.bat`**。
+到 [Releases](../../releases) 下载 `wfsim-portable-*.zip`，解压，双击包里那个 **`run-portable-<时间戳>.bat`**。
 
 包里已经有：打好补丁并编译好的引擎、客户端 `src`、便携版 Python 与全部依赖、启动脚本、使用说明（`README-便携包.md`）。**无需安装任何东西**，不需要 Rust、不需要 VS、不需要联网构建。
 
@@ -140,5 +140,5 @@ CI 里引擎用 `-C target-cpu=x86-64-v3`（一档 AVX2 基线）而不是 `nati
 
 **wfclient** is an unofficial third-party fork of [WFSim](https://github.com/magenie33/wfsim). It ships a prebuilt MSVC+PGO+mimalloc engine that is **3.43× faster** than the portable GNU build of the identical source, with **zero runtime dependencies** (static CRT) — and it is **bit-identical** to the site's accepted values (verified against 100 board rows, 5 cross-platform WASM anchors and 20 riven reports before every release).
 
-Download `wfsim-portable-*.zip` from [Releases](../../releases), unzip, run `run-portable.bat`.
+Download `wfsim-portable-*.zip` from [Releases](../../releases), unzip, run `run-portable-<stamp>.bat`.
 Requires Windows x86-64. Licensed AGPL-3.0-or-later, same as upstream. Not affiliated with WFSim or Digital Extremes; *Warframe* is a trademark of Digital Extremes Ltd. Naming follows upstream `TRADEMARK.md`.

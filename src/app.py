@@ -6,7 +6,7 @@
 #---------------------------------------------------------------------------
 """The TUI: what the fleet is doing, and the knobs worth having.
 
-    run-portable.bat            (double-click in the portable folder)
+    run-portable-<stamp>.bat    (double-click in the portable folder)
 
 Keys:  q 退出   p 暂停/继续   + / -  常驻 verifier 数     s 立刻刷新
 """

@@ -1502,11 +1502,9 @@ PORTABLE_UPDATE_DIR = BUILD / "update"
 GEN_MARKER = ".gen.json"
 GEN_KINDS = ("python", "src", "engine")
 GEN_PREFIX = {"python": "python-", "src": "src-", "engine": "engine-"}
-#: First-line markers of the two batch files.  A launcher carries
-#: PORTABLE-LAUNCHER and is superseded by a new file name each release; the
-#: forwarder carries PORTABLE-DISPATCH and never changes content.
+#: First-line marker of the launcher.  Each release ships a NEW file name,
+#: so an update never has to rewrite a batch file that cmd is running.
 LAUNCHER_MARKER = "PORTABLE-LAUNCHER"
-DISPATCH_MARKER = "PORTABLE-DISPATCH"
 #: The live pointer and the previous one (rollback = copy over the live one).
 POINTER = pathlib.Path(paths.CURRENT)
 PREVIOUS = pathlib.Path(paths.PREVIOUS)
@@ -1838,59 +1836,6 @@ def prune_launchers(keep: set[str]) -> list[str]:
     return removed
 
 
-def install_dispatcher(force: bool = False) -> bool:
-    """Put the frozen forwarder at `run-portable.bat` (the familiar name).
-
-    Startup is the only safe moment: the console that started this process is
-    the timestamped launcher, or the forwarder itself (whose content never
-    changes), so this file is not the one being executed.  A folder that still
-    predates the generations layout is left alone — there its old
-    `run-portable.bat` is the only way in.
-    """
-    if not paths.pointer():
-        return False
-    target = pathlib.Path(paths.LAUNCHER)
-    try:
-        old = target.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        old = ""
-    if DISPATCH_MARKER in old and not force:
-        return False
-    try:
-        text = (ROOT / "启动.bat").read_text(encoding="utf-8")
-    except OSError:
-        text = ('@echo off\r\nsetlocal EnableDelayedExpansion\r\n'
-                f'rem {DISPATCH_MARKER}\r\n'
-                'cd /d "%~dp0"\r\n'
-                'set "BAT="\r\n'
-                'if exist "%~dp0current.txt" (\r\n'
-                '  set "N=0"\r\n'
-                '  for /f "usebackq delims=" %%L in ("%~dp0current.txt") do (\r\n'
-                '    set /a N+=1\r\n'
-                '    set "L!N!=%%L"\r\n'
-                '  )\r\n'
-                '  set "BAT=!L4!"\r\n'
-                ')\r\n'
-                'if not "!BAT!"=="" if exist "%~dp0!BAT!" (\r\n'
-                '  call "%~dp0!BAT!"\r\n'
-                '  exit /b !ERRORLEVEL!\r\n'
-                ')\r\n'
-                'echo No usable launcher here: current.txt does not name an existing run-portable-*.bat.\r\n'
-                'pause\r\n'
-                'exit /b 1\r\n')
-    tmp = target.with_name("run-portable.bat.tmp")
-    try:
-        tmp.write_text(text, encoding="utf-8", newline="\r\n")
-        os.replace(tmp, target)
-        return True
-    except OSError:
-        try:
-            tmp.unlink()
-        except OSError:
-            pass
-        return False
-
-
 def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool, str]:
     """Unpack a package as new GENERATIONS, then move the pointer.
 
@@ -1976,18 +1921,15 @@ def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool
                 dest = root / n
                 if dest.name.lower().endswith(".bat"):
                     # A BATCH FILE MAY BE THE ONE RUNNING THIS UPDATE: truncating
-                    # it mid-execution makes cmd read garbage.  Identical files are
-                    # left alone, and the forwarder (whose text never changes) is
-                    # never rewritten once it carries its marker.
+                    # it mid-execution makes cmd read garbage.  An identical file
+                    # is left alone; a launcher is a new file name every release,
+                    # so this only ever hits the pointers and the readmes.
                     try:
                         if dest.is_file():
                             if dest.stat().st_size == z.getinfo(n).file_size:
                                 with z.open(n) as src:
                                     if src.read() == dest.read_bytes():
                                         continue
-                            if DISPATCH_MARKER in dest.read_text(
-                                    encoding="utf-8", errors="replace"):
-                                continue
                     except OSError:
                         pass
                 try:
@@ -2028,7 +1970,7 @@ def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool
             f"the engine id will be re-read from the server")
     keep = set(lines[:3]) | set(old[:3])
     prune_generations(keep)
-    prune_launchers({lines[3] if len(lines) > 3 else "", "run-portable.bat"})
+    prune_launchers({lines[3] if len(lines) > 3 else ""})
     # A core the download line put in `engine-local/` belonged to the engine
     # generation being replaced; the package's own core is the delivered one.
     for stale in (ENGINE_LOCAL / "wfsim-core.exe", ENGINE_LOCAL / "wfsim-core.prev.exe"):
@@ -2036,7 +1978,6 @@ def install_portable(zip_path: "str | pathlib.Path | None" = None) -> tuple[bool
             stale.unlink()
         except OSError:
             pass
-    install_dispatcher()
 
     msg = f"整包更新：切到 {lines[1]}"
     if reused:

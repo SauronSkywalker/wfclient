@@ -102,7 +102,6 @@ current.txt              四行：python / src / engine / 启动器。唯一的�
 python-<hash>/  src-<hash>/  engine-<hash>/   内容寻址的"代"，一旦落盘就不再改
 engine-local/            本机自己的核心（自编译 / 下载替换 / 回滚副本），不参与代切换
 run-portable-<时间>.bat  本次发布的启动器（每次发布是新文件名，永不覆盖正在跑的批处理）
-run-portable.bat / 启动.bat   转发器：读 current.txt 第 4 行再 call 它，内容永不改变
 ```
 
 - **提交点**：`os.replace(current.txt.next, current.txt)`。之前任何一步失败，磁盘上只是多
@@ -111,7 +110,7 @@ run-portable.bat / 启动.bat   转发器：读 current.txt 第 4 行再 call �
   整代跳过解压（只改 `src/` 的发布落盘约 0.4 MB，不重写 Python 和引擎）。
 - **原子性**：每个代先解压到 `.incoming/<代名>`，校验文件数与字节数后一次 `os.replace`
   改名进来；`.incoming` 每次安装前清空。
-- **批处理不覆盖**：`.bat` 内容相同就跳过，转发器带 `PORTABLE-DISPATCH` 标记后一律不重写
+- **批处理不覆盖**：`.bat` 内容相同就跳过；启动器每次发布都是另一个文件名，所以永远不必重写正在被 cmd 读取的那个
   （正在被 cmd 按字节偏移读取的文件被截断会读出乱码）。
 - **回收**：切换后只留当前与上一代（`prune_generations`），`run-portable-*.bat` 只留最新两份。
 - **不兼容旧目录**：这是新包的新布局，旧便携目录不会被就地"升级"成它——拿新包重新解压即可，
@@ -156,7 +155,7 @@ CI 里这四路闸门是**四个并行 job**（`ci/gate_engine.py`：`gate-board
 
 ## 6. 已知边界
 
-- **平台**：仅 Windows x86-64。便携包里的 Python 是 Windows 嵌入版，`run-portable.bat` 也是 Windows 批处理。
+- **平台**：仅 Windows x86-64。便携包里的 Python 是 Windows 嵌入版，启动器也是 Windows 批处理。
 - **CPU 指令集**：预编译引擎按构建机的 `target-cpu` 编译；换机后如果 CPU 不同，客户端会提示重建（`_cpu_rebuild_prompt`），按 `y` 即用便携 GNU 链重建（慢但正确），或由 CI 的 `x86-64-v3` 产物替代。
 - **PGO 训练集**：当前是 40 条 board + 1 条紫卡；训练集换了，提速比例会变（实测 27%–35% 区间）。
 - **不改变结果**：所有优化都只影响速度；每次交付都以逐位闸门为准。

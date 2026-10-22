@@ -183,7 +183,7 @@ jobs:
             构建时间：**${{ steps.when.outputs.cn }}（UTC+8）** ≈ ${{ steps.when.outputs.utc }}（UTC）
 
             完整便携包：内置打好补丁的引擎（MSVC + PGO + mimalloc，随包预编译）、客户端 src、
-            便携版 Python 与依赖、使用说明与启动脚本。解压后双击 `run-portable.bat` 即可运行。
+            便携版 Python 与依赖、使用说明与启动脚本。解压后双击包里那个 `run-portable-<时间戳>.bat` 即可运行。
 
             **包结构已改为「代目录 + 指针」**：`python-<hash>/`、`src-<hash>/`、`engine-<hash>/`
             三代并列，`current.txt` 决定跑哪一代；更新只会新增代目录再改一次指针，不再逐文件覆盖
@@ -305,8 +305,8 @@ jobs:
 
             自编译依赖包（**除 Visual Studio 以外全部自包含**），配合 `portable-${{ steps.ident.outputs.engine }}` 使用。
 
-            1. 解压便携包，双击 `run-portable.bat` 确认能跑；
-            2. 把本包解压到便携包目录（与 `run-portable.bat` 同层，覆盖合并）；
+            1. 解压便携包，双击包里那个 `run-portable-<时间戳>.bat` 确认能跑；
+            2. 把本包解压到便携包目录（与 `current.txt` 同层，覆盖合并）；
             3. 双击 `build-engine.bat`，或在 TUI 设置页点 **编译本机最快引擎**。
 
             包含：裁剪过的 rust `1.97.1-x86_64-pc-windows-msvc`（约 346 MB，含 `llvm-profdata`）、

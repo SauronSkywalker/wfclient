@@ -10,7 +10,7 @@ Layout of the zip (a portable folder is a SET OF GENERATIONS plus one pointer):
     engine-src/state.json     pins the engine revision so the client starts offline
     current.txt.next          four lines: python, src, engine, launcher
     run-portable-<stamp>.bat  this release's launcher (a NEW FILE every release)
-    启动.bat / run-portable.bat   the same frozen forwarder under both names: it reads
+    (no fixed-name bat)           the launcher's name is its timestamp: this
                               line 4 of the pointer and calls that launcher
     README-便携包.md / 自构建说明.md / README.txt
 
@@ -204,20 +204,13 @@ def main() -> int:
                                    {"engine": engine_id, "sha256": core_sha}),
     }
 
-    # 5) the pointer, this release's launcher, and the fixed dispatcher.
+    # 5) the pointer and this release's launcher (its name is its timestamp).
     launcher = f"run-portable-{stamp}.bat"
     text = (read_template(root, "launcher.bat.in")
             .replace("@STAMP@", stamp)
             .replace("@PY@", gens["python"])
             .replace("@SRC@", gens["src"]))
     (build / launcher).write_text(text, encoding="utf-8", newline="\r\n")
-    # The forwarder under BOTH names: the new one (`启动.bat`) and the name the
-    # docs and shortcuts have always used, so a hand-unpacked copy starts either
-    # way and an in-place update leaves the old file alone (same content).
-    forwarder = read_template(root, "启动.bat")
-    (build / "启动.bat").write_text(forwarder, encoding="utf-8", newline="\r\n")
-    (build / "run-portable.bat").write_text(forwarder, encoding="utf-8",
-                                            newline="\r\n")
     (build / "current.txt.next").write_text(
         "".join(f"{gens[k]}\n" for k in ("python", "src", "engine")) + f"{launcher}\n",
         encoding="utf-8", newline="\n")

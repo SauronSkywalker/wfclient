@@ -80,13 +80,8 @@ check("sync_engine 有代目录安装器（解压旁路 + 单次 rename 提交�
 check("安装器不再逐文件 copy2 覆盖活树",
       "shutil.copy2(src, dest)" not in SYNC
       and "skipped.append(rel)" not in SYNC)
-if HAS_CI:
-    check("打包模板里有固定入口（启动.bat 转发器）",
-          (ROOT / "ci" / "portable" / "启动.bat").is_file()
-          and (ROOT / "ci" / "portable" / "launcher.bat.in").is_file())
-check("客户端会把转发器放到 run-portable.bat（老名字仍然能开）",
-      "def install_dispatcher" in SYNC
-      and "install_dispatcher()" in SYNC.split("def install_portable", 1)[1])
+check("打包模板里有这一代的启动器模板",
+      HAS_CI and (ROOT / "ci" / "portable" / "launcher.bat.in").is_file())
 
 # --- ③ 整包替换到位后不许回滚账本 ---------------------------------------------
 install = APP[APP.index("async def _install_and_restart("):]

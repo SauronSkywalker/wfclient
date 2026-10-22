@@ -35,8 +35,6 @@ ROOT = os.path.dirname(HERE)                                # portable root
 CURRENT = os.path.join(ROOT, "current.txt")
 #: Last generation that started successfully (rollback = copy over current.txt).
 PREVIOUS = os.path.join(ROOT, "previous.txt")
-#: The fixed-name dispatcher beside it (it reads line 4 of the pointer).
-LAUNCHER = os.path.join(ROOT, "run-portable.bat")
 DATA = os.path.join(ROOT, "data")
 LOGS = os.path.join(ROOT, "logs")
 #: This machine's own engine bits: a self-built core and the download line's
@@ -82,9 +80,10 @@ def launcher_file() -> str:
     """The launcher this install should start through.
 
     Line 4 of the pointer when that file exists, else the newest
-    ``run-portable-*.bat``, else the legacy fixed name.  The relaunch after an
-    update uses this: the new package's launcher is a NEW FILE, so nothing ever
-    has to overwrite a batch file that a console is running.
+    ``run-portable-*.bat``, else ``""`` -- a folder with no launcher is started
+    straight through the interpreter.  The relaunch after an update uses this:
+    the new package's launcher is a NEW FILE, so nothing ever has to overwrite
+    a batch file that a console is running.
     """
     lines = pointer()
     if len(lines) > 3 and lines[3]:
@@ -98,7 +97,7 @@ def launcher_file() -> str:
         bats = []
     if bats:
         return os.path.join(ROOT, sorted(bats)[-1])
-    return LAUNCHER
+    return ""
 
 
 #: Resolved once per process: an update swaps the pointer and then relaunches,
