@@ -1,32 +1,25 @@
 --- a/engine/src/build/rivens/spec.rs
 +++ b/engine/src/build/rivens/spec.rs
-@@ -373,5 +373,5 @@
-         .iter()
-         .rev()
+@@ -375,3 +375,3 @@
          .find(|c| !pool(c).is_empty())
 -        .map(|c| &*Box::leak(c.clone().into_boxed_str()))
 +        .map(String::as_str)
  }
 --- a/engine/src/data/weapons/panel.rs
 +++ b/engine/src/data/weapons/panel.rs
-@@ -452,25 +452,25 @@
-         melee_incarnon: None,
-         // LEAKED ONCE so the panel can answer "what is this" and "what does it
+@@ -454,4 +454,4 @@
          // draw" without a lookup — the two questions the Amp auras ask.
 -        class: Box::leak(s.class.clone().into_boxed_str()),
 -        slot: Box::leak(s.rules_slot().to_string().into_boxed_str()),
 +        class: raw.class.as_str(),
 +        slot: raw.rules_slot(),
          // Filled in by `apply_valence`; zero until then, and zero forever on a
-         // weapon that never came out of a Lich.
-         valence_bonus: 0.0,
+@@ -460,3 +460,3 @@
          exalted: s.exalted,
 -        summoned_by: s.summoned_by.as_ref().map(|a| &*Box::leak(a.clone().into_boxed_str())),
 +        summoned_by: raw.summoned_by.as_deref(),
          // Zero until an evolution's flat add writes into it
-         // (`add_flat_base_damage`), which is the only thing that does.
-         unswung_base: 0.0,
-         recharge_per_second: s.recharge_per_second,
+@@ -466,9 +466,9 @@
          echo_multiplier: s.echo_multiplier,
 -        mod_pools: Box::leak(
 -            s.mod_pools
@@ -43,5 +36,3 @@
 +            })
 +        },
          form: FormKind::parse(&s.form),
-         // Empty until an evolution writes into it (data::evolutions::apply).
-         indirect: Vec::new(),
