@@ -314,7 +314,7 @@
     "failed_starts": [],
     "fights": 31838,
     "final_runs": 100,
-    "final_work": 390800367,
+    "final_work": 397536207,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -676,7 +676,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 390800367
+      "work": 397536207
      }
     ],
     "sampled": 1040.0,
@@ -1043,7 +1043,7 @@
     "failed_starts": [],
     "fights": 57050,
     "final_runs": 100,
-    "final_work": 667182880,
+    "final_work": 679494580,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 2,
@@ -1065,22 +1065,22 @@
       },
       "from_starts": [
        {
-        "from": 4.657637422860447,
+        "from": 4.65759387383873,
         "moves": 17,
         "start": 0
        },
        {
-        "from": 8.809860176281928,
+        "from": 8.809547297394806,
         "moves": 14,
         "start": 1
        },
        {
-        "from": 5.2647362012922745,
+        "from": 5.25099694237591,
         "moves": 13,
         "start": 2
        },
        {
-        "from": 3.853723518161049,
+        "from": 3.8522983447972856,
         "moves": 17,
         "start": 3
        }
@@ -1420,7 +1420,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 333599944
+      "work": 339755962
      }
     ],
     "sampled": 1719.0,
@@ -1787,7 +1787,7 @@
     "failed_starts": [],
     "fights": 48196,
     "final_runs": 100,
-    "final_work": 376782950,
+    "final_work": 383672045,
     "finalists": 1,
     "headshot_pct": 100.0,
     "jobs": 1,
@@ -1800,7 +1800,7 @@
       "arcane_rank": [
        5
       ],
-      "dps": 3391589.56837626,
+      "dps": 3391642.6262034047,
       "evolutions": [],
       "exilus": "primed_steady_hands",
       "forma": {
@@ -1814,8 +1814,8 @@
         "start": 0
        }
       ],
-      "kill_progress": 23.147059544969725,
-      "kill_progress_se": 0.061825412618335296,
+      "kill_progress": 23.147060822787385,
+      "kill_progress_se": 0.061825364475677734,
       "kills": 22.55,
       "kills_max": 24,
       "kills_min": 21,
@@ -2149,7 +2149,7 @@
        "threads": 6
       },
       "valence": "",
-      "work": 376782950
+      "work": 383672045
      }
     ],
     "sampled": 1593.0,

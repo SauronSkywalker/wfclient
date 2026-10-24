@@ -43,18 +43,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 0.7195566637842331,
+   "score": 0.7182949141985057,
    "metric": "kpm",
-   "work": 1742879599,
+   "work": 1752956848,
    "counts": {
     "body_shots": 262000,
     "dot_ticks": 0,
     "field_ticks": 2555000,
-    "gas": 26857591999,
-    "hits": 3217697,
+    "gas": 27059136972,
+    "hits": 3217715,
     "kills": 1825,
     "pellets": 262000,
-    "procs": 1794339,
+    "procs": 1794358,
     "runs": 1000,
     "shots": 262000
    }
@@ -114,20 +114,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 2.978190768842634,
+   "score": 2.586543550847028,
    "metric": "kpm",
-   "work": 2059190703,
+   "work": 2141743925,
    "counts": {
-    "body_shots": 1381464,
-    "dot_ticks": 227020,
+    "body_shots": 1381514,
+    "dot_ticks": 229145,
     "field_ticks": 0,
-    "gas": 33183814077,
-    "hits": 2113971,
-    "kills": 8511,
-    "pellets": 1886951,
-    "procs": 1408364,
+    "gas": 34834878505,
+    "hits": 2116094,
+    "kills": 7358,
+    "pellets": 1886949,
+    "procs": 1356685,
     "runs": 1000,
-    "shots": 1381464
+    "shots": 1381514
    }
   },
   "note": {
@@ -180,15 +180,15 @@
    "mode": "base"
   },
   "expected": {
-   "score": 0.836248338122599,
+   "score": 0.8359520391732985,
    "metric": "kpm",
-   "work": 2233026250,
+   "work": 2269433738,
    "counts": {
     "body_shots": 1968000,
-    "dot_ticks": 196437,
+    "dot_ticks": 196429,
     "field_ticks": 0,
-    "gas": 36660525001,
-    "hits": 2164437,
+    "gas": 37388674770,
+    "hits": 2164429,
     "kills": 2000,
     "pellets": 1968000,
     "procs": 1039638,
@@ -251,12 +251,12 @@
   "expected": {
    "score": 55.25099686970435,
    "metric": "kpm",
-   "work": 2809074084,
+   "work": 2853060889,
    "counts": {
     "body_shots": 2044996,
     "dot_ticks": 181357,
     "field_ticks": 0,
-    "gas": 48181481698,
+    "gas": 49061217787,
     "hits": 2360778,
     "kills": 165567,
     "pellets": 2179421,
@@ -320,15 +320,15 @@
    "mode": "base"
   },
   "expected": {
-   "score": 0.318557843582162,
+   "score": 0.3185573927577939,
    "metric": "kpm",
-   "work": 2423552919,
+   "work": 2507933375,
    "counts": {
     "body_shots": 855000,
-    "dot_ticks": 324447,
+    "dot_ticks": 324453,
     "field_ticks": 0,
-    "gas": 40471058398,
-    "hits": 2975214,
+    "gas": 42158667510,
+    "hits": 2975220,
     "kills": 0,
     "pellets": 2650767,
     "procs": 2858212,
@@ -390,18 +390,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 31.15548982475143,
+   "score": 31.15368460179867,
    "metric": "kpm",
-   "work": 2789219009,
+   "work": 2817034760,
    "counts": {
     "body_shots": 472997,
-    "dot_ticks": 4143,
+    "dot_ticks": 4175,
     "field_ticks": 0,
-    "gas": 47784380180,
-    "hits": 3652863,
-    "kills": 93082,
-    "pellets": 1830342,
-    "procs": 4704204,
+    "gas": 48340695217,
+    "hits": 3652796,
+    "kills": 93077,
+    "pellets": 1830314,
+    "procs": 4704205,
     "runs": 1000,
     "shots": 472997
    }
@@ -456,18 +456,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 23.696045794952997,
+   "score": 23.696050039086636,
    "metric": "kpm",
-   "work": 3600815499,
+   "work": 3667394827,
    "counts": {
     "body_shots": 2826000,
-    "dot_ticks": 167791,
+    "dot_ticks": 167786,
     "field_ticks": 0,
-    "gas": 64016309995,
-    "hits": 2993791,
+    "gas": 65347896556,
+    "hits": 2993786,
     "kills": 70622,
     "pellets": 2826000,
-    "procs": 10385912,
+    "procs": 10385897,
     "runs": 1000,
     "shots": 2826000
    }
@@ -527,20 +527,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 15.039922715125051,
+   "score": 13.646695244128775,
    "metric": "kpm",
-   "work": 2114770291,
+   "work": 2204507174,
    "counts": {
-    "body_shots": 1381860,
-    "dot_ticks": 274639,
+    "body_shots": 1382066,
+    "dot_ticks": 285657,
     "field_ticks": 0,
-    "gas": 34295405828,
-    "hits": 2162986,
-    "kills": 44782,
-    "pellets": 1888347,
-    "procs": 1705567,
+    "gas": 36090143483,
+    "hits": 2167572,
+    "kills": 40507,
+    "pellets": 1881915,
+    "procs": 1696176,
     "runs": 1000,
-    "shots": 1381860
+    "shots": 1382066
    }
   },
   "note": {
@@ -598,18 +598,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 24.20237045878377,
+   "score": 24.187903835871975,
    "metric": "kpm",
-   "work": 2391284961,
+   "work": 2425022082,
    "counts": {
     "body_shots": 1872000,
     "dot_ticks": 0,
     "field_ticks": 550000,
-    "gas": 39825699230,
+    "gas": 40500441651,
     "hits": 2422000,
-    "kills": 72175,
+    "kills": 72126,
     "pellets": 1872000,
-    "procs": 831608,
+    "procs": 831656,
     "runs": 1000,
     "shots": 1872000
    }
@@ -669,18 +669,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 122.35632638525523,
+   "score": 122.08869012926023,
    "metric": "kpm",
-   "work": 2535750072,
+   "work": 2571477362,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 42715001445,
+    "gas": 43429547248,
     "hits": 2587000,
-    "kills": 366657,
+    "kills": 365855,
     "pellets": 1999000,
-    "procs": 776416,
+    "procs": 776787,
     "runs": 1000,
     "shots": 1999000
    }
@@ -740,20 +740,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 27.15781415341227,
+   "score": 25.222756669177812,
    "metric": "kpm",
-   "work": 2311022261,
+   "work": 2422468667,
    "counts": {
-    "body_shots": 1495967,
-    "dot_ticks": 223326,
+    "body_shots": 1495965,
+    "dot_ticks": 257155,
     "field_ticks": 0,
-    "gas": 38220445232,
-    "hits": 2306996,
-    "kills": 81042,
-    "pellets": 2083670,
-    "procs": 2653847,
+    "gas": 40449373346,
+    "hits": 2345052,
+    "kills": 75263,
+    "pellets": 2087897,
+    "procs": 2709405,
     "runs": 1000,
-    "shots": 1495967
+    "shots": 1495965
    }
   },
   "note": {
@@ -811,20 +811,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 1.551737859073704,
+   "score": 1.5385680902631715,
    "metric": "kpm",
-   "work": 2210166676,
+   "work": 2303088132,
    "counts": {
-    "body_shots": 1370144,
-    "dot_ticks": 218314,
+    "body_shots": 1370142,
+    "dot_ticks": 218630,
     "field_ticks": 0,
-    "gas": 36203333525,
-    "hits": 2145392,
-    "kills": 4195,
-    "pellets": 1927078,
-    "procs": 3444271,
+    "gas": 38061762653,
+    "hits": 2145534,
+    "kills": 4120,
+    "pellets": 1926904,
+    "procs": 3443466,
     "runs": 1000,
-    "shots": 1370144
+    "shots": 1370142
    }
   },
   "note": {
@@ -882,20 +882,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 23.36024622213297,
+   "score": 21.84404495021344,
    "metric": "kpm",
-   "work": 2276213310,
+   "work": 2381622379,
    "counts": {
-    "body_shots": 1372344,
-    "dot_ticks": 159472,
+    "body_shots": 1372588,
+    "dot_ticks": 179776,
     "field_ticks": 0,
-    "gas": 37524266203,
-    "hits": 2121423,
-    "kills": 69672,
-    "pellets": 1961951,
-    "procs": 4195887,
+    "gas": 39632447585,
+    "hits": 2143990,
+    "kills": 65160,
+    "pellets": 1964214,
+    "procs": 4228813,
     "runs": 1000,
-    "shots": 1372344
+    "shots": 1372588
    }
   },
   "note": {
@@ -950,12 +950,12 @@
   "expected": {
    "score": 1.3097638588017466,
    "metric": "kpm",
-   "work": 2328616708,
+   "work": 2368665603,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 202688,
     "field_ticks": 0,
-    "gas": 38572334174,
+    "gas": 39373312071,
     "hits": 2170688,
     "kills": 3210,
     "pellets": 1968000,
@@ -1016,12 +1016,12 @@
   "expected": {
    "score": 12.140895480604293,
    "metric": "kpm",
-   "work": 2484262820,
+   "work": 2526167967,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 252750,
     "field_ticks": 0,
-    "gas": 41685256407,
+    "gas": 42523359347,
     "hits": 2220750,
     "kills": 35897,
     "pellets": 1968000,
@@ -1082,12 +1082,12 @@
   "expected": {
    "score": 0.47143413089885594,
    "metric": "kpm",
-   "work": 2300319233,
+   "work": 2340309619,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 179188,
     "field_ticks": 0,
-    "gas": 38006384662,
+    "gas": 38806192390,
     "hits": 2147188,
     "kills": 1000,
     "pellets": 1968000,
@@ -1146,18 +1146,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 2.3519730474596683,
+   "score": 2.351211302994233,
    "metric": "kpm",
-   "work": 2579217937,
+   "work": 2616308552,
    "counts": {
     "body_shots": 49200000,
-    "dot_ticks": 276712,
+    "dot_ticks": 276716,
     "field_ticks": 0,
-    "gas": 43584358743,
-    "hits": 2579629,
-    "kills": 6598,
+    "gas": 44326171052,
+    "hits": 2579610,
+    "kills": 6593,
     "pellets": 1968000,
-    "procs": 1215689,
+    "procs": 1215728,
     "runs": 1000,
     "shots": 1968000
    }
@@ -1217,20 +1217,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 36.53508009769246,
+   "score": 33.19251845479456,
    "metric": "kpm",
-   "work": 2332927238,
+   "work": 2425968103,
    "counts": {
-    "body_shots": 1494515,
-    "dot_ticks": 175588,
+    "body_shots": 1495159,
+    "dot_ticks": 176060,
     "field_ticks": 0,
-    "gas": 38658544773,
-    "hits": 2273018,
-    "kills": 109206,
-    "pellets": 2097430,
-    "procs": 2604600,
+    "gas": 40519362070,
+    "hits": 2272503,
+    "kills": 99216,
+    "pellets": 2096443,
+    "procs": 2621342,
     "runs": 1000,
-    "shots": 1494515
+    "shots": 1495159
    }
   },
   "note": {
@@ -1288,20 +1288,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 9.01124547165707,
+   "score": 7.938636155470471,
    "metric": "kpm",
-   "work": 2321270014,
+   "work": 2424914991,
    "counts": {
-    "body_shots": 1497510,
-    "dot_ticks": 304500,
+    "body_shots": 1497323,
+    "dot_ticks": 305482,
     "field_ticks": 0,
-    "gas": 38425400292,
-    "hits": 2376702,
-    "kills": 26596,
-    "pellets": 2072202,
-    "procs": 2676119,
+    "gas": 40498299827,
+    "hits": 2381155,
+    "kills": 23525,
+    "pellets": 2075673,
+    "procs": 2672734,
     "runs": 1000,
-    "shots": 1497510
+    "shots": 1497323
    }
   },
   "note": {
@@ -1361,16 +1361,16 @@
   "expected": {
    "score": 59.51626260806066,
    "metric": "kpm",
-   "work": 3120223819,
+   "work": 3164661491,
    "counts": {
     "body_shots": 49100825,
-    "dot_ticks": 100270,
+    "dot_ticks": 100271,
     "field_ticks": 0,
-    "gas": 54404476393,
-    "hits": 2184845,
+    "gas": 55293229835,
+    "hits": 2184846,
     "kills": 178108,
     "pellets": 2084575,
-    "procs": 10152846,
+    "procs": 10152845,
     "runs": 1000,
     "shots": 1964033
    }
@@ -1430,18 +1430,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 72.15313999825428,
+   "score": 72.15206046937557,
    "metric": "kpm",
-   "work": 2966949971,
+   "work": 3066629268,
    "counts": {
     "body_shots": 21375000,
-    "dot_ticks": 78449,
+    "dot_ticks": 78452,
     "field_ticks": 0,
-    "gas": 51338999434,
-    "hits": 3318014,
-    "kills": 216067,
-    "pellets": 3239565,
-    "procs": 3260099,
+    "gas": 53332585377,
+    "hits": 3317987,
+    "kills": 216064,
+    "pellets": 3239535,
+    "procs": 3260065,
     "runs": 1000,
     "shots": 855000
    }
@@ -1500,18 +1500,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 54.05414182690902,
+   "score": 54.05390547866015,
    "metric": "kpm",
-   "work": 3308321704,
+   "work": 3360507031,
    "counts": {
     "body_shots": 50373500,
-    "dot_ticks": 307329,
+    "dot_ticks": 307325,
     "field_ticks": 0,
-    "gas": 58166434092,
-    "hits": 2451637,
-    "kills": 161865,
-    "pellets": 2144308,
-    "procs": 9995216,
+    "gas": 59210140623,
+    "hits": 2451638,
+    "kills": 161864,
+    "pellets": 2144313,
+    "procs": 9995237,
     "runs": 1000,
     "shots": 2014940
    }
@@ -1571,18 +1571,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 2.033770422918041,
+   "score": 2.0337338670201244,
    "metric": "kpm",
-   "work": 3459895464,
+   "work": 3588160618,
    "counts": {
     "body_shots": 1126000,
-    "dot_ticks": 81686,
+    "dot_ticks": 81682,
     "field_ticks": 0,
-    "gas": 61197909283,
-    "hits": 4432780,
-    "kills": 5664,
-    "pellets": 4351094,
-    "procs": 3858890,
+    "gas": 63763212361,
+    "hits": 4432779,
+    "kills": 5665,
+    "pellets": 4351097,
+    "procs": 3858886,
     "runs": 1000,
     "shots": 1126000
    }
@@ -1642,20 +1642,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 43.57674724055257,
+   "score": 39.67146318812097,
    "metric": "kpm",
-   "work": 2327365171,
+   "work": 2423822148,
    "counts": {
-    "body_shots": 1493835,
-    "dot_ticks": 198695,
+    "body_shots": 1494404,
+    "dot_ticks": 219984,
     "field_ticks": 0,
-    "gas": 38547303425,
-    "hits": 2302336,
-    "kills": 130306,
-    "pellets": 2103641,
-    "procs": 2622742,
+    "gas": 40476442979,
+    "hits": 2320216,
+    "kills": 118594,
+    "pellets": 2100232,
+    "procs": 2602604,
     "runs": 1000,
-    "shots": 1493835
+    "shots": 1494404
    }
   },
   "note": {
@@ -1710,12 +1710,12 @@
   "expected": {
    "score": 1.9800593749421125,
    "metric": "kpm",
-   "work": 2335193320,
+   "work": 2375296742,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 214270,
     "field_ticks": 0,
-    "gas": 38703866403,
+    "gas": 39505934848,
     "hits": 2182270,
     "kills": 5297,
     "pellets": 1968000,
@@ -1779,18 +1779,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 26.236535658711485,
+   "score": 26.226612392206405,
    "metric": "kpm",
-   "work": 2535961957,
+   "work": 2571984050,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 42719239147,
+    "gas": 43439681019,
     "hits": 2587000,
-    "kills": 78304,
+    "kills": 78283,
     "pellets": 1999000,
-    "procs": 888355,
+    "procs": 888318,
     "runs": 1000,
     "shots": 1999000
    }
@@ -1850,16 +1850,16 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 104.74869400671899,
+   "score": 104.70520599976909,
    "metric": "kpm",
-   "work": 2533419351,
+   "work": 2569220214,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 42668387033,
+    "gas": 43384404284,
     "hits": 2587000,
-    "kills": 313738,
+    "kills": 313608,
     "pellets": 1999000,
     "procs": 796572,
     "runs": 1000,
@@ -1921,18 +1921,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 82.11660837960169,
+   "score": 82.08490913114196,
    "metric": "kpm",
-   "work": 2531092874,
+   "work": 2566968179,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 42621857495,
-    "hits": 2606370,
-    "kills": 245828,
+    "gas": 43339363593,
+    "hits": 2606383,
+    "kills": 245734,
     "pellets": 1999000,
-    "procs": 823063,
+    "procs": 823043,
     "runs": 1000,
     "shots": 1999000
    }
@@ -1992,18 +1992,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 34.83627110404939,
+   "score": 34.830694957541176,
    "metric": "kpm",
-   "work": 2445350203,
+   "work": 2479476409,
    "counts": {
     "body_shots": 1872000,
-    "dot_ticks": 89594,
+    "dot_ticks": 89720,
     "field_ticks": 550000,
-    "gas": 40907004066,
-    "hits": 2511594,
-    "kills": 104108,
+    "gas": 41589528197,
+    "hits": 2511720,
+    "kills": 104090,
     "pellets": 1872000,
-    "procs": 1319152,
+    "procs": 1319444,
     "runs": 1000,
     "shots": 1872000
    }
@@ -2063,18 +2063,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 126.5009211779045,
+   "score": 126.46193157944784,
    "metric": "kpm",
-   "work": 2562535875,
+   "work": 2598615721,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 43250717504,
+    "gas": 43972314432,
     "hits": 2587000,
-    "kills": 379129,
+    "kills": 379013,
     "pellets": 1999000,
-    "procs": 1233371,
+    "procs": 1233573,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2134,20 +2134,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 15.273742770429553,
+   "score": 14.667436751419414,
    "metric": "kpm",
-   "work": 2305807052,
+   "work": 2407181046,
    "counts": {
-    "body_shots": 1371035,
-    "dot_ticks": 344727,
+    "body_shots": 1371369,
+    "dot_ticks": 353554,
     "field_ticks": 0,
-    "gas": 38116141052,
-    "hits": 2296035,
-    "kills": 45521,
-    "pellets": 1951308,
-    "procs": 4236075,
+    "gas": 40143620927,
+    "hits": 2307659,
+    "kills": 43617,
+    "pellets": 1954105,
+    "procs": 4226140,
     "runs": 1000,
-    "shots": 1371035
+    "shots": 1371369
    }
   },
   "note": {
@@ -2205,18 +2205,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 104.01872163373497,
+   "score": 103.94657057620566,
    "metric": "kpm",
-   "work": 2572720601,
+   "work": 2608862762,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 19547,
+    "dot_ticks": 19570,
     "field_ticks": 588000,
-    "gas": 43454412022,
-    "hits": 2606547,
-    "kills": 311529,
+    "gas": 44177255255,
+    "hits": 2606570,
+    "kills": 311317,
     "pellets": 1999000,
-    "procs": 1275749,
+    "procs": 1275847,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2276,18 +2276,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 91.31351240269615,
+   "score": 91.2848705113505,
    "metric": "kpm",
-   "work": 2572767372,
+   "work": 2608962103,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 23470,
+    "dot_ticks": 23479,
     "field_ticks": 588000,
-    "gas": 43455347458,
-    "hits": 2610470,
-    "kills": 273411,
+    "gas": 44179242071,
+    "hits": 2610479,
+    "kills": 273328,
     "pellets": 1999000,
-    "procs": 1301199,
+    "procs": 1301221,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2347,18 +2347,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 111.93545156887903,
+   "score": 111.89639125377042,
    "metric": "kpm",
-   "work": 2562331423,
+   "work": 2598354597,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 43246628462,
-    "hits": 2615257,
-    "kills": 335367,
+    "gas": 43967091959,
+    "hits": 2615212,
+    "kills": 335250,
     "pellets": 1999000,
-    "procs": 1126262,
+    "procs": 1126302,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2418,18 +2418,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 28.629658053333706,
+   "score": 28.617848995176942,
    "metric": "kpm",
-   "work": 2588692101,
+   "work": 2625133511,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 61597,
+    "dot_ticks": 61735,
     "field_ticks": 588000,
-    "gas": 43773842030,
-    "hits": 2648597,
-    "kills": 85451,
+    "gas": 44502670236,
+    "hits": 2648735,
+    "kills": 85418,
     "pellets": 1999000,
-    "procs": 1421302,
+    "procs": 1421357,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2489,18 +2489,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 66.57638715109091,
+   "score": 66.5424811560899,
    "metric": "kpm",
-   "work": 2585376076,
+   "work": 2621942365,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 14282,
+    "dot_ticks": 14257,
     "field_ticks": 588000,
-    "gas": 43707521529,
-    "hits": 2601282,
-    "kills": 199210,
+    "gas": 44438847303,
+    "hits": 2601257,
+    "kills": 199114,
     "pellets": 1999000,
-    "procs": 1775988,
+    "procs": 1776026,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2560,18 +2560,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 110.05064415277124,
+   "score": 109.98114298415251,
    "metric": "kpm",
-   "work": 2631583307,
+   "work": 2667775441,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 198585,
+    "dot_ticks": 198616,
     "field_ticks": 588000,
-    "gas": 44631666153,
-    "hits": 2785585,
-    "kills": 329671,
+    "gas": 45355508836,
+    "hits": 2785616,
+    "kills": 329459,
     "pellets": 1999000,
-    "procs": 1278445,
+    "procs": 1278324,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2631,18 +2631,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 67.06701279766223,
+   "score": 67.03642761166522,
    "metric": "kpm",
-   "work": 2626147443,
+   "work": 2662865085,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 44522948861,
-    "hits": 2754051,
-    "kills": 200698,
+    "gas": 45257301719,
+    "hits": 2754298,
+    "kills": 200614,
     "pellets": 1999000,
-    "procs": 1917899,
+    "procs": 1917905,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2702,18 +2702,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 38.54822153976016,
+   "score": 38.531032514263615,
    "metric": "kpm",
-   "work": 2685798968,
+   "work": 2724244171,
    "counts": {
     "body_shots": 2135000,
     "dot_ticks": 0,
     "field_ticks": 623000,
-    "gas": 45715979360,
+    "gas": 46484883428,
     "hits": 2758000,
-    "kills": 115128,
+    "kills": 115077,
     "pellets": 2135000,
-    "procs": 934257,
+    "procs": 934369,
     "runs": 1000,
     "shots": 2135000
    }
@@ -2773,18 +2773,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 68.81849882515196,
+   "score": 68.79490739486936,
    "metric": "kpm",
-   "work": 2703962626,
+   "work": 2742326727,
    "counts": {
     "body_shots": 2135000,
     "dot_ticks": 0,
     "field_ticks": 623000,
-    "gas": 46079252521,
-    "hits": 2777771,
-    "kills": 205965,
+    "gas": 46846534555,
+    "hits": 2777736,
+    "kills": 205892,
     "pellets": 2135000,
-    "procs": 900042,
+    "procs": 900117,
     "runs": 1000,
     "shots": 2135000
    }
@@ -2844,18 +2844,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 82.65638340534676,
+   "score": 82.62841907051458,
    "metric": "kpm",
-   "work": 2586352774,
+   "work": 2622883460,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 12823,
+    "dot_ticks": 12852,
     "field_ticks": 588000,
-    "gas": 43727055486,
-    "hits": 2599823,
-    "kills": 247471,
+    "gas": 44457669201,
+    "hits": 2599852,
+    "kills": 247387,
     "pellets": 1999000,
-    "procs": 1736669,
+    "procs": 1736893,
     "runs": 1000,
     "shots": 1999000
    }
@@ -2915,18 +2915,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 94.16085066717294,
+   "score": 94.11736532976676,
    "metric": "kpm",
-   "work": 2679469299,
+   "work": 2717765930,
    "counts": {
     "body_shots": 2135000,
     "dot_ticks": 0,
     "field_ticks": 623000,
-    "gas": 45589385983,
+    "gas": 46355318610,
     "hits": 2758000,
-    "kills": 282003,
+    "kills": 281874,
     "pellets": 2135000,
-    "procs": 870547,
+    "procs": 870588,
     "runs": 1000,
     "shots": 2135000
    }
@@ -2986,18 +2986,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 130.7015081147487,
+   "score": 130.6722483055692,
    "metric": "kpm",
-   "work": 2612539918,
+   "work": 2648983328,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 12676,
+    "dot_ticks": 12707,
     "field_ticks": 588000,
-    "gas": 44250798366,
-    "hits": 2599676,
-    "kills": 391710,
+    "gas": 44979666568,
+    "hits": 2599707,
+    "kills": 391626,
     "pellets": 1999000,
-    "procs": 1753050,
+    "procs": 1753221,
     "runs": 1000,
     "shots": 1999000
    }
@@ -3057,18 +3057,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 19.679372098390633,
+   "score": 19.666779116521845,
    "metric": "kpm",
-   "work": 2635176602,
+   "work": 2672012576,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 106977,
+    "dot_ticks": 106813,
     "field_ticks": 588000,
-    "gas": 44703532043,
-    "hits": 2693977,
-    "kills": 58476,
+    "gas": 45440251525,
+    "hits": 2693813,
+    "kills": 58433,
     "pellets": 1999000,
-    "procs": 2038621,
+    "procs": 2038686,
     "runs": 1000,
     "shots": 1999000
    }
@@ -3128,18 +3128,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 97.2167898913626,
+   "score": 97.18509620502256,
    "metric": "kpm",
-   "work": 2568889752,
+   "work": 2605060168,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 1935,
+    "dot_ticks": 1949,
     "field_ticks": 588000,
-    "gas": 43377795058,
-    "hits": 2588935,
-    "kills": 291158,
+    "gas": 44101203373,
+    "hits": 2588949,
+    "kills": 291071,
     "pellets": 1999000,
-    "procs": 1287061,
+    "procs": 1287102,
     "runs": 1000,
     "shots": 1999000
    }
@@ -3199,20 +3199,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 21.805237277693724,
+   "score": 19.407799072994717,
    "metric": "kpm",
-   "work": 2340846158,
+   "work": 2432413496,
    "counts": {
-    "body_shots": 1495883,
-    "dot_ticks": 259786,
+    "body_shots": 1496673,
+    "dot_ticks": 265477,
     "field_ticks": 0,
-    "gas": 38816923176,
-    "hits": 2347136,
-    "kills": 65053,
-    "pellets": 2087350,
-    "procs": 2672441,
+    "gas": 40648269930,
+    "hits": 2348793,
+    "kills": 57846,
+    "pellets": 2083316,
+    "procs": 2674810,
     "runs": 1000,
-    "shots": 1495883
+    "shots": 1496673
    }
   },
   "note": {
@@ -3267,12 +3267,12 @@
   "expected": {
    "score": 1.3316842370974615,
    "metric": "kpm",
-   "work": 2380917428,
+   "work": 2422065180,
    "counts": {
     "body_shots": 2022000,
     "dot_ticks": 202785,
     "field_ticks": 0,
-    "gas": 39618348562,
+    "gas": 40441303613,
     "hits": 2224785,
     "kills": 3375,
     "pellets": 2022000,
@@ -3334,18 +3334,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 44.496677601641814,
+   "score": 44.485601165086834,
    "metric": "kpm",
-   "work": 2640219602,
+   "work": 2677148990,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 39058,
+    "dot_ticks": 39056,
     "field_ticks": 588000,
-    "gas": 44804392057,
-    "hits": 2626058,
-    "kills": 133100,
+    "gas": 45542979805,
+    "hits": 2626056,
+    "kills": 133069,
     "pellets": 1999000,
-    "procs": 2222867,
+    "procs": 2222732,
     "runs": 1000,
     "shots": 1999000
    }
@@ -3402,12 +3402,12 @@
   "expected": {
    "score": 1.62369974222165,
    "metric": "kpm",
-   "work": 2412215314,
+   "work": 2453113783,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 208634,
     "field_ticks": 0,
-    "gas": 40244306281,
+    "gas": 41062275670,
     "hits": 2176634,
     "kills": 4027,
     "pellets": 1968000,
@@ -3471,18 +3471,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 53.787706718962546,
+   "score": 53.756359302731056,
    "metric": "kpm",
-   "work": 2646214641,
+   "work": 2682981642,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 44924292834,
-    "hits": 2881490,
-    "kills": 160890,
+    "gas": 45659632857,
+    "hits": 2881695,
+    "kills": 160787,
     "pellets": 1999000,
-    "procs": 1953530,
+    "procs": 1953424,
     "runs": 1000,
     "shots": 1999000
    }
@@ -3539,12 +3539,12 @@
   "expected": {
    "score": 6.779654771934469,
    "metric": "kpm",
-   "work": 2469104498,
+   "work": 2512034972,
    "counts": {
     "body_shots": 2074000,
     "dot_ticks": 220372,
     "field_ticks": 0,
-    "gas": 41382089969,
+    "gas": 42240699441,
     "hits": 2294372,
     "kills": 20033,
     "pellets": 2074000,
@@ -3608,18 +3608,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 38.361418302163415,
+   "score": 38.3520742987046,
    "metric": "kpm",
-   "work": 1851709215,
+   "work": 1867309811,
    "counts": {
     "body_shots": 289000,
-    "dot_ticks": 125326,
+    "dot_ticks": 125382,
     "field_ticks": 2821000,
-    "gas": 29034184311,
-    "hits": 3235326,
-    "kills": 114634,
+    "gas": 29346196233,
+    "hits": 3235382,
+    "kills": 114608,
     "pellets": 289000,
-    "procs": 2149771,
+    "procs": 2149791,
     "runs": 1000,
     "shots": 289000
    }
@@ -3676,12 +3676,12 @@
   "expected": {
    "score": 10.66379120520007,
    "metric": "kpm",
-   "work": 2489657984,
+   "work": 2531637265,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 239924,
     "field_ticks": 0,
-    "gas": 41793159697,
+    "gas": 42632745305,
     "hits": 2207924,
     "kills": 31261,
     "pellets": 1968000,
@@ -3742,12 +3742,12 @@
   "expected": {
    "score": 0.33218038518875775,
    "metric": "kpm",
-   "work": 2298321710,
+   "work": 2338290846,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 178908,
     "field_ticks": 0,
-    "gas": 37966434202,
+    "gas": 38765816937,
     "hits": 2146908,
     "kills": 785,
     "pellets": 1968000,
@@ -3811,18 +3811,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 142.1978376251938,
+   "score": 142.15049635024693,
    "metric": "kpm",
-   "work": 2643154409,
+   "work": 2679613241,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 44863088199,
-    "hits": 2810958,
-    "kills": 426156,
+    "gas": 45592264825,
+    "hits": 2810995,
+    "kills": 426017,
     "pellets": 1999000,
-    "procs": 1728882,
+    "procs": 1728944,
     "runs": 1000,
     "shots": 1999000
    }
@@ -3882,18 +3882,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 21.813061666398582,
+   "score": 21.80648068193751,
    "metric": "kpm",
-   "work": 2652332295,
+   "work": 2689215579,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 187758,
+    "dot_ticks": 187795,
     "field_ticks": 588000,
-    "gas": 45046645908,
-    "hits": 2774758,
-    "kills": 64919,
+    "gas": 45784311589,
+    "hits": 2774795,
+    "kills": 64895,
     "pellets": 1999000,
-    "procs": 2034832,
+    "procs": 2034771,
     "runs": 1000,
     "shots": 1999000
    }
@@ -3950,12 +3950,12 @@
   "expected": {
    "score": 3.614182438491692,
    "metric": "kpm",
-   "work": 2492221640,
+   "work": 2533892922,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 243119,
     "field_ticks": 0,
-    "gas": 41844432815,
+    "gas": 42677858453,
     "hits": 2211119,
     "kills": 10249,
     "pellets": 1968000,
@@ -4019,18 +4019,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 139.41725817909764,
+   "score": 139.3610524966162,
    "metric": "kpm",
-   "work": 2742605511,
+   "work": 2779564845,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 199957,
+    "dot_ticks": 199982,
     "field_ticks": 588000,
-    "gas": 46852110232,
-    "hits": 2786957,
-    "kills": 417823,
+    "gas": 47591296916,
+    "hits": 2786982,
+    "kills": 417652,
     "pellets": 1999000,
-    "procs": 2424404,
+    "procs": 2424598,
     "runs": 1000,
     "shots": 1999000
    }
@@ -4090,18 +4090,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 57.74341099805607,
+   "score": 57.743456953467486,
    "metric": "kpm",
-   "work": 2765180717,
+   "work": 2808002138,
    "counts": {
     "body_shots": 1992067,
-    "dot_ticks": 179754,
+    "dot_ticks": 179746,
     "field_ticks": 0,
-    "gas": 47303614342,
-    "hits": 2271063,
+    "gas": 48160042770,
+    "hits": 2271055,
     "kills": 172789,
     "pellets": 2091309,
-    "procs": 7174877,
+    "procs": 7174856,
     "runs": 1000,
     "shots": 1992067
    }
@@ -4161,18 +4161,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 64.87811206048978,
+   "score": 64.86052391041416,
    "metric": "kpm",
-   "work": 2270124397,
+   "work": 2289513505,
    "counts": {
     "body_shots": 349000,
-    "dot_ticks": 194600,
-    "field_ticks": 3388992,
-    "gas": 37402487941,
-    "hits": 3932592,
-    "kills": 194507,
+    "dot_ticks": 194553,
+    "field_ticks": 3388994,
+    "gas": 37790270115,
+    "hits": 3932547,
+    "kills": 194454,
     "pellets": 349000,
-    "procs": 3393377,
+    "procs": 3393430,
     "runs": 1000,
     "shots": 349000
    }
@@ -4229,12 +4229,12 @@
   "expected": {
    "score": 6.926937854687131,
    "metric": "kpm",
-   "work": 2366095665,
+   "work": 2406841803,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 221409,
     "field_ticks": 0,
-    "gas": 39321913316,
+    "gas": 40136836066,
     "hits": 2189409,
     "kills": 20353,
     "pellets": 1968000,
@@ -4298,18 +4298,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 35.46173533215065,
+   "score": 35.44598657519604,
    "metric": "kpm",
-   "work": 2585626470,
+   "work": 2622020039,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 41825,
+    "dot_ticks": 41840,
     "field_ticks": 588000,
-    "gas": 43712529402,
-    "hits": 2628825,
-    "kills": 105987,
+    "gas": 44440400787,
+    "hits": 2628840,
+    "kills": 105945,
     "pellets": 1999000,
-    "procs": 1404586,
+    "procs": 1404732,
     "runs": 1000,
     "shots": 1999000
    }
@@ -4367,18 +4367,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 37.05206227052576,
+   "score": 37.045778156317304,
    "metric": "kpm",
-   "work": 2637261653,
+   "work": 2674185422,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 50026,
+    "dot_ticks": 50090,
     "field_ticks": 588000,
-    "gas": 44745233063,
-    "hits": 2637026,
-    "kills": 110761,
+    "gas": 45483708456,
+    "hits": 2637090,
+    "kills": 110733,
     "pellets": 1999000,
-    "procs": 2165767,
+    "procs": 2165769,
     "runs": 1000,
     "shots": 1999000
    }
@@ -4437,14 +4437,14 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 56.514360804462,
+   "score": 56.51436079545651,
    "metric": "kpm",
-   "work": 2902950589,
+   "work": 2950911188,
    "counts": {
     "body_shots": 2016249,
     "dot_ticks": 182965,
     "field_ticks": 0,
-    "gas": 50059011789,
+    "gas": 51018223766,
     "hits": 2337336,
     "kills": 169055,
     "pellets": 2154371,
@@ -4510,12 +4510,12 @@
   "expected": {
    "score": 100.14143285833018,
    "metric": "kpm",
-   "work": 2741104828,
+   "work": 2788326709,
    "counts": {
     "body_shots": 2013957,
     "dot_ticks": 59644,
     "field_ticks": 0,
-    "gas": 46822096578,
+    "gas": 47766534188,
     "hits": 2194025,
     "kills": 300026,
     "pellets": 2134381,
@@ -4578,18 +4578,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 54.92187340174099,
+   "score": 54.92187339974956,
    "metric": "kpm",
-   "work": 2900179319,
+   "work": 2948102608,
    "counts": {
     "body_shots": 2016246,
     "dot_ticks": 181512,
     "field_ticks": 0,
-    "gas": 50003586394,
+    "gas": 50962052160,
     "hits": 2335874,
     "kills": 164571,
     "pellets": 2154362,
-    "procs": 8904414,
+    "procs": 8904413,
     "runs": 1000,
     "shots": 2016246
    }
@@ -4649,20 +4649,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 152.24375695422455,
+   "score": 152.22565483398486,
    "metric": "kpm",
-   "work": 3091852486,
+   "work": 3136504158,
    "counts": {
-    "body_shots": 2123607,
-    "dot_ticks": 24277,
-    "field_ticks": 857172,
-    "gas": 53837049733,
-    "hits": 3071143,
-    "kills": 456312,
-    "pellets": 2189694,
-    "procs": 4271761,
+    "body_shots": 2123586,
+    "dot_ticks": 24290,
+    "field_ticks": 857254,
+    "gas": 54730083176,
+    "hits": 3071214,
+    "kills": 456253,
+    "pellets": 2189670,
+    "procs": 4271968,
     "runs": 1000,
-    "shots": 2123607
+    "shots": 2123586
    }
   },
   "note": {
@@ -4720,18 +4720,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 54.16431493530852,
+   "score": 54.14186455020808,
    "metric": "kpm",
-   "work": 2540955418,
+   "work": 2576907401,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 42819108361,
+    "gas": 43538148039,
     "hits": 2587000,
-    "kills": 161993,
+    "kills": 161929,
     "pellets": 1999000,
-    "procs": 855639,
+    "procs": 855777,
     "runs": 1000,
     "shots": 1999000
    }
@@ -4791,18 +4791,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 30.13776981045771,
+   "score": 30.119691270179132,
    "metric": "kpm",
-   "work": 2450705867,
+   "work": 2485049503,
    "counts": {
     "body_shots": 1872000,
     "dot_ticks": 0,
     "field_ticks": 550000,
-    "gas": 41014117346,
+    "gas": 41700990075,
     "hits": 2422000,
-    "kills": 90012,
+    "kills": 89963,
     "pellets": 1872000,
-    "procs": 1742132,
+    "procs": 1741903,
     "runs": 1000,
     "shots": 1872000
    }
@@ -4862,20 +4862,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 23.48789954394579,
+   "score": 20.79397455193622,
    "metric": "kpm",
-   "work": 2289020585,
+   "work": 2384890785,
    "counts": {
-    "body_shots": 1495920,
-    "dot_ticks": 154462,
+    "body_shots": 1496318,
+    "dot_ticks": 155044,
     "field_ticks": 0,
-    "gas": 37780411707,
-    "hits": 2240276,
-    "kills": 70102,
-    "pellets": 2085814,
-    "procs": 2696187,
+    "gas": 39697815704,
+    "hits": 2241489,
+    "kills": 62049,
+    "pellets": 2086445,
+    "procs": 2673479,
     "runs": 1000,
-    "shots": 1495920
+    "shots": 1496318
    }
   },
   "note": {
@@ -4934,12 +4934,12 @@
   "expected": {
    "score": 82.29536002194354,
    "metric": "kpm",
-   "work": 2861220967,
+   "work": 2905085450,
    "counts": {
     "body_shots": 1964033,
     "dot_ticks": 24191,
     "field_ticks": 0,
-    "gas": 49224419352,
+    "gas": 50101709019,
     "hits": 2108803,
     "kills": 246443,
     "pellets": 2084612,
@@ -5000,12 +5000,12 @@
   "expected": {
    "score": 0.35720815295250574,
    "metric": "kpm",
-   "work": 2376527228,
+   "work": 2417303325,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 179369,
     "field_ticks": 0,
-    "gas": 39530544567,
+    "gas": 40346066513,
     "hits": 2147369,
     "kills": 1000,
     "pellets": 1968000,
@@ -5069,18 +5069,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 61.96934945011119,
+   "score": 61.96863378304134,
    "metric": "kpm",
-   "work": 2992167673,
+   "work": 3042697381,
    "counts": {
     "body_shots": 2016051,
-    "dot_ticks": 134379,
+    "dot_ticks": 134364,
     "field_ticks": 0,
-    "gas": 51843353471,
-    "hits": 2275846,
-    "kills": 185509,
-    "pellets": 2141467,
-    "procs": 8899337,
+    "gas": 52853947628,
+    "hits": 2275833,
+    "kills": 185507,
+    "pellets": 2141469,
+    "procs": 8899088,
     "runs": 1000,
     "shots": 2016051
    }
@@ -5140,18 +5140,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 99.21129030235437,
+   "score": 99.17489415792045,
    "metric": "kpm",
-   "work": 2600551998,
+   "work": 2637004974,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 26445,
+    "dot_ticks": 26459,
     "field_ticks": 588000,
-    "gas": 44011039960,
-    "hits": 2613445,
-    "kills": 297113,
+    "gas": 44740099483,
+    "hits": 2613459,
+    "kills": 297006,
     "pellets": 1999000,
-    "procs": 1698779,
+    "procs": 1698825,
     "runs": 1000,
     "shots": 1999000
    }
@@ -5206,18 +5206,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 2.3530275852526072,
+   "score": 2.351870610490105,
    "metric": "kpm",
-   "work": 2213332912,
+   "work": 2249751794,
    "counts": {
     "body_shots": 1968000,
-    "dot_ticks": 218157,
+    "dot_ticks": 218133,
     "field_ticks": 0,
-    "gas": 36266658250,
-    "hits": 2186157,
-    "kills": 6604,
+    "gas": 36995035884,
+    "hits": 2186133,
+    "kills": 6600,
     "pellets": 1968000,
-    "procs": 1038999,
+    "procs": 1038976,
     "runs": 1000,
     "shots": 1968000
    }
@@ -5277,18 +5277,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 88.13504847642207,
+   "score": 88.10779815290384,
    "metric": "kpm",
-   "work": 2471322229,
+   "work": 2505568239,
    "counts": {
     "body_shots": 1872000,
-    "dot_ticks": 24088,
+    "dot_ticks": 24079,
     "field_ticks": 550000,
-    "gas": 41426444598,
-    "hits": 2446088,
-    "kills": 263953,
+    "gas": 42111364789,
+    "hits": 2446079,
+    "kills": 263876,
     "pellets": 1872000,
-    "procs": 1731019,
+    "procs": 1731074,
     "runs": 1000,
     "shots": 1872000
    }
@@ -5348,18 +5348,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 69.27760558998452,
+   "score": 69.23553646477576,
    "metric": "kpm",
-   "work": 2611249474,
+   "work": 2647956076,
    "counts": {
     "body_shots": 1999000,
-    "dot_ticks": 44753,
+    "dot_ticks": 44914,
     "field_ticks": 588000,
-    "gas": 44224989495,
-    "hits": 2631753,
-    "kills": 207324,
+    "gas": 44959121536,
+    "hits": 2631914,
+    "kills": 207201,
     "pellets": 1999000,
-    "procs": 1912321,
+    "procs": 1912512,
     "runs": 1000,
     "shots": 1999000
    }
@@ -5419,18 +5419,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 112.16993716985503,
+   "score": 112.12439071869261,
    "metric": "kpm",
-   "work": 2687334993,
+   "work": 2725566297,
    "counts": {
     "body_shots": 2135000,
     "dot_ticks": 0,
     "field_ticks": 623000,
-    "gas": 45746699865,
+    "gas": 46511325959,
     "hits": 2758000,
-    "kills": 336052,
+    "kills": 335918,
     "pellets": 2135000,
-    "procs": 849287,
+    "procs": 849345,
     "runs": 1000,
     "shots": 2135000
    }
@@ -5490,18 +5490,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 63.58767764453543,
+   "score": 63.58887773801473,
    "metric": "kpm",
-   "work": 2981185291,
+   "work": 3031535293,
    "counts": {
     "body_shots": 2015993,
-    "dot_ticks": 125058,
+    "dot_ticks": 125051,
     "field_ticks": 0,
-    "gas": 51623705836,
-    "hits": 2265925,
-    "kills": 190364,
-    "pellets": 2140867,
-    "procs": 8773466,
+    "gas": 52630705876,
+    "hits": 2265917,
+    "kills": 190368,
+    "pellets": 2140866,
+    "procs": 8773537,
     "runs": 1000,
     "shots": 2015993
    }
@@ -5559,20 +5559,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 60.51155490560651,
+   "score": 60.51124380581898,
    "metric": "kpm",
-   "work": 2917247220,
+   "work": 2966403755,
    "counts": {
-    "body_shots": 1962205,
-    "dot_ticks": 138568,
+    "body_shots": 1962204,
+    "dot_ticks": 138566,
     "field_ticks": 0,
-    "gas": 50344944400,
-    "hits": 2208500,
-    "kills": 181096,
-    "pellets": 2069932,
-    "procs": 8692872,
+    "gas": 51328075112,
+    "hits": 2208496,
+    "kills": 181095,
+    "pellets": 2069930,
+    "procs": 8692935,
     "runs": 1000,
-    "shots": 1962205
+    "shots": 1962204
    }
   },
   "note": {
@@ -5630,18 +5630,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 28.857658969107142,
+   "score": 28.845310818740877,
    "metric": "kpm",
-   "work": 3263477654,
+   "work": 3310769088,
    "counts": {
     "body_shots": 2625000,
     "dot_ticks": 0,
     "field_ticks": 750000,
-    "gas": 57269553087,
+    "gas": 58215381770,
     "hits": 3375000,
-    "kills": 86105,
+    "kills": 86073,
     "pellets": 2625000,
-    "procs": 1166840,
+    "procs": 1166923,
     "runs": 1000,
     "shots": 2625000
    }
@@ -5701,20 +5701,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 60.3082695558628,
+   "score": 60.3085489537915,
    "metric": "kpm",
-   "work": 3033344855,
+   "work": 3077289117,
    "counts": {
-    "body_shots": 2122571,
-    "dot_ticks": 83978,
-    "field_ticks": 860893,
-    "gas": 52666897119,
-    "hits": 3134313,
+    "body_shots": 2122557,
+    "dot_ticks": 83961,
+    "field_ticks": 861151,
+    "gas": 53545782359,
+    "hits": 3134564,
     "kills": 180458,
-    "pellets": 2189442,
-    "procs": 3430839,
+    "pellets": 2189452,
+    "procs": 3430962,
     "runs": 1000,
-    "shots": 2122571
+    "shots": 2122557
    }
   },
   "note": {
@@ -5772,18 +5772,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 97.99814122189089,
+   "score": 97.96256916446352,
    "metric": "kpm",
-   "work": 3324248481,
+   "work": 3371810050,
    "counts": {
     "body_shots": 2625000,
-    "dot_ticks": 21481,
+    "dot_ticks": 21487,
     "field_ticks": 750000,
-    "gas": 58484969622,
-    "hits": 3396481,
-    "kills": 293542,
+    "gas": 59436201019,
+    "hits": 3396487,
+    "kills": 293431,
     "pellets": 2625000,
-    "procs": 1738949,
+    "procs": 1739072,
     "runs": 1000,
     "shots": 2625000
    }
@@ -5845,12 +5845,12 @@
   "expected": {
    "score": 56.55080601306925,
    "metric": "kpm",
-   "work": 3008846168,
+   "work": 3054929821,
    "counts": {
     "body_shots": 2016249,
     "dot_ticks": 178249,
     "field_ticks": 0,
-    "gas": 52176923377,
+    "gas": 53098596433,
     "hits": 2332620,
     "kills": 169102,
     "pellets": 2154371,
@@ -5914,20 +5914,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 161.5804928713527,
+   "score": 161.58256355325713,
    "metric": "kpm",
-   "work": 3038421088,
+   "work": 3082698365,
    "counts": {
-    "body_shots": 2096356,
-    "dot_ticks": 22718,
-    "field_ticks": 796323,
-    "gas": 52768421760,
-    "hits": 2970465,
-    "kills": 484296,
-    "pellets": 2151424,
-    "procs": 4725477,
+    "body_shots": 2096320,
+    "dot_ticks": 22763,
+    "field_ticks": 796339,
+    "gas": 53653967301,
+    "hits": 2970488,
+    "kills": 484302,
+    "pellets": 2151386,
+    "procs": 4725386,
     "runs": 1000,
-    "shots": 2096356
+    "shots": 2096320
    }
   },
   "note": {
@@ -5985,18 +5985,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 114.33773457826413,
+   "score": 114.28353048204352,
    "metric": "kpm",
-   "work": 2567380368,
+   "work": 2603480606,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 43347607363,
+    "gas": 44069612131,
     "hits": 2587000,
-    "kills": 342602,
+    "kills": 342438,
     "pellets": 1999000,
-    "procs": 1255844,
+    "procs": 1255888,
     "runs": 1000,
     "shots": 1999000
    }
@@ -6056,18 +6056,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 113.50607570404176,
+   "score": 113.4726872102042,
    "metric": "kpm",
-   "work": 2826752589,
+   "work": 2865804508,
    "counts": {
     "body_shots": 2135000,
-    "dot_ticks": 203408,
+    "dot_ticks": 203358,
     "field_ticks": 623000,
-    "gas": 48535051796,
-    "hits": 2961408,
-    "kills": 340091,
+    "gas": 49316090164,
+    "hits": 2961358,
+    "kills": 339988,
     "pellets": 2135000,
-    "procs": 1946398,
+    "procs": 1946496,
     "runs": 1000,
     "shots": 2135000
    }
@@ -6122,18 +6122,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 0.29685219223038123,
+   "score": 0.2966462451129982,
    "metric": "kpm",
-   "work": 2213324353,
+   "work": 2249733323,
    "counts": {
     "body_shots": 1968000,
     "dot_ticks": 178978,
     "field_ticks": 0,
-    "gas": 36266487069,
+    "gas": 36994666472,
     "hits": 2146978,
-    "kills": 6,
+    "kills": 5,
     "pellets": 1968000,
-    "procs": 1039734,
+    "procs": 1039733,
     "runs": 1000,
     "shots": 1968000
    }
@@ -6193,18 +6193,18 @@
    "mode": "base"
   },
   "expected": {
-   "score": 72.15313999825428,
+   "score": 72.15206046937557,
    "metric": "kpm",
-   "work": 2871754674,
+   "work": 2971434051,
    "counts": {
     "body_shots": 855000,
-    "dot_ticks": 78449,
+    "dot_ticks": 78452,
     "field_ticks": 0,
-    "gas": 49435093489,
-    "hits": 3318014,
-    "kills": 216067,
-    "pellets": 3239565,
-    "procs": 3260099,
+    "gas": 51428681022,
+    "hits": 3317987,
+    "kills": 216064,
+    "pellets": 3239535,
+    "procs": 3260065,
     "runs": 1000,
     "shots": 855000
    }
@@ -6264,18 +6264,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 56.38091631783767,
+   "score": 56.380937520263906,
    "metric": "kpm",
-   "work": 3033489350,
+   "work": 3084340231,
    "counts": {
     "body_shots": 2016901,
-    "dot_ticks": 239190,
+    "dot_ticks": 239193,
     "field_ticks": 0,
-    "gas": 52669787010,
-    "hits": 2403249,
+    "gas": 53686804627,
+    "hits": 2403254,
     "kills": 168793,
-    "pellets": 2164059,
-    "procs": 9370557,
+    "pellets": 2164061,
+    "procs": 9370591,
     "runs": 1000,
     "shots": 2016901
    }
@@ -6334,18 +6334,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 58.851028446132354,
+   "score": 58.85050497582219,
    "metric": "kpm",
-   "work": 3013252862,
+   "work": 3061543029,
    "counts": {
     "body_shots": 50352450,
-    "dot_ticks": 145603,
+    "dot_ticks": 145608,
     "field_ticks": 0,
-    "gas": 52265057259,
-    "hits": 2281381,
-    "kills": 176158,
+    "gas": 53230860580,
+    "hits": 2281386,
+    "kills": 176156,
     "pellets": 2135778,
-    "procs": 6300291,
+    "procs": 6300223,
     "runs": 1000,
     "shots": 2014098
    }
@@ -6404,14 +6404,14 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 56.514360804462,
+   "score": 56.51436079545651,
    "metric": "kpm",
-   "work": 3109978998,
+   "work": 3157939597,
    "counts": {
     "body_shots": 50406225,
     "dot_ticks": 182965,
     "field_ticks": 0,
-    "gas": 54199579978,
+    "gas": 55158791955,
     "hits": 2337336,
     "kills": 169055,
     "pellets": 2154371,
@@ -6474,12 +6474,12 @@
   "expected": {
    "score": 73.28558979580026,
    "metric": "kpm",
-   "work": 3020305410,
+   "work": 3070105683,
    "counts": {
     "body_shots": 1964000,
     "dot_ticks": 90579,
     "field_ticks": 0,
-    "gas": 52406108204,
+    "gas": 53402113660,
     "hits": 2175362,
     "kills": 219419,
     "pellets": 2084783,
@@ -6542,18 +6542,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 95.85922007130634,
+   "score": 95.85897476790518,
    "metric": "kpm",
-   "work": 3010359289,
+   "work": 3057823358,
    "counts": {
     "body_shots": 49103400,
-    "dot_ticks": 60901,
+    "dot_ticks": 60899,
     "field_ticks": 0,
-    "gas": 52207185790,
-    "hits": 2147811,
-    "kills": 287137,
+    "gas": 53156467178,
+    "hits": 2147809,
+    "kills": 287136,
     "pellets": 2086910,
-    "procs": 7260976,
+    "procs": 7260948,
     "runs": 1000,
     "shots": 1964136
    }
@@ -6612,14 +6612,14 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 56.504145970122266,
+   "score": 56.504145961655354,
    "metric": "kpm",
-   "work": 3110258623,
+   "work": 3158222640,
    "counts": {
     "body_shots": 50406225,
     "dot_ticks": 184278,
     "field_ticks": 0,
-    "gas": 54205172475,
+    "gas": 55164452804,
     "hits": 2338649,
     "kills": 169041,
     "pellets": 2154371,
@@ -6683,18 +6683,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 123.39575539548187,
+   "score": 123.3733198636685,
    "metric": "kpm",
-   "work": 2539759718,
+   "work": 2575515338,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 42795194366,
+    "gas": 43510306760,
     "hits": 2587000,
-    "kills": 369734,
+    "kills": 369662,
     "pellets": 1999000,
-    "procs": 775003,
+    "procs": 775022,
     "runs": 1000,
     "shots": 1999000
    }
@@ -6754,20 +6754,20 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 9.304901704679246,
+   "score": 8.156726723916766,
    "metric": "kpm",
-   "work": 2312729230,
+   "work": 2405890481,
    "counts": {
-    "body_shots": 1370640,
-    "dot_ticks": 332749,
+    "body_shots": 1370401,
+    "dot_ticks": 336678,
     "field_ticks": 0,
-    "gas": 38254584615,
-    "hits": 2279743,
-    "kills": 27525,
-    "pellets": 1946994,
-    "procs": 4173537,
+    "gas": 40117809631,
+    "hits": 2281586,
+    "kills": 24136,
+    "pellets": 1944908,
+    "procs": 4182111,
     "runs": 1000,
-    "shots": 1370640
+    "shots": 1370401
    }
   },
   "note": {
@@ -6826,12 +6826,12 @@
   "expected": {
    "score": 56.301830079873135,
    "metric": "kpm",
-   "work": 3032960405,
+   "work": 3079065352,
    "counts": {
     "body_shots": 2016239,
     "dot_ticks": 180783,
     "field_ticks": 0,
-    "gas": 52659208105,
+    "gas": 53581307055,
     "hits": 2334986,
     "kills": 168695,
     "pellets": 2154203,
@@ -6897,12 +6897,12 @@
   "expected": {
    "score": 56.34842686872753,
    "metric": "kpm",
-   "work": 3039260816,
+   "work": 3085361595,
    "counts": {
     "body_shots": 2016245,
     "dot_ticks": 182547,
     "field_ticks": 0,
-    "gas": 52785216327,
+    "gas": 53707231917,
     "hits": 2336891,
     "kills": 168742,
     "pellets": 2154344,
@@ -6966,18 +6966,18 @@
    "mode": "cycle"
   },
   "expected": {
-   "score": 39.05725690286746,
+   "score": 39.0509193524739,
    "metric": "kpm",
-   "work": 2614486903,
+   "work": 2651218294,
    "counts": {
     "body_shots": 1999000,
     "dot_ticks": 0,
     "field_ticks": 588000,
-    "gas": 44289738077,
+    "gas": 45024365887,
     "hits": 2587000,
-    "kills": 116723,
+    "kills": 116699,
     "pellets": 1999000,
-    "procs": 1918593,
+    "procs": 1918776,
     "runs": 1000,
     "shots": 1999000
    }
