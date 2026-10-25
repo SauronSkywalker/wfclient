@@ -39,7 +39,7 @@
 | `007-fleet-single-worker.patch` | 482 B | `optimizer/src/descent.rs` | `par_map` 在只允许一条线程时直接串行 map，不再为单个 item 开线程（lane 驱动的前置条件） |
 | `008-fleet-static-panel.patch` | 1,720 B | `engine/src/data/weapons/panel.rs`、`engine/src/build/rivens/spec.rs` | 面板的 `class`/`slot`/`summoned_by`/`mod_pools` 不再每个请求 `Box::leak`，改为借用数据并按武器缓存池表 |
 | `009-fleet-frozen-plan.patch` | 968 B | `webapi/src/optimize.rs` | `OptimizePlan` 可克隆，`for_fleet()` 用另一条 `quick_fleet` 消息复跑同一份已解析计划 |
-| `010-fleet-deferred-reports.patch` | 6,820 B | `optimizer/src/quick.rs`、`webapi/src/optimize/quick.rs` | 暂停轮不再生成无人读取的候选摘要，只回它等待的 builds（`paused` 累计，避免后一个起点读缓存把暂停抹掉） |
+| `010-fleet-deferred-reports.patch` | 6,324 B | `optimizer/src/quick.rs`、`webapi/src/optimize/quick.rs` | 暂停轮不再生成无人读取的候选摘要，只回它等待的 builds（`paused` 累计，避免后一个起点读缓存把暂停抹掉）。已对上游 0da1ce9f84 的双层 pass 循环重生成：`paused` 在每次 descend 后累计，小 hunk 最小上下文 |
 | `011-fleet-lead-memo.patch` | 3,090 B | `webapi/src/optimize/quick.rs` | lead 的规范键与榜单偏好按线程记忆化（两张 4096 上限表，`fresh` 重置，与 `FLEET` 分开以免 `RefCell` 重入） |
 
 补丁都带**幂等标记**：客户端每次同步后按标记判断"已应用 / 未应用"，重复同步不会二次打补丁。

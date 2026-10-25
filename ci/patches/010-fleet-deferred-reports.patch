@@ -12,43 +12,35 @@
      /// A step's SHORT measurement, on the same stream as [`Self::score`];
      /// `None` = no screen, every candidate is measured in full.
      fn screen(&self, _bs: &[Self::Build]) -> Option<Vec<Score>> {
-@@ -425,15 +430,22 @@
-     let mut answers: Vec<QuickAnswer<S::Build>> = Vec::new();
-     let mut failures = Vec::new();
+@@ -484,2 +489,3 @@
      let mut progress = Vec::with_capacity(starts.len());
 +    let mut paused = false;
      for (i, start) in starts.iter().enumerate() {
-         run.stats.starts += 1;
-         run.free.clear();
-         let out = run.descend(start);
-+        // A later start can clear pending() by reading a cached score. Keep
-+        // every pause: this call's answers are discarded if ANY start waits.
-+        paused |= space.has_pending_work();
-         progress.push(StartProgress { settled: out.is_err() || run.now.settled, ..run.now });
-         match out {
-             Err(why) => failures.push(QuickFailure { start: i, why }),
-             Ok((build, score, from, moves, cut)) => {
-                 run.stats.cut |= cut;
-+                if paused {
-+                    continue;
-+                }
-                 let id = space.identity(&build);
-                 match answers.iter_mut().find(|a| space.identity(&a.build) == id) {
-                     Some(a) => {
-@@ -446,6 +458,9 @@
-             }
-         }
+@@ -498,2 +504,6 @@
+             let out = run.descend(start, shape_last);
++            // A later start can clear pending() by reading a cached score.
++            // Keep every pause: this call's answers are discarded if ANY
++            // descent waits.
++            paused |= space.has_pending_work();
+             lane = StartProgress { settled: out.is_err() || run.now.settled, pass: k as u32 + 1, passes, ..run.now };
+@@ -506,3 +516,6 @@
+                 Ok((build, score, from, moves, cut)) => {
+                     run.stats.cut |= cut;
++                    if paused {
++                        continue;
++                    }
+                     let id = space.identity(&build);
+@@ -524,3 +537,6 @@
+         progress.push(lane);
      }
 +    if paused {
 +        return QuickRun { answers: Vec::new(), failures, stats: run.stats, progress, pool: Vec::new() };
 +    }
      rank_ties(&mut answers, |a| a.score, |a, b| space.prefer(&a.build, &b.build));
-     // THE SAME SCORE ON THE PAIRED STREAM IS THE SAME BUILD for the list
-     // ([`one_build`]): a utility exilus, or an evolution the engine does not
-@@ -565,6 +580,60 @@
+@@ -740,6 +756,60 @@
          assert_eq!(answers[1].build, [Some(0), Some(9), Some(9)], "a fixed position never moves");
      }
- 
+
 +    #[test]
 +    fn a_paused_start_does_not_build_a_report_even_if_a_later_start_clears_pending() {
 +        struct Deferred {
@@ -108,10 +100,10 @@
      /// by preference, so slot 1's 9 fits only once slot 0 is lowered — and the
 --- a/webapi/src/optimize/quick.rs
 +++ b/webapi/src/optimize/quick.rs
-@@ -577,6 +577,13 @@
+@@ -584,6 +584,13 @@
          self.lead && FLEET.with(|f| f.borrow().missed)
      }
- 
+
 +    fn has_pending_work(&self) -> bool {
 +        self.lead && FLEET.with(|f| {
 +            let f = f.borrow();
@@ -122,8 +114,8 @@
      /// Below two fights there is no spread to rank by, and at `runs` or more
      /// the screen is the full measurement — either way, no screen.
      fn screen(&self, bs: &[QBuild]) -> Option<Vec<Score>> {
-@@ -1112,6 +1119,11 @@
-             .map(|p| json!({ "settled": p.settled, "round": p.round, "at": p.at, "of": p.of }))
+@@ -1119,4 +1126,9 @@
+             .map(|p| json!({ "settled": p.settled, "pass": p.pass, "passes": p.passes, "round": p.round, "at": p.at, "of": p.of }))
              .collect();
          FLEET.with(|f| f.borrow_mut().progress = json!(rows));
 +        // The caller returns only pending/progress for this step. Building
@@ -132,5 +124,3 @@
 +            return (Vec::new(), Default::default(), QuickReport::default());
 +        }
      }
-     let mut report = QuickReport {
-         failures: failures.iter().map(|f| json!({ "start": global(f.start), "why": f.why })).collect(),
