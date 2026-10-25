@@ -7,19 +7,23 @@
  }
 --- a/engine/src/data/weapons/panel.rs
 +++ b/engine/src/data/weapons/panel.rs
-@@ -454,4 +454,4 @@
+@@ -1,2 +1,3 @@
+ use super::*;
+ 
++use std::sync::Mutex;
+@@ -454,4 +455,4 @@
          // draw" without a lookup — the two questions the Amp auras ask.
 -        class: Box::leak(s.class.clone().into_boxed_str()),
 -        slot: Box::leak(s.rules_slot().to_string().into_boxed_str()),
 +        class: raw.class.as_str(),
 +        slot: raw.rules_slot(),
          // Filled in by `apply_valence`; zero until then, and zero forever on a
-@@ -460,3 +460,3 @@
+@@ -460,3 +461,3 @@
          exalted: s.exalted,
 -        summoned_by: s.summoned_by.as_ref().map(|a| &*Box::leak(a.clone().into_boxed_str())),
 +        summoned_by: raw.summoned_by.as_deref(),
          // Zero until an evolution's flat add writes into it
-@@ -466,9 +466,9 @@
+@@ -466,9 +467,9 @@
          echo_multiplier: s.echo_multiplier,
 -        mod_pools: Box::leak(
 -            s.mod_pools
@@ -29,7 +33,7 @@
 -                .into_boxed_slice(),
 -        ),
 +        mod_pools: {
-+            static POOLS: OnceLock<std::sync::Mutex<BTreeMap<&'static str, &'static [&'static str]>>> = OnceLock::new();
++            static POOLS: OnceLock<Mutex<BTreeMap<&'static str, &'static [&'static str]>>> = OnceLock::new();
 +            let mut pools = POOLS.get_or_init(Default::default).lock().expect("panel pools");
 +            *pools.entry(raw.id.as_str()).or_insert_with(|| {
 +                Box::leak(raw.mod_pools.iter().map(String::as_str).collect::<Vec<_>>().into_boxed_slice())
