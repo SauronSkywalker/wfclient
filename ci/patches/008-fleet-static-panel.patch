@@ -7,10 +7,11 @@
  }
 --- a/engine/src/data/weapons/panel.rs
 +++ b/engine/src/data/weapons/panel.rs
-@@ -1,2 +1,3 @@
+@@ -1,3 +1,4 @@
  use super::*;
  
 +use std::sync::Mutex;
+ /// Build the RAW (no evolutions, no mods) [`WeaponBase`] panel for a weapon
 @@ -454,4 +455,4 @@
          // draw" without a lookup — the two questions the Amp auras ask.
 -        class: Box::leak(s.class.clone().into_boxed_str()),
